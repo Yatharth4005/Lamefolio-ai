@@ -29,10 +29,15 @@ export async function portfolioRoutes(fastify: FastifyInstance) {
       
       // Save to database if handle is real
       if (github_handle && github_handle !== 'manual_entry') {
+        const handle = github_handle;
         await db.savePortfolio({
-          user_handle: github_handle,
+          user_handle: handle,
           notion_url: result.url
         });
+
+        // Track usage (points)
+        await db.upsertUser(handle);
+        await db.decrementPoints(handle);
       }
 
       return reply.send({
@@ -190,6 +195,29 @@ export async function portfolioRoutes(fastify: FastifyInstance) {
       const { handle } = request.params as { handle: string };
       const portfolios = await db.getPortfolios(handle);
       return reply.send({ success: true, portfolios });
+    } catch (error: any) {
+      return reply.status(500).send({ error: error.message });
+    }
+  });
+
+  fastify.delete('/portfolios/:handle', async (request, reply) => {
+    try {
+      const { handle } = request.params as { handle: string };
+      await db.clearPortfolios(handle);
+      return reply.send({ success: true, message: `Portfolios cleared for ${handle}` });
+    } catch (error: any) {
+      return reply.status(500).send({ error: error.message });
+    }
+  });
+
+  // --- USER DATA ---
+  fastify.get('/user/:handle', async (request, reply) => {
+    try {
+      const { handle } = request.params as { handle: string };
+      // Ensure user exists
+      await db.upsertUser(handle);
+      const user = await db.getUser(handle);
+      return reply.send({ success: true, user });
     } catch (error: any) {
       return reply.status(500).send({ error: error.message });
     }

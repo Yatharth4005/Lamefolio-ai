@@ -86,7 +86,7 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
     },
   ]);
   
-  const { githubHandle, isGenerating, setIsGenerating, addNotification, displayName, generationCount, incrementGenerationCount, plan } = useGitHub();
+  const { githubHandle, isGenerating, setIsGenerating, addNotification, displayName, generationCount, incrementGenerationCount, plan, points } = useGitHub();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -132,7 +132,7 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
 
     // Case 2: Build intent
     if (isBuildIntent) {
-      if (plan === "Free" && generationCount >= 3) {
+      if (plan === "Free" && points <= 0) {
         setMessages((prev) => [
           ...prev,
           {
@@ -145,11 +145,12 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
         ]);
         return;
       }
+      
       // If we have a handle OR if the prompt is very long (assumed to contain details)
       if (githubHandle || currentInput.length > 50) {
         try {
           setIsGenerating(true);
-          const result = await generatePortfolio(githubHandle || "manual_entry", currentInput);
+          const result = await generatePortfolio(githubHandle || displayName || "manual_entry", currentInput);
           incrementGenerationCount();
           
           setMessages((prev) => [

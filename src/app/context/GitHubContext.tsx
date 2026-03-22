@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
+import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { getUserPortfolios, getUserData } from "../lib/api";
 
 interface GitHubRepo {
   name: string;
@@ -55,7 +56,8 @@ interface GitHubContextType {
 
   // Plan & Usage
   plan: "Free" | "Pro";
-  generationCount: number;
+  generationCount: number; // For Free plan, this shows 'points left' if we change logic
+  points: number;
   incrementGenerationCount: () => void;
 
   // Actions
@@ -94,12 +96,9 @@ export function GitHubProvider({ children }: { children: ReactNode }) {
     return saved ? JSON.parse(saved) : [];
   });
 
-  const [generationCount, setGenerationCount] = useState(() => {
-    const saved = localStorage.getItem("generation_count");
-    return saved ? parseInt(saved, 10) : 0;
-  });
-
-  const plan = "Free"; // Hardcoded for now as requested
+  const [generationCount, setGenerationCount] = useState(0);
+  const [points, setPoints] = useState(3);
+  const [plan, setPlan] = useState<"Free" | "Pro">("Free");
 
   // Persistent Effects GitHub
   useEffect(() => {
@@ -135,9 +134,29 @@ export function GitHubProvider({ children }: { children: ReactNode }) {
     localStorage.setItem("app_notifications", JSON.stringify(notifications));
   }, [notifications]);
 
+  // Sync generationCount / Points with Database
   useEffect(() => {
-    localStorage.setItem("generation_count", generationCount.toString());
-  }, [generationCount]);
+    const fetchUsage = async () => {
+      const handle = githubHandle || displayName;
+      if (!handle) return;
+      
+      try {
+        const userData = await getUserData(handle);
+        if (userData.success && userData.user) {
+          setPoints(userData.user.points);
+          setPlan(userData.user.plan);
+        }
+
+        const portfolioData = await getUserPortfolios(handle);
+        if (portfolioData.success && Array.isArray(portfolioData.portfolios)) {
+          setGenerationCount(portfolioData.portfolios.length);
+        }
+      } catch (error) {
+        console.error("Failed to fetch usage:", error);
+      }
+    };
+    fetchUsage();
+  }, [githubHandle, displayName, notifications]);
 
   const disconnectGitHub = () => {
     setToken(null);
@@ -207,6 +226,7 @@ export function GitHubProvider({ children }: { children: ReactNode }) {
         clearNotifications,
 
         plan,
+        points,
         generationCount,
         incrementGenerationCount: () => setGenerationCount(prev => prev + 1)
       }}

@@ -6,7 +6,7 @@ import { useNavigate } from "react-router";
 import { useGitHub } from "../context/GitHubContext";
 
 export function ModernHeader() {
-  const { user, isConnected, displayName, notifications, markNotificationRead, clearNotifications, disconnectGitHub, disconnectNotion, setDisplayName, generationCount, plan } = useGitHub();
+  const { user, isConnected, displayName, notifications, markNotificationRead, clearNotifications, disconnectGitHub, disconnectNotion, setDisplayName, generationCount, points, plan } = useGitHub();
   const navigate = useNavigate();
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
@@ -46,7 +46,7 @@ export function ModernHeader() {
         >
           <Sparkles className="w-4 h-4 text-purple-400" />
           <span className="text-sm font-medium text-white/90">
-            {plan === "Free" ? `${3 - generationCount} / 3 Credits` : "Unlimited Credits"}
+            {plan === "Free" ? `${points} / 3 Credits` : "Unlimited Credits"}
           </span>
         </motion.button>
 

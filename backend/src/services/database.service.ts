@@ -36,6 +36,17 @@ export class DatabaseService {
           created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
         );
       `;
+
+      await this.sql`
+        CREATE TABLE IF NOT EXISTS users (
+          id SERIAL PRIMARY KEY,
+          handle TEXT UNIQUE NOT NULL,
+          display_name TEXT,
+          points INTEGER DEFAULT 3,
+          plan TEXT DEFAULT 'Free',
+          created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+        );
+      `;
       console.log('✅ Database initialized successfully');
     } catch (error) {
       console.error('❌ Failed to initialize database:', error);
@@ -57,4 +68,38 @@ export class DatabaseService {
         ORDER BY created_at DESC
      `;
   }
+
+  async clearPortfolios(user_handle: string) {
+     return this.sql`
+        DELETE FROM portfolios 
+        WHERE user_handle = ${user_handle}
+     `;
+  }
+
+   // User Management
+   async upsertUser(handle: string, displayName?: string) {
+      return this.sql`
+        INSERT INTO users (handle, display_name)
+        VALUES (${handle}, ${displayName || null})
+        ON CONFLICT (handle) DO UPDATE SET
+          display_name = EXCLUDED.display_name
+        RETURNING *
+      `;
+   }
+
+   async getUser(handle: string) {
+      const results = await this.sql`
+        SELECT * FROM users WHERE handle = ${handle}
+      `;
+      return results[0] || null;
+   }
+
+   async decrementPoints(handle: string) {
+      return this.sql`
+        UPDATE users 
+        SET points = GREATEST(0, points - 1)
+        WHERE handle = ${handle}
+        RETURNING *
+      `;
+   }
 }

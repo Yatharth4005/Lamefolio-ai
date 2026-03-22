@@ -116,3 +116,9 @@ export async function getUserPortfolios(handle: string) {
   if (!response.ok) throw new Error("Failed to fetch portfolios");
   return response.json();
 }
+
+export async function getUserData(handle: string) {
+  const response = await fetch(`${API_BASE_URL}/user/${handle}`);
+  if (!response.ok) throw new Error("Failed to fetch user data");
+  return response.json();
+}
