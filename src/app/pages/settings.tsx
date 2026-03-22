@@ -1,9 +1,23 @@
 import { User, Bell, Palette, Globe, Lock, CreditCard, Shield, LogOut, Sparkles, Crown } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "motion/react";
+import { useParams, useNavigate } from "react-router";
 
 export function SettingsPage() {
-  const [activeSection, setActiveSection] = useState("profile");
+  const { tab } = useParams();
+  const navigate = useNavigate();
+  const [activeSection, setActiveSection] = useState(tab || "profile");
+
+  useEffect(() => {
+    if (tab) {
+      setActiveSection(tab);
+    }
+  }, [tab]);
+
+  const handleSectionChange = (sectionId: string) => {
+    setActiveSection(sectionId);
+    navigate(`/settings/${sectionId}`);
+  };
 
   const sections = [
     { id: "profile", label: "Profile", icon: User },
@@ -44,7 +58,7 @@ export function SettingsPage() {
               {sections.map((section) => (
                 <motion.button
                   key={section.id}
-                  onClick={() => setActiveSection(section.id)}
+                  onClick={() => handleSectionChange(section.id)}
                   whileHover={{ x: 4 }}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
                     activeSection === section.id

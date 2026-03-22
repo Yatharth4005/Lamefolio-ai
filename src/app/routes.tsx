@@ -14,6 +14,7 @@ export const router = createBrowserRouter([
       { path: "portfolio-builder", Component: PortfolioBuilderPage },
       { path: "integrations", Component: IntegrationsPage },
       { path: "settings", Component: SettingsPage },
+      { path: "settings/:tab", Component: SettingsPage },
     ],
   },
 ]);

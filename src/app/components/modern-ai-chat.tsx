@@ -166,7 +166,7 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
             id: (Date.now() + 1).toString(),
             role: "ai",
             content: "You've reached your limit of 3 portfolio generations on the **Free Plan**! Upgrading to **Pro** gives you unlimited generations, custom domains, and more. Would you like to check out our plans?",
-            actionUrl: "/settings",
+            actionUrl: "/settings/billing",
             timestamp: new Date(),
           },
         ]);
@@ -340,7 +340,7 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
                       className="mt-8 w-full py-5 bg-white text-black rounded-2xl text-[11px] font-black uppercase tracking-[0.2em] flex items-center justify-center gap-3 shadow-2xl hover:bg-gray-100 transition-colors"
                     >
                       <ExternalLink className="w-4 h-4" />
-                      {message.actionUrl === "/settings" ? "Upgrade to Pro" : "Manifest in Notion"}
+                      {message.actionUrl === "/settings/billing" ? "UPGRADE TO PRO" : "Manifest in Notion"}
                     </motion.button>
                   )}
                 </div>

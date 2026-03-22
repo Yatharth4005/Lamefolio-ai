@@ -40,7 +40,7 @@ export function ModernHeader() {
       <div className="flex items-center gap-3">
         {/* AI Credits Badge */}
         <motion.button 
-          onClick={() => navigate("/billing")}
+          onClick={() => navigate("/settings/billing")}
           whileHover={{ scale: 1.05 }}
           className="hidden md:flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500/10 to-blue-500/10 border border-purple-500/20 rounded-xl"
         >
