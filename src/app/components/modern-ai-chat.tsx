@@ -86,7 +86,7 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
     },
   ]);
   
-  const { githubHandle, isGenerating, setIsGenerating } = useGitHub();
+  const { githubHandle, isGenerating, setIsGenerating, addNotification, displayName } = useGitHub();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -150,6 +150,11 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
               timestamp: new Date(),
             },
           ]);
+          addNotification({
+            message: `Hey ${displayName || "Creator"}, your Notion site is ready!`,
+            type: "success",
+            actionUrl: result.url
+          });
           toast.success("Portfolio Manifested!");
         } catch (error: any) {
           setMessages((prev) => [

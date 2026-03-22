@@ -23,6 +23,15 @@ interface NotionWorkspace {
   avatar: string;
 }
 
+export interface AppNotification {
+  id: string;
+  message: string;
+  type: "success" | "info" | "error";
+  actionUrl?: string;
+  timestamp: string;
+  read: boolean;
+}
+
 interface GitHubContextType {
   // GitHub
   githubHandle: string;
@@ -47,6 +56,12 @@ interface GitHubContextType {
   // Actions
   disconnectGitHub: () => void;
   disconnectNotion: () => void;
+
+  // Notifications
+  notifications: AppNotification[];
+  addNotification: (n: Omit<AppNotification, "id" | "timestamp" | "read">) => void;
+  markNotificationRead: (id: string) => void;
+  clearNotifications: () => void;
 }
 
 const GitHubContext = createContext<GitHubContextType | undefined>(undefined);
@@ -67,6 +82,11 @@ export function GitHubProvider({ children }: { children: ReactNode }) {
   const [notionWorkspace, setNotionWorkspace] = useState<NotionWorkspace | null>(() => {
     const saved = localStorage.getItem("notion_workspace");
     return saved ? JSON.parse(saved) : null;
+  });
+
+  const [notifications, setNotifications] = useState<AppNotification[]>(() => {
+    const saved = localStorage.getItem("app_notifications");
+    return saved ? JSON.parse(saved) : [];
   });
 
   // Persistent Effects GitHub
@@ -99,6 +119,10 @@ export function GitHubProvider({ children }: { children: ReactNode }) {
     else localStorage.removeItem("notion_workspace");
   }, [notionWorkspace]);
 
+  useEffect(() => {
+    localStorage.setItem("app_notifications", JSON.stringify(notifications));
+  }, [notifications]);
+
   const disconnectGitHub = () => {
     setToken(null);
     setUser(null);
@@ -115,6 +139,24 @@ export function GitHubProvider({ children }: { children: ReactNode }) {
     setNotionWorkspace(null);
     localStorage.removeItem("notion_token");
     localStorage.removeItem("notion_workspace");
+  };
+
+  const addNotification = (n: Omit<AppNotification, "id" | "timestamp" | "read">) => {
+    const newNotif: AppNotification = {
+      ...n,
+      id: Math.random().toString(36).substring(2, 9),
+      timestamp: new Date().toISOString(),
+      read: false
+    };
+    setNotifications(prev => [newNotif, ...prev]);
+  };
+
+  const markNotificationRead = (id: string) => {
+    setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
+  };
+
+  const clearNotifications = () => {
+    setNotifications([]);
   };
 
   return (
@@ -139,7 +181,12 @@ export function GitHubProvider({ children }: { children: ReactNode }) {
         isNotionConnected: !!notionToken,
 
         disconnectGitHub,
-        disconnectNotion
+        disconnectNotion,
+
+        notifications,
+        addNotification,
+        markNotificationRead,
+        clearNotifications
       }}
     >
       {children}
