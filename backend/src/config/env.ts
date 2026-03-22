@@ -6,8 +6,12 @@ dotenv.config();
 const envSchema = z.object({
   GEMINI_API_KEY: z.string(),
   GITHUB_TOKEN: z.string().optional(),
+  GITHUB_CLIENT_ID: z.string().default(''),
+  GITHUB_CLIENT_SECRET: z.string().default(''),
   NOTION_TOKEN: z.string().optional(),
   NOTION_PAGE_ID: z.string().optional(),
+  NOTION_CLIENT_ID: z.string().default(''),
+  NOTION_CLIENT_SECRET: z.string().default(''),
   PORT: z.coerce.number().default(5000),
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
 });

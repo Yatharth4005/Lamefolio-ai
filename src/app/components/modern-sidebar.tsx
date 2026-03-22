@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "motion/react";
 const navItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/" },
   { icon: Wand2, label: "Portfolio Builder", path: "/portfolio-builder" },
-  { icon: GitBranch, label: "GitHub Sync", path: "/github-sync" },
+  { icon: GitBranch, label: "Integrations", path: "/integrations" },
   { icon: Settings, label: "Settings", path: "/settings" },
 ];
 

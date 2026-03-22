@@ -11,9 +11,9 @@ export function DashboardPage() {
 
       {/* Main Dashboard Interaction Area */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-12">
-        {/* Left: Quick Actions & Sync */}
-        <div className="lg:col-span-4 flex flex-col gap-6 ">
-          <ModernGitHubSync />
+        {/* Left: Quick Actions & Navigation */}
+        <div className="lg:col-span-4 flex flex-col gap-6">
+           {/* We can put a placeholder or nothing here for now */}
         </div>
 
         {/* Right: Detailed Performance */}

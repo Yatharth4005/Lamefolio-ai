@@ -1,13 +1,35 @@
 import { Client } from '@notionhq/client';
+import axios from 'axios';
 import { env } from '../../config/env.js';
 
 export class NotionService {
   private notion;
 
-  constructor() {
+  constructor(token?: string) {
     this.notion = new Client({
-      auth: env.NOTION_TOKEN,
+      auth: token || env.NOTION_TOKEN,
     });
+  }
+
+  async getAccessToken(code: string) {
+    const auth = Buffer.from(`${env.NOTION_CLIENT_ID}:${env.NOTION_CLIENT_SECRET}`).toString('base64');
+    
+    const response = await axios.post(
+      'https://api.notion.com/v1/oauth/token',
+      {
+        grant_type: 'authorization_code',
+        code,
+        redirect_uri: 'http://localhost:5000/api/auth/notion/callback',
+      },
+      {
+        headers: {
+          Authorization: `Basic ${auth}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    return response.data;
   }
 
   async createPage(parentPageId: string, title: string, blocks: any[]) {
@@ -35,9 +57,9 @@ export class NotionService {
   }
 
   async appendBlocks(pageId: string, blocks: any[]) {
-     return this.notion.blocks.children.append({
-        block_id: pageId,
-        children: blocks
-     });
+      return this.notion.blocks.children.append({
+         block_id: pageId,
+         children: blocks
+      });
   }
 }

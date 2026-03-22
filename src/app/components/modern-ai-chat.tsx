@@ -56,77 +56,98 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
 
     // Identify intent (simple logic)
     const lowerInput = currentInput.toLowerCase();
-    const isBuildIntent = lowerInput.includes("build") || lowerInput.includes("portfolio") || lowerInput.includes("create");
+    const isBuildIntent = lowerInput.includes("build") || lowerInput.includes("portfolio") || lowerInput.includes("create") || lowerInput.includes("make");
+    const isGithubIntent = lowerInput.includes("github") || lowerInput.includes("analyze") || lowerInput.includes("sync");
 
-    if (!githubHandle) {
+    // Case 1: Github intent but no handle
+    if (isGithubIntent && !githubHandle) {
       setMessages((prev) => [
         ...prev,
         {
           id: (Date.now() + 1).toString(),
           role: "ai",
-          content: "I'd love to help, but I need your GitHub handle first! Please enter it in the 'GitHub Integration' section on the Dashboard.",
+          content: "I'd love to analyze your GitHub, but you haven't connected your account yet! Please head over to the **GitHub Sync** page to set your handle, and then we can build something amazing together.",
           timestamp: new Date(),
         },
       ]);
       return;
     }
 
+    // Case 2: Build intent
     if (isBuildIntent) {
-      try {
-        setIsGenerating(true);
-        const result = await generatePortfolio(githubHandle, currentInput);
-        
+      // If we have a handle OR if the prompt is very long (assumed to contain details)
+      if (githubHandle || currentInput.length > 50) {
+        try {
+          setIsGenerating(true);
+          const result = await generatePortfolio(githubHandle || "manual_entry", currentInput);
+          
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: (Date.now() + 1).toString(),
+              role: "ai",
+              content: githubHandle 
+                ? "Excellent news! I've analyzed your GitHub and built your portfolio in Notion. You can view it using the link below:"
+                : "I've processed the details you provided and generated your Notion portfolio! Check it out here:",
+              actionUrl: result.url,
+              timestamp: new Date(),
+            },
+          ]);
+          toast.success("Portfolio Manifested!");
+        } catch (error: any) {
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: (Date.now() + 1).toString(),
+              role: "ai",
+              content: `I ran into an issue: ${error.message}. Please check your connection and try again.`,
+              timestamp: new Date(),
+            },
+          ]);
+        } finally {
+          setIsGenerating(false);
+        }
+      } else {
+        // Build intent but no data
         setMessages((prev) => [
           ...prev,
           {
             id: (Date.now() + 1).toString(),
             role: "ai",
-            content: "Excellent news! I've analyzed your GitHub and built your portfolio in Notion. You can view it using the link below:",
-            actionUrl: result.url,
+            content: "I can build your portfolio in two ways:\n\n1. **GitHub Integration**: Connect your account on the Dashboard to auto-fetch your projects.\n2. **Direct Details**: Paste your resume or bio here, and I'll structure it for you immediately!\n\nWhich one would you prefer?",
             timestamp: new Date(),
           },
         ]);
-        toast.success("Portfolio Generated!");
-      } catch (error: any) {
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: (Date.now() + 1).toString(),
-            role: "ai",
-            content: `I ran into an issue: ${error.message}. Please check your connection and try again.`,
-            timestamp: new Date(),
-          },
-        ]);
-      } finally {
-        setIsGenerating(false);
       }
-    } else {
-      try {
-        setIsGenerating(true);
-        const responseText = await getChatResponse(currentInput);
-        
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: Date.now().toString(),
-            role: "ai",
-            content: responseText,
-            timestamp: new Date(),
-          },
-        ]);
-      } catch (error: any) {
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: Date.now().toString(),
-            role: "ai",
-            content: "I'm having trouble connecting to my brain right now. Can we try again in a moment?",
-            timestamp: new Date(),
-          },
-        ]);
-      } finally {
-        setIsGenerating(false);
-      }
+      return;
+    }
+
+    // Case 3: General Chat
+    try {
+      setIsGenerating(true);
+      const responseText = await getChatResponse(currentInput);
+      
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: Date.now().toString(),
+          role: "ai",
+          content: responseText,
+          timestamp: new Date(),
+        },
+      ]);
+    } catch (error: any) {
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: Date.now().toString(),
+          role: "ai",
+          content: "I'm having trouble connecting to my brain right now. Can we try again in a moment?",
+          timestamp: new Date(),
+        },
+      ]);
+    } finally {
+      setIsGenerating(false);
     }
   };
 
@@ -263,13 +284,17 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
           </div>
         </div>
         <div className="flex justify-center gap-10 mt-8">
-          {[ "Build Portfolio", "Analyze GitHub", "Fix Design"].map((tag) => (
+          {[ 
+            { label: "Build Portfolio", prompt: "Build my portfolio using my GitHub data" },
+            { label: "Analyze GitHub", prompt: "Analyze my GitHub repositories" },
+            { label: "Direct Build", prompt: "Build my portfolio based on these details: [Paste Details Here]" }
+          ].map((tag) => (
              <button
-               key={tag}
-               onClick={() => setInput(tag)}
+               key={tag.label}
+               onClick={() => setInput(tag.prompt)}
                className="text-[10px] font-black uppercase tracking-[0.3em] text-white/20 hover:text-white transition-all duration-300 relative group"
              >
-               {tag}
+               {tag.label}
                <span className="absolute -bottom-1 left-0 w-0 h-[1px] bg-white transition-all group-hover:w-full" />
              </button>
           ))}

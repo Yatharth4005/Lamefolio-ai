@@ -2,7 +2,7 @@ import { createBrowserRouter } from "react-router";
 import { Layout } from "./components/layout";
 import { DashboardPage } from "./pages/dashboard";
 import { PortfolioBuilderPage } from "./pages/portfolio-builder";
-import { GitHubSyncPage } from "./pages/github-sync";
+import { IntegrationsPage } from "./pages/integrations";
 import { SettingsPage } from "./pages/settings";
 
 export const router = createBrowserRouter([
@@ -12,7 +12,7 @@ export const router = createBrowserRouter([
     children: [
       { index: true, Component: DashboardPage },
       { path: "portfolio-builder", Component: PortfolioBuilderPage },
-      { path: "github-sync", Component: GitHubSyncPage },
+      { path: "integrations", Component: IntegrationsPage },
       { path: "settings", Component: SettingsPage },
     ],
   },

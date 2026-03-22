@@ -13,7 +13,12 @@ export function ModernHero() {
     navigate("/portfolio-builder");
     
     if (!githubHandle) {
-      toast.info("Welcome! Please start by setting your GitHub handle in the Builder.");
+      toast.info("Welcome! Please start by connecting your GitHub in the Integrations page.", {
+        action: {
+          label: "Connect Now",
+          onClick: () => navigate("/integrations")
+        },
+      });
     } else {
       toast.success(`Redirecting to Builder for ${githubHandle}...`);
     }

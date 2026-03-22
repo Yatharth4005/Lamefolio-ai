@@ -68,3 +68,45 @@ export async function getChatResponse(message: string) {
   const result = await response.json();
   return result.data;
 }
+
+export async function getGitHubAuthUrl() {
+  const response = await fetch(`${API_BASE_URL}/auth/github/url`);
+  if (!response.ok) throw new Error("Failed to get GitHub Auth URL");
+  return response.json();
+}
+
+export async function handleGitHubCallback(code: string) {
+  const response = await fetch(`${API_BASE_URL}/auth/github/callback`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ code }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || "GitHub authentication failed");
+  }
+
+  return response.json();
+}
+
+export async function getNotionAuthUrl() {
+  const response = await fetch(`${API_BASE_URL}/auth/notion/url`);
+  if (!response.ok) throw new Error("Failed to get Notion Auth URL");
+  return response.json();
+}
+
+export async function handleNotionCallback(code: string) {
+  const response = await fetch(`${API_BASE_URL}/auth/notion/callback`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ code }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || "Notion authentication failed");
+  }
+
+  return response.json();
+}

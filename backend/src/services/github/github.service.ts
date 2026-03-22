@@ -1,13 +1,59 @@
 import { Octokit } from '@octokit/rest';
+import axios from 'axios';
 import { env } from '../../config/env.js';
 
 export class GitHubService {
   private octokit;
 
-  constructor() {
+  constructor(token?: string) {
     this.octokit = new Octokit({
-      auth: env.GITHUB_TOKEN,
+      auth: token || env.GITHUB_TOKEN,
     });
+  }
+
+  async getAccessToken(code: string) {
+    const response = await axios.post(
+      'https://github.com/login/oauth/access_token',
+      {
+        client_id: env.GITHUB_CLIENT_ID,
+        client_secret: env.GITHUB_CLIENT_SECRET,
+        code,
+      },
+      {
+        headers: {
+          Accept: 'application/json',
+        },
+      }
+    );
+
+    if (response.data.error) {
+      throw new Error(`GitHub Auth Error: ${response.data.error_description}`);
+    }
+
+    return response.data.access_token;
+  }
+
+  async getUserProfile(token: string) {
+    const octokit = new Octokit({ auth: token });
+    const [{ data: user }, { data: repos }] = await Promise.all([
+      octokit.rest.users.getAuthenticated(),
+      octokit.rest.repos.listForAuthenticatedUser({ sort: 'updated', per_page: 10 })
+    ]);
+
+    return {
+      username: user.login,
+      avatar: user.avatar_url,
+      bio: user.bio,
+      repos: repos.map(repo => ({
+        name: repo.name,
+        description: repo.description,
+        language: repo.language,
+        stars: repo.stargazers_count,
+        forks: repo.forks_count,
+        url: repo.html_url,
+        updated_at: repo.updated_at,
+      }))
+    };
   }
 
   async getRepoMetadata(username: string) {
