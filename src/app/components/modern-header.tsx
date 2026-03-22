@@ -4,7 +4,7 @@ import { motion } from "motion/react";
 
 export function ModernHeader() {
   return (
-    <header className="h-16 backdrop-blur-xl border-b border-white/[0.08] flex items-center justify-between px-6 sticky top-0 z-40"
+    <header className="h-16 backdrop-blur-md border-b border-white/[0.08] flex items-center justify-between px-6 sticky top-0 z-40"
       style={{ background: "rgba(19, 19, 26, 0.6)" }}
     >
       {/* Search / Command Palette */}

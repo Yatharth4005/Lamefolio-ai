@@ -19,7 +19,7 @@ export function ModernSidebar() {
       initial={false}
       animate={{ width: collapsed ? 80 : 240 }}
       transition={{ duration: 0.3, ease: "easeInOut" }}
-      className="h-screen relative backdrop-blur-xl border-r border-white/[0.08] flex flex-col"
+      className="h-screen relative backdrop-blur-md border-r border-white/[0.08] flex flex-col"
       style={{
         background: "rgba(19, 19, 26, 0.6)",
       }}

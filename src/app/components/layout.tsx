@@ -17,7 +17,7 @@ export function Layout() {
         <ModernHeader />
 
         {/* Page Content */}
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1 overflow-y-auto" style={{ willChange: "transform" }}>
           <Outlet />
         </main>
       </div>

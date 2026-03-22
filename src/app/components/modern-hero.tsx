@@ -121,7 +121,7 @@ export function ModernHero() {
 
             {/* Decorative Icon */}
             <div className="hidden lg:block">
-              <div className="w-48 h-48 bg-white/10 rounded-[3rem] backdrop-blur-xl border border-white/20 flex items-center justify-center rotate-6 animate-pulse">
+              <div className="w-48 h-48 bg-white/10 rounded-[3rem] backdrop-blur-md border border-white/20 flex items-center justify-center rotate-6 animate-pulse" style={{ willChange: "transform, opacity" }}>
                 <Sparkles className="w-20 h-20 text-white/40" />
               </div>
             </div>

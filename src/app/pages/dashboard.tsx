@@ -14,12 +14,20 @@ export function DashboardPage() {
         {/* Right: Detailed Performance */}
         <div className="lg:col-span-12">
            <div className="mb-8 p-12 bg-gradient-to-br from-white/[0.03] to-transparent border border-white/[0.05] rounded-[3rem] shadow-2xl overflow-hidden relative group">
-              <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-purple-500/10 blur-[120px] rounded-full -mr-40 -mt-40 transition-opacity opacity-50 group-hover:opacity-100" />
+              <div 
+                className="absolute top-0 right-0 w-[400px] h-[400px] bg-purple-500/10 blur-[80px] rounded-full -mr-40 -mt-40 transition-opacity opacity-50 group-hover:opacity-100" 
+                style={{ willChange: "opacity" }}
+              />
               <div className="relative z-10">
                 <div className="mb-10 text-center lg:text-left">
                   <h2 className="text-3xl font-black text-white tracking-tight flex items-center gap-4 justify-center lg:justify-start">
                     Performance Snapshot
-                    <div className="px-3 py-1 bg-green-500/10 border border-green-500/20 rounded-full text-[10px] uppercase font-black text-green-400 animate-pulse">Live</div>
+                    <div 
+                      className="px-3 py-1 bg-green-500/10 border border-green-500/20 rounded-full text-[10px] uppercase font-black text-green-400 animate-pulse"
+                      style={{ willChange: "opacity" }}
+                    >
+                      Live
+                    </div>
                   </h2>
                   <p className="text-white/40 text-lg mt-3 max-w-xl">
                     Real-time synchronization metrics across your entire Notion ecosystem.
