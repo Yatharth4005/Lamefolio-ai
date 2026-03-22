@@ -110,3 +110,9 @@ export async function handleNotionCallback(code: string) {
 
   return response.json();
 }
+
+export async function getUserPortfolios(handle: string) {
+  const response = await fetch(`${API_BASE_URL}/portfolios/${handle}`);
+  if (!response.ok) throw new Error("Failed to fetch portfolios");
+  return response.json();
+}

@@ -12,6 +12,7 @@ const envSchema = z.object({
   NOTION_PAGE_ID: z.string().optional(),
   NOTION_CLIENT_ID: z.string().default(''),
   NOTION_CLIENT_SECRET: z.string().default(''),
+  NEON_DATABASE_URL: z.string().optional(),
   PORT: z.coerce.number().default(5000),
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
 });

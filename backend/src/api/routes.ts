@@ -3,12 +3,17 @@ import { OrchestratorService } from '../services/orchestrator.service.js';
 import { KnowledgeService } from '../services/knowledge.service.js';
 import { GitHubService } from '../services/github/github.service.js';
 import { NotionService } from '../services/notion/notion.service.js';
+import { DatabaseService } from '../services/database.service.js';
 import { env } from '../config/env.js';
 
 const orchestrator = new OrchestratorService();
 const knowledge = new KnowledgeService();
 const github = new GitHubService();
 const notion = new NotionService();
+const db = new DatabaseService();
+
+// Initialize DB schema
+db.init();
 
 export async function portfolioRoutes(fastify: FastifyInstance) {
   fastify.post('/portfolio/generate', async (request, reply) => {
@@ -20,8 +25,16 @@ export async function portfolioRoutes(fastify: FastifyInstance) {
       }
 
       console.log('--- Triggering Portfolio Generation ---');
-      const result = await orchestrator.generatePortfolio(github_handle, user_prompt || '');
+      const result = await orchestrator.generatePortfolio(github_handle, user_prompt);
       
+      // Save to database if handle is real
+      if (github_handle && github_handle !== 'manual_entry') {
+        await db.savePortfolio({
+          user_handle: github_handle,
+          notion_url: result.url
+        });
+      }
+
       return reply.send({
         success: true,
         data: result,
@@ -167,6 +180,17 @@ export async function portfolioRoutes(fastify: FastifyInstance) {
       });
     } catch (error: any) {
       console.error('❌ Notion Auth Failed:', error);
+      return reply.status(500).send({ error: error.message });
+    }
+  });
+
+  // --- PORTFOLIO LIST ---
+  fastify.get('/portfolios/:handle', async (request, reply) => {
+    try {
+      const { handle } = request.params as { handle: string };
+      const portfolios = await db.getPortfolios(handle);
+      return reply.send({ success: true, portfolios });
+    } catch (error: any) {
       return reply.status(500).send({ error: error.message });
     }
   });
