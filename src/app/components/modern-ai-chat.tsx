@@ -1,125 +1,278 @@
-import { Sparkles, Send, Zap, Loader2 } from "lucide-react";
-import { motion } from "motion/react";
-import { useState } from "react";
+import { Sparkles, Send, Zap, Loader2, User, Bot, ExternalLink, Globe } from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
+import { useState, useRef, useEffect } from "react";
 import { useGitHub } from "../context/GitHubContext";
-import { generatePortfolio } from "../lib/api";
+import { generatePortfolio, getChatResponse } from "../lib/api";
 import { toast } from "sonner";
 
-export function ModernAIChat() {
+interface Message {
+  id: string;
+  role: "user" | "ai";
+  content: string;
+  actionUrl?: string;
+  timestamp: Date;
+}
+
+interface ModernAIChatProps {
+  immersive?: boolean;
+}
+
+export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
   const [isFocused, setIsFocused] = useState(false);
-  const [prompt, setPrompt] = useState("");
+  const [input, setInput] = useState("");
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      id: "initial",
+      role: "ai",
+      content: "Hi there! I'm your AI Portfolio assistant. Just describe your work, or type 'build my portfolio' and I'll create a stunning Notion page for you!",
+      timestamp: new Date(),
+    },
+  ]);
+  
   const { githubHandle, isGenerating, setIsGenerating } = useGitHub();
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, isGenerating]);
 
   const handleSend = async () => {
+    if (!input.trim() || isGenerating) return;
+
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      role: "user",
+      content: input,
+      timestamp: new Date(),
+    };
+
+    setMessages((prev) => [...prev, userMessage]);
+    const currentInput = input;
+    setInput("");
+
+    // Identify intent (simple logic)
+    const lowerInput = currentInput.toLowerCase();
+    const isBuildIntent = lowerInput.includes("build") || lowerInput.includes("portfolio") || lowerInput.includes("create");
+
     if (!githubHandle) {
-      toast.error("Please configure your GitHub handle first!");
-      return;
-    }
-    if (!prompt) {
-      toast.error("Please describe your experience!");
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: (Date.now() + 1).toString(),
+          role: "ai",
+          content: "I'd love to help, but I need your GitHub handle first! Please enter it in the 'GitHub Integration' section on the Dashboard.",
+          timestamp: new Date(),
+        },
+      ]);
       return;
     }
 
-    try {
-      setIsGenerating(true);
-      toast.info("Generating your Notion portfolio... This might take a few seconds.");
-      
-      const result = await generatePortfolio(githubHandle, prompt);
-      
-      toast.success("Portfolio generated successfully!", {
-        description: "Your new portfolio is ready in Notion.",
-        action: {
-          label: "View Notion",
-          onClick: () => window.open(result.url, "_blank"),
-        },
-        duration: 10000,
-      });
-      setPrompt("");
-    } catch (error: any) {
-      toast.error("Generation failed", {
-        description: error.message,
-      });
-    } finally {
-      setIsGenerating(false);
+    if (isBuildIntent) {
+      try {
+        setIsGenerating(true);
+        const result = await generatePortfolio(githubHandle, currentInput);
+        
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: (Date.now() + 1).toString(),
+            role: "ai",
+            content: "Excellent news! I've analyzed your GitHub and built your portfolio in Notion. You can view it using the link below:",
+            actionUrl: result.url,
+            timestamp: new Date(),
+          },
+        ]);
+        toast.success("Portfolio Generated!");
+      } catch (error: any) {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: (Date.now() + 1).toString(),
+            role: "ai",
+            content: `I ran into an issue: ${error.message}. Please check your connection and try again.`,
+            timestamp: new Date(),
+          },
+        ]);
+      } finally {
+        setIsGenerating(false);
+      }
+    } else {
+      try {
+        setIsGenerating(true);
+        const responseText = await getChatResponse(currentInput);
+        
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: Date.now().toString(),
+            role: "ai",
+            content: responseText,
+            timestamp: new Date(),
+          },
+        ]);
+      } catch (error: any) {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: Date.now().toString(),
+            role: "ai",
+            content: "I'm having trouble connecting to my brain right now. Can we try again in a moment?",
+            timestamp: new Date(),
+          },
+        ]);
+      } finally {
+        setIsGenerating(false);
+      }
     }
   };
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className="relative group"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className={`relative flex flex-col bg-[#0D0D0D] border-x border-white/[0.05] overflow-hidden w-full ${
+        immersive ? "h-full" : "h-[500px] rounded-[2rem] border border-white/[0.08]"
+      }`}
     >
-      {/* Glow effect on focus */}
-      {(isFocused || isGenerating) && (
-        <div className="absolute -inset-[1px] bg-gradient-to-r from-purple-500 to-blue-500 rounded-2xl blur-xl opacity-30 animate-pulse" />
-      )}
-      
-      <div className="relative backdrop-blur-xl bg-white/[0.03] border border-white/[0.08] rounded-2xl p-6 overflow-hidden">
-        {/* Gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-        
-        <div className="relative z-10">
-          <div className="flex items-start gap-4 mb-4">
-            <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-blue-500 rounded-xl flex items-center justify-center relative flex-shrink-0">
-              <div className="absolute inset-0 bg-gradient-to-br from-purple-500 to-blue-500 rounded-xl blur-lg opacity-50" />
-              <Sparkles className="w-6 h-6 text-white relative z-10" />
-            </div>
-            <div className="flex-1">
-              <h3 className="text-lg font-semibold text-white mb-1 tracking-tight">
-                AI Portfolio Assistant
-              </h3>
-              <p className="text-sm text-white/50">
-                Describe your experience and I'll craft your perfect portfolio
-              </p>
-            </div>
-            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-500/10 border border-purple-500/20 rounded-lg">
-              <Zap className="w-3.5 h-3.5 text-purple-400" />
-              <span className="text-xs font-medium text-purple-400">Powered by Gemini 1.5</span>
-            </div>
-          </div>
+      {/* Immersive Header - Integrated Dashboard info */}
+      <div className="flex items-center justify-between px-6 py-6 border-b border-white/[0.08] bg-white/[0.01]">
+        <div className="flex items-center gap-5">
+           <div className={`flex flex-col ${immersive ? "" : "hidden"}`}>
+              <h1 className="text-xl font-bold text-white tracking-tight">AI Workspace</h1>
+           </div>
+           
+           {!immersive && (
+             <div className="flex items-center gap-4">
+                <div className="w-10 h-10 bg-purple-500/10 rounded-xl flex items-center justify-center">
+                  <Sparkles className="w-5 h-5 text-purple-400" />
+                </div>
+                <h3 className="text-sm font-bold text-white">Assistant</h3>
+             </div>
+           )}
+        </div>
 
-          <div className="relative">
-            <textarea
-              placeholder="E.g., I'm a full-stack developer specializing in React and Node.js with 5 years of experience building scalable web applications..."
-              className="w-full px-5 py-4 bg-white/[0.02] border border-white/[0.08] rounded-xl text-sm text-white placeholder:text-white/30 resize-none focus:outline-none focus:border-purple-500/50 focus:bg-white/[0.03] transition-all duration-200"
-              rows={4}
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
+        <div className="flex items-center gap-6">
+           {immersive && githubHandle && (
+              <div className="hidden sm:flex items-center gap-2 px-4 py-2 bg-white/[0.03] border border-white/[0.08] rounded-xl">
+                 <Globe className="w-3.5 h-3.5 text-white/40" />
+                 <span className="text-xs text-white/60 font-medium">@{githubHandle}</span>
+              </div>
+           )}
+           <div className="flex items-center gap-2 px-4 py-2 bg-purple-500/10 border border-purple-500/20 rounded-xl relative group overflow-hidden">
+            <div className="absolute inset-0 bg-purple-500/10 group-hover:bg-purple-500/20 transition-colors" />
+            <Zap className="w-4 h-4 text-purple-400 font-bold relative z-10" />
+            <span className="text-xs font-black text-purple-400 uppercase tracking-widest leading-none pt-0.5 relative z-10">Gemini 2.5 Flash</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Messages Area - Larger padding for Full Page */}
+      <div className="flex-1 overflow-y-auto px-6 py-10 space-y-8 custom-scrollbar scroll-smooth">
+        <AnimatePresence initial={false}>
+          {messages.map((message) => (
+            <motion.div
+              key={message.id}
+              initial={{ opacity: 0, y: 30, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ duration: 0.4, type: "spring", bounce: 0.3 }}
+              className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
+            >
+              <div className={`flex gap-5 max-w-[85%] ${message.role === "user" ? "flex-row-reverse" : ""}`}>
+                <div className={`w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-xl ${
+                  message.role === "user" ? "bg-white/10 border border-white/10" : "bg-white text-black"
+                }`}>
+                  {message.role === "user" ? <User className="w-5 h-5" /> : <Bot className="w-5 h-5" />}
+                </div>
+                <div className={`p-6 rounded-[1.8rem] text-[15px] leading-[1.6] shadow-md ${
+                  message.role === "user" 
+                    ? "bg-[#1A1A1A] border border-white/10 text-white/90 rounded-tr-none" 
+                    : "bg-[#111111] border border-white/5 text-white/80 rounded-tl-none font-medium"
+                }`}>
+                  {message.content}
+                  
+                  {message.actionUrl && (
+                    <motion.button
+                      whileHover={{ scale: 1.02, y: -2 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => window.open(message.actionUrl, "_blank")}
+                      className="mt-8 w-full py-5 bg-white text-black rounded-2xl text-[11px] font-black uppercase tracking-[0.2em] flex items-center justify-center gap-3 shadow-2xl hover:bg-gray-100 transition-colors"
+                    >
+                      <ExternalLink className="w-4 h-4" />
+                      Manifest in Notion
+                    </motion.button>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </AnimatePresence>
+        
+        {isGenerating && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="flex justify-start"
+          >
+            <div className="flex gap-5">
+              <div className="w-11 h-11 rounded-2xl bg-white text-black flex items-center justify-center shadow-xl">
+                <Loader2 className="w-5 h-5 animate-spin" />
+              </div>
+              <div className="bg-[#111111] border border-white/5 p-6 rounded-[1.8rem] rounded-tl-none">
+                <div className="flex gap-2.5">
+                  <span className="w-2.5 h-2.5 bg-white/60 rounded-full animate-bounce [animation-delay:-0.3s]" />
+                  <span className="w-2.5 h-2.5 bg-white/40 rounded-full animate-bounce [animation-delay:-0.15s]" />
+                  <span className="w-2.5 h-2.5 bg-white/20 rounded-full animate-bounce" />
+                </div>
+                <p className="text-[10px] text-white/30 font-black uppercase mt-4 tracking-[0.4em]">Optimizing Neurons...</p>
+              </div>
+            </div>
+          </motion.div>
+        )}
+        <div ref={messagesEndRef} />
+      </div>
+
+      {/* Immersive Input bar */}
+      <div className="p-6 bg-white/[0.01] border-t border-white/[0.05]">
+        <div className="relative group w-full">
+          <div className="absolute -inset-1.5 bg-gradient-to-r from-purple-500/20 to-blue-500/20 rounded-[2.5rem] blur-2xl opacity-0 group-focus-within:opacity-100 transition-opacity duration-700" />
+          <div className="relative flex items-center gap-4">
+            <input
+              type="text"
+              placeholder="Tell me about your career or 'build me a portfolio'..."
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleSend()}
               onFocus={() => setIsFocused(true)}
               onBlur={() => setIsFocused(false)}
               disabled={isGenerating}
+              className="flex-1 bg-[#1A1A1A] border border-white/[0.08] rounded-[1.8rem] px-8 py-6 text-[15px] text-white placeholder:text-white/20 focus:outline-none focus:border-white/30 transition-all font-medium shadow-inner"
             />
             <motion.button
-              whileHover={{ scale: 1.05 }}
+              whileHover={{ scale: 1.05, rotate: 5 }}
               whileTap={{ scale: 0.95 }}
               onClick={handleSend}
-              disabled={isGenerating}
-              className="absolute bottom-4 right-4 p-3 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-xl hover:shadow-lg hover:shadow-purple-500/50 transition-all group disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={isGenerating || !input.trim()}
+              className="p-6 bg-white text-black rounded-2xl shadow-2xl disabled:opacity-20 disabled:grayscale transition-all flex items-center justify-center group/btn"
             >
-              <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-blue-500 rounded-xl blur-lg opacity-0 group-hover:opacity-50 transition-opacity" />
-              {isGenerating ? (
-                <Loader2 className="w-4 h-4 relative z-10 animate-spin" />
-              ) : (
-                <Send className="w-4 h-4 relative z-10" />
-              )}
+              <Send className="w-6 h-6 group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1 transition-transform" />
             </motion.button>
           </div>
-
-          {/* Quick suggestions */}
-          <div className="flex flex-wrap gap-2 mt-4">
-            {["Add Skills", "Import from LinkedIn", "Analyze GitHub"].map((suggestion) => (
-              <motion.button
-                key={suggestion}
-                whileHover={{ scale: 1.05, y: -2 }}
-                whileTap={{ scale: 0.95 }}
-                className="px-3 py-1.5 text-xs font-medium text-white/60 bg-white/[0.02] border border-white/[0.08] rounded-lg hover:text-white hover:bg-white/[0.05] hover:border-purple-500/30 transition-all"
-              >
-                {suggestion}
-              </motion.button>
-            ))}
-          </div>
+        </div>
+        <div className="flex justify-center gap-10 mt-8">
+          {[ "Build Portfolio", "Analyze GitHub", "Fix Design"].map((tag) => (
+             <button
+               key={tag}
+               onClick={() => setInput(tag)}
+               className="text-[10px] font-black uppercase tracking-[0.3em] text-white/20 hover:text-white transition-all duration-300 relative group"
+             >
+               {tag}
+               <span className="absolute -bottom-1 left-0 w-0 h-[1px] bg-white transition-all group-hover:w-full" />
+             </button>
+          ))}
         </div>
       </div>
     </motion.div>

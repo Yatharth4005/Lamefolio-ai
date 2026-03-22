@@ -51,3 +51,20 @@ export async function syncKnowledge(content: string, category?: string) {
 
   return response.json();
 }
+
+export async function getChatResponse(message: string) {
+  const response = await fetch(`${API_BASE_URL}/chat`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ message }),
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to get chat response");
+  }
+
+  const result = await response.json();
+  return result.data;
+}

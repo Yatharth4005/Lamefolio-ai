@@ -43,12 +43,20 @@ export class GeminiService {
     const text = response.text();
     
     try {
-      // Basic JSON cleanup if LLM adds backticks
       return JSON.parse(text.replace(/```json|```/g, '').trim());
     } catch (e) {
       console.error('Failed to parse AI output:', text);
       throw new Error('Invalid AI response format');
     }
+  }
+
+  async chat(message: string, history: { role: 'user' | 'model', parts: { text: string }[] }[]) {
+     const chatSession = this.model.startChat({
+        history,
+     });
+     
+     const result = await chatSession.sendMessage(message);
+     return result.response.text();
   }
 
   async generateDevDocs(repoFiles: any[], repoName: string) {
@@ -63,7 +71,7 @@ export class GeminiService {
       - architecture: Explanation of project structure
       - api_reference: If applicable, list endpoints/functions
       
-      Input: ${JSON.stringify(repoFiles.slice(0, 10))} // Limiting for now
+      Input: ${JSON.stringify(repoFiles.slice(0, 10))}
       
       Return ONLY valid JSON.
     `;

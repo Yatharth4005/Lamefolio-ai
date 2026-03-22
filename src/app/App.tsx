@@ -6,7 +6,7 @@ import { Toaster } from "sonner";
 export default function App() {
   return (
     <GitHubProvider>
-      <Toaster position="top-center" richColors />
+      <Toaster position="bottom-right" richColors />
       <RouterProvider router={router} />
     </GitHubProvider>
   );

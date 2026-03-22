@@ -59,4 +59,13 @@ export class OrchestratorService {
         id: result.id,
      };
   }
+
+  async getChatResponse(message: string) {
+    const history = [
+      { role: 'user', parts: [{ text: "Hello" }] },
+      { role: 'model', parts: [{ text: "Hi! I am Layerio AI. I help you build stunning portfolios and documentation." }] }
+    ] as any;
+    
+    return this.ai.chat(message, history);
+  }
 }

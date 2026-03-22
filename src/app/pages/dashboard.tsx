@@ -1,5 +1,4 @@
 import { ModernHero } from "../components/modern-hero";
-import { ModernAIChat } from "../components/modern-ai-chat";
 import { ModernPortfolioSections } from "../components/modern-portfolio-sections";
 import { ModernGitHubSync } from "../components/modern-github-sync";
 import { ModernStats } from "../components/modern-stats";
@@ -10,48 +9,43 @@ export function DashboardPage() {
       {/* Hero Section */}
       <ModernHero />
 
-      {/* Two Column Layout - Asymmetric */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        {/* Left Column - AI Chat (wider) */}
-        <div className="lg:col-span-2">
-          <ModernAIChat />
+      {/* Main Dashboard Interaction Area */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-12">
+        {/* Left: Quick Actions & Sync */}
+        <div className="lg:col-span-4 flex flex-col gap-6 ">
+          <ModernGitHubSync />
         </div>
 
-        {/* Right Column - GitHub Sync */}
-        <div className="lg:col-span-1">
-          <ModernGitHubSync />
+        {/* Right: Detailed Performance */}
+        <div className="lg:col-span-8">
+           <div className="mb-6">
+            <h2 className="text-xl font-bold text-white tracking-tight">
+              Performance Snapshot
+            </h2>
+            <p className="text-sm text-white/50 mt-1">
+              Real-time analytics for your Notion portfolios
+            </p>
+          </div>
+          <ModernStats />
         </div>
       </div>
 
-      {/* Portfolio Sections */}
+      {/* Project Status Overview */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-6">
           <div>
             <h2 className="text-xl font-bold text-white tracking-tight">
-              Portfolio Sections
+              Portfolio Assets
             </h2>
             <p className="text-sm text-white/50 mt-1">
-              Manage your content sections
+              Active projects and content sections
             </p>
           </div>
           <button className="text-sm font-medium text-purple-400 hover:text-purple-300 transition-colors">
-            View All →
+            Manage All →
           </button>
         </div>
         <ModernPortfolioSections />
-      </div>
-
-      {/* Stats Grid */}
-      <div className="mb-8">
-        <div className="mb-6">
-          <h2 className="text-xl font-bold text-white tracking-tight">
-            Analytics Overview
-          </h2>
-          <p className="text-sm text-white/50 mt-1">
-            Track your portfolio performance
-          </p>
-        </div>
-        <ModernStats />
       </div>
     </div>
   );

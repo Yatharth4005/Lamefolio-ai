@@ -81,6 +81,28 @@ export async function portfolioRoutes(fastify: FastifyInstance) {
     }
   });
 
+  fastify.post('/chat', async (request, reply) => {
+    try {
+      const { message } = request.body as { message: string };
+      
+      if (!message) {
+        return reply.status(400).send({ error: 'Message is required' });
+      }
+
+      const response = await orchestrator.getChatResponse(message);
+      
+      return reply.send({
+        success: true,
+        data: response,
+      });
+    } catch (error: any) {
+      return reply.status(500).send({
+        success: false,
+        error: error.message,
+      });
+    }
+  });
+
   // Health check
   fastify.get('/health', async () => ({ status: 'ok' }));
 }

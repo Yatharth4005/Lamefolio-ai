@@ -1,36 +1,21 @@
 import { Sparkles, ArrowRight, Play, Loader2 } from "lucide-react";
 import { motion } from "motion/react";
 import { useGitHub } from "../context/GitHubContext";
-import { generatePortfolio } from "../lib/api";
 import { toast } from "sonner";
+import { useNavigate } from "react-router";
 
 export function ModernHero() {
-  const { githubHandle, isGenerating, setIsGenerating } = useGitHub();
+  const navigate = useNavigate();
+  const { githubHandle, isGenerating } = useGitHub();
 
-  const handleGenerate = async () => {
+  const handleGenerate = () => {
+    // If handle is set, we navigate to the builder to start the process
+    navigate("/portfolio-builder");
+    
     if (!githubHandle) {
-      toast.error("Please configure your GitHub handle in the sidebar first!");
-      return;
-    }
-
-    try {
-      setIsGenerating(true);
-      toast.info(`Generating portfolio for ${githubHandle}...`);
-      
-      const result = await generatePortfolio(githubHandle, "Build a professional portfolio showcasing my main skills and projects.");
-      
-      toast.success("Portfolio published to Notion!", {
-        description: "Click below to view your new page.",
-        action: {
-          label: "Open Notion",
-          onClick: () => window.open(result.url, "_blank"),
-        },
-        duration: 10000,
-      });
-    } catch (error: any) {
-      toast.error("Failed to generate portfolio", { description: error.message });
-    } finally {
-      setIsGenerating(false);
+      toast.info("Welcome! Please start by setting your GitHub handle in the Builder.");
+    } else {
+      toast.success(`Redirecting to Builder for ${githubHandle}...`);
     }
   };
 
@@ -54,7 +39,7 @@ export function ModernHero() {
               <Sparkles className="w-4 h-4 text-purple-400 opacity-75" />
             </span>
           </div>
-          <span className="text-sm font-medium text-purple-400">AI-Powered Portfolio Builder</span>
+          <span className="text-sm font-medium text-purple-400 uppercase tracking-widest bg-purple-500/5 px-2 py-0.5 rounded-lg border border-purple-500/20">Gemini 2.5 Flash</span>
         </motion.div>
         
         <motion.h1
