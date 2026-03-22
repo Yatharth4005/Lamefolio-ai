@@ -11,7 +11,7 @@ const navItems = [
 
 export function SidebarNav() {
   const location = useLocation();
-  const { user, isConnected, displayName } = useGitHub();
+  const { user, isConnected, displayName, plan } = useGitHub();
 
   return (
     <aside className="w-64 h-screen bg-white border-r border-gray-200 flex flex-col">
@@ -63,7 +63,7 @@ export function SidebarNav() {
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-gray-900 truncate">{displayName || user?.username || "Creator"}</p>
-            <p className="text-xs text-gray-500 truncate">{isConnected ? "Pro Plan" : "Free Plan"}</p>
+            <p className="text-xs text-gray-500 truncate">{plan} Plan</p>
           </div>
         </div>
       </div>

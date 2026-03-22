@@ -15,7 +15,7 @@ export function ModernSidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, isConnected, displayName } = useGitHub();
+  const { user, isConnected, displayName, plan } = useGitHub();
 
   return (
     <motion.aside
@@ -124,7 +124,7 @@ export function ModernSidebar() {
                   className="flex-1 min-0"
                 >
                   <p className="text-sm font-medium text-white truncate">{displayName || user?.username}</p>
-                  <p className="text-xs text-white/40 truncate">{isConnected ? "Pro Plan" : "Free Plan"}</p>
+                  <p className="text-xs text-white/40 truncate">{plan} Plan</p>
                 </motion.div>
               )}
             </AnimatePresence>

@@ -53,6 +53,11 @@ interface GitHubContextType {
   setNotionWorkspace: (nw: NotionWorkspace | null) => void;
   isNotionConnected: boolean;
 
+  // Plan & Usage
+  plan: "Free" | "Pro";
+  generationCount: number;
+  incrementGenerationCount: () => void;
+
   // Actions
   disconnectGitHub: () => void;
   disconnectNotion: () => void;
@@ -89,6 +94,13 @@ export function GitHubProvider({ children }: { children: ReactNode }) {
     return saved ? JSON.parse(saved) : [];
   });
 
+  const [generationCount, setGenerationCount] = useState(() => {
+    const saved = localStorage.getItem("generation_count");
+    return saved ? parseInt(saved, 10) : 0;
+  });
+
+  const plan = "Free"; // Hardcoded for now as requested
+
   // Persistent Effects GitHub
   useEffect(() => {
     localStorage.setItem("github_handle", githubHandle);
@@ -123,6 +135,10 @@ export function GitHubProvider({ children }: { children: ReactNode }) {
     localStorage.setItem("app_notifications", JSON.stringify(notifications));
   }, [notifications]);
 
+  useEffect(() => {
+    localStorage.setItem("generation_count", generationCount.toString());
+  }, [generationCount]);
+
   const disconnectGitHub = () => {
     setToken(null);
     setUser(null);
@@ -132,6 +148,8 @@ export function GitHubProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem("github_user");
     localStorage.removeItem("github_handle");
     localStorage.removeItem("display_name");
+    localStorage.removeItem("generation_count");
+    setGenerationCount(0);
   };
 
   const disconnectNotion = () => {
@@ -186,7 +204,11 @@ export function GitHubProvider({ children }: { children: ReactNode }) {
         notifications,
         addNotification,
         markNotificationRead,
-        clearNotifications
+        clearNotifications,
+
+        plan,
+        generationCount,
+        incrementGenerationCount: () => setGenerationCount(prev => prev + 1)
       }}
     >
       {children}
