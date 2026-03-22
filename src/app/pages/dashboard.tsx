@@ -1,7 +1,7 @@
 import { ModernHero } from "../components/modern-hero";
+import { TemplateGallery } from "../components/template-gallery";
 import { PortfolioList } from "../components/portfolio-list";
-import { ModernGitHubSync } from "../components/modern-github-sync";
-import { ModernStats } from "../components/modern-stats";
+import { Sparkles, Layout, Globe } from "lucide-react";
 
 export function DashboardPage() {
   return (
@@ -9,43 +9,40 @@ export function DashboardPage() {
       {/* Hero Section */}
       <ModernHero />
 
-      {/* Main Dashboard Interaction Area */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-16">
-        {/* Right: Detailed Performance */}
-        <div className="lg:col-span-12">
-           <div className="mb-8 p-12 bg-gradient-to-br from-white/[0.03] to-transparent border border-white/[0.05] rounded-[3rem] shadow-2xl overflow-hidden relative group">
-              <div 
-                className="absolute top-0 right-0 w-[400px] h-[400px] bg-purple-500/10 blur-[80px] rounded-full -mr-40 -mt-40 transition-opacity opacity-50 group-hover:opacity-100" 
-                style={{ willChange: "opacity" }}
-              />
-              <div className="relative z-10">
-                <div className="mb-10 text-center lg:text-left">
-                  <h2 className="text-3xl font-black text-white tracking-tight flex items-center gap-4 justify-center lg:justify-start">
-                    Performance Snapshot
-                    <div 
-                      className="px-3 py-1 bg-green-500/10 border border-green-500/20 rounded-full text-[10px] uppercase font-black text-green-400 animate-pulse"
-                      style={{ willChange: "opacity" }}
-                    >
-                      Live
-                    </div>
-                  </h2>
-                  <p className="text-white/40 text-lg mt-3 max-w-xl">
-                    Real-time synchronization metrics across your entire Notion ecosystem.
-                  </p>
-                </div>
-                <ModernStats />
-              </div>
-           </div>
+      {/* Portfolio Templates Section */}
+      <div className="mb-20">
+        <div className="flex items-end justify-between mb-12 border-b border-white/[0.05] pb-8">
+          <div>
+            <h2 className="text-3xl font-black text-white tracking-tight flex items-center gap-4">
+               Portfolio Blueprints
+               <div className="flex items-center gap-2">
+                 <div className="w-2 h-2 bg-purple-500 rounded-full" />
+                 <Sparkles className="w-5 h-5 text-purple-400 animate-pulse" />
+               </div>
+            </h2>
+            <p className="text-lg text-white/40 mt-3 font-medium">
+              Start with a battle-tested template or build from scratch.
+            </p>
+          </div>
+          
+          <button className="hidden md:flex items-center gap-2 text-sm font-bold text-white/40 hover:text-white transition-colors px-4 py-2 bg-white/[0.03] rounded-xl border border-white/[0.05]">
+            <Layout className="w-4 h-4" />
+            View Marketplace
+          </button>
         </div>
+        <TemplateGallery />
       </div>
 
-      {/* Project Status Overview */}
+      {/* Portfolio Vault (Recently Generated) */}
       <div className="mb-20">
         <div className="flex items-end justify-between mb-12 border-b border-white/[0.05] pb-8">
           <div>
             <h2 className="text-3xl font-black text-white tracking-tight flex items-center gap-4">
                Portfolio Vault
-               <div className="w-2 h-2 bg-purple-500 rounded-full" />
+               <div className="flex items-center gap-2">
+                 <div className="w-2 h-2 bg-purple-500 rounded-full opacity-50" />
+                 <Globe className="w-5 h-5 text-white/20" />
+               </div>
             </h2>
             <p className="text-lg text-white/40 mt-3 font-medium">
               Historical manifests generated through the Synthesizer.
