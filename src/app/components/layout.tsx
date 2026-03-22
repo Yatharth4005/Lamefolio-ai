@@ -2,10 +2,12 @@ import { Outlet } from "react-router";
 import { ModernSidebar } from "./modern-sidebar";
 import { ModernHeader } from "./modern-header";
 import { AnimatedBackground } from "./animated-background";
+import { Onboarding } from "./onboarding";
 
 export function Layout() {
   return (
     <div className="flex h-screen overflow-hidden">
+      <Onboarding />
       <AnimatedBackground />
       
       {/* Sidebar */}
