@@ -60,6 +60,12 @@ interface GitHubContextType {
   points: number;
   incrementGenerationCount: () => void;
 
+  // Appearance
+  theme: "dark" | "light" | "auto";
+  setTheme: (theme: "dark" | "light" | "auto") => void;
+  accentColor: string;
+  setAccentColor: (color: string) => void;
+
   // Actions
   disconnectGitHub: () => void;
   disconnectNotion: () => void;
@@ -99,6 +105,33 @@ export function GitHubProvider({ children }: { children: ReactNode }) {
   const [generationCount, setGenerationCount] = useState(0);
   const [points, setPoints] = useState(3);
   const [plan, setPlan] = useState<"Free" | "Pro">("Free");
+
+  const [theme, setTheme] = useState<"dark" | "light" | "auto">(() => {
+    return (localStorage.getItem("app_theme") as "dark" | "light" | "auto") || "dark";
+  });
+  const [accentColor, setAccentColor] = useState(() => {
+    return localStorage.getItem("app_accent") || "#A855F7"; // Purple default
+  });
+
+  useEffect(() => {
+    localStorage.setItem("app_theme", theme);
+    document.documentElement.classList.remove("light", "dark");
+    if (theme === "auto") {
+      const isDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      document.documentElement.classList.add(isDark ? "dark" : "light");
+    } else {
+      document.documentElement.classList.add(theme);
+    }
+  }, [theme]);
+
+  useEffect(() => {
+    localStorage.setItem("app_accent", accentColor);
+    const root = document.documentElement;
+    root.style.setProperty("--primary", accentColor);
+    root.style.setProperty("--ring", accentColor);
+    root.style.setProperty("--sidebar-primary", accentColor);
+    root.style.setProperty("--accent-color", accentColor);
+  }, [accentColor]);
 
   // Persistent Effects GitHub
   useEffect(() => {
@@ -226,7 +259,12 @@ export function GitHubProvider({ children }: { children: ReactNode }) {
         plan,
         points,
         generationCount,
-        incrementGenerationCount: () => setGenerationCount(prev => prev + 1)
+        incrementGenerationCount: () => setGenerationCount(prev => prev + 1),
+
+        theme,
+        setTheme,
+        accentColor,
+        setAccentColor
       }}
     >
       {children}

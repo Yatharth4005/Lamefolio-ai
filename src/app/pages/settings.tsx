@@ -24,9 +24,7 @@ export function SettingsPage() {
   const sections = [
     { id: "profile", label: "Profile", icon: User },
     { id: "notifications", label: "Notifications", icon: Bell },
-    { id: "appearance", label: "Appearance", icon: Palette },
     { id: "domain", label: "Custom Domain", icon: Globe },
-    { id: "privacy", label: "Privacy", icon: Lock },
     { id: "billing", label: "Billing", icon: CreditCard },
   ];
 
@@ -88,9 +86,7 @@ export function SettingsPage() {
         <div className="lg:col-span-3">
           {activeSection === "profile" && <ProfileSettings />}
           {activeSection === "notifications" && <NotificationSettings />}
-          {activeSection === "appearance" && <AppearanceSettings />}
           {activeSection === "domain" && <DomainSettings />}
-          {activeSection === "privacy" && <PrivacySettings />}
           {activeSection === "billing" && <BillingSettings />}
         </div>
       </div>
@@ -269,74 +265,7 @@ function NotificationSettings() {
   );
 }
 
-function AppearanceSettings() {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="backdrop-blur-xl bg-white/[0.03] border border-white/[0.08] rounded-2xl p-6 md:p-8"
-    >
-      <h2 className="text-xl font-bold text-white mb-6 tracking-tight">Appearance</h2>
-      
-      <div className="space-y-6">
-        <div>
-          <label className="block text-sm font-medium text-white/70 mb-4">
-            Theme
-          </label>
-          <div className="grid grid-cols-3 gap-4">
-            {[
-              { name: "Dark", active: true },
-              { name: "Light", active: false },
-              { name: "Auto", active: false }
-            ].map((theme) => (
-              <motion.button
-                key={theme.name}
-                whileHover={{ y: -4 }}
-                whileTap={{ scale: 0.95 }}
-                className={`p-4 rounded-xl transition-all ${
-                  theme.active
-                    ? "bg-gradient-to-r from-purple-500/20 to-blue-500/20 border-2 border-purple-500/50"
-                    : "bg-white/[0.03] border-2 border-white/[0.08] hover:border-white/[0.15]"
-                }`}
-              >
-                <div className={`w-full h-20 rounded-lg mb-3 ${
-                  theme.name === "Dark" ? "bg-gradient-to-br from-gray-900 to-gray-800" :
-                  theme.name === "Light" ? "bg-gradient-to-br from-gray-100 to-gray-200" :
-                  "bg-gradient-to-br from-gray-700 to-gray-300"
-                }`}></div>
-                <p className="text-sm font-medium text-white">{theme.name}</p>
-              </motion.button>
-            ))}
-          </div>
-        </div>
 
-        <div>
-          <label className="block text-sm font-medium text-white/70 mb-4">
-            Accent Color
-          </label>
-          <div className="flex gap-3">
-            {[
-              { color: "purple", gradient: "from-purple-500 to-pink-500" },
-              { color: "blue", gradient: "from-blue-500 to-cyan-500" },
-              { color: "green", gradient: "from-green-500 to-emerald-500" },
-              { color: "orange", gradient: "from-orange-500 to-pink-500" },
-              { color: "red", gradient: "from-red-500 to-pink-500" }
-            ].map(({ color, gradient }) => (
-              <motion.button
-                key={color}
-                whileHover={{ scale: 1.15, y: -4 }}
-                whileTap={{ scale: 0.9 }}
-                className={`w-12 h-12 rounded-xl bg-gradient-to-br ${gradient} relative group`}
-              >
-                <div className={`absolute inset-0 bg-gradient-to-br ${gradient} rounded-xl blur-lg opacity-0 group-hover:opacity-50 transition-opacity`} />
-              </motion.button>
-            ))}
-          </div>
-        </div>
-      </div>
-    </motion.div>
-  );
-}
 
 function DomainSettings() {
   return (
@@ -393,39 +322,7 @@ function DomainSettings() {
   );
 }
 
-function PrivacySettings() {
-  const privacyOptions = [
-    { title: "Public Portfolio", description: "Make your portfolio visible to everyone" },
-    { title: "Show GitHub Contributions", description: "Display your GitHub activity" },
-    { title: "Show Contact Form", description: "Allow visitors to contact you" },
-    { title: "Analytics Tracking", description: "Track portfolio views and interactions" },
-  ];
 
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="backdrop-blur-xl bg-white/[0.03] border border-white/[0.08] rounded-2xl p-6 md:p-8"
-    >
-      <h2 className="text-xl font-bold text-white mb-6 tracking-tight">Privacy Settings</h2>
-      
-      <div className="space-y-4">
-        {privacyOptions.map((item) => (
-          <div key={item.title} className="flex items-center justify-between py-4 border-b border-white/[0.05] last:border-0">
-            <div>
-              <p className="font-medium text-white">{item.title}</p>
-              <p className="text-sm text-white/50">{item.description}</p>
-            </div>
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" className="sr-only peer" defaultChecked />
-              <div className="w-12 h-6 bg-white/[0.1] peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-purple-500/50 rounded-full peer peer-checked:after:translate-x-6 peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-purple-500 peer-checked:to-blue-500"></div>
-            </label>
-          </div>
-        ))}
-      </div>
-    </motion.div>
-  );
-}
 
 function BillingSettings() {
   const plans = [
