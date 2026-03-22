@@ -81,7 +81,7 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
   
-  const { githubHandle, isGenerating, setIsGenerating, addNotification, displayName, generationCount, incrementGenerationCount, plan, points, user } = useGitHub();
+  const { githubHandle, isGenerating, setIsGenerating, addNotification, displayName, generationCount, incrementGenerationCount, plan, points, user, isNotionConnected } = useGitHub();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -173,6 +173,21 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
         return;
       }
       
+      // Case 2b: Build intent but Notion not connected — nudge to connect
+      if (!isNotionConnected) {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: (Date.now() + 1).toString(),
+            role: "ai",
+            content: "Before I can manifest your portfolio into Notion, you'll need to connect your Notion workspace! It only takes a few seconds — just click the button below to authorize access, and I'll take care of the rest. ✨",
+            actionUrl: "/integrations",
+            timestamp: new Date(),
+          },
+        ]);
+        return;
+      }
+
       // If we have a handle OR if the prompt is very long (assumed to contain details)
       if (githubHandle || currentInput.length > 50) {
         try {
@@ -344,7 +359,7 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
                       className="mt-8 w-full py-5 bg-white text-black rounded-2xl text-[11px] font-black uppercase tracking-[0.2em] flex items-center justify-center gap-3 shadow-2xl hover:bg-gray-100 transition-colors"
                     >
                       <ExternalLink className="w-4 h-4" />
-                      {message.actionUrl === "/settings/billing" ? "UPGRADE TO PRO" : "Manifest in Notion"}
+                      {message.actionUrl === "/settings/billing" ? "UPGRADE TO PRO" : message.actionUrl === "/integrations" ? "CONNECT NOTION →" : "Manifest in Notion"}
                     </motion.button>
                   )}
                 </div>

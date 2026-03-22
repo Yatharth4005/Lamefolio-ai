@@ -19,7 +19,7 @@ export class NotionService {
       {
         grant_type: 'authorization_code',
         code,
-        redirect_uri: 'http://localhost:5000/api/auth/notion/callback',
+        redirect_uri: 'http://localhost:5173/integrations',
       },
       {
         headers: {

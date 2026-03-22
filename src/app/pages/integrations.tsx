@@ -164,23 +164,45 @@ export function IntegrationsPage() {
               : "bg-white/[0.02] border-white/10 hover:border-white/20"
           }`}
         >
+          {/* Shimmer effect for unconnected state */}
+          {!isNotionConnected && (
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.015] to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 ease-in-out" />
+          )}
+
           <div className="relative z-10">
             <div className="flex justify-between items-start mb-8">
                <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center">
                   <Database className="w-8 h-8 text-white" />
                </div>
-               {isNotionConnected && (
+               {isNotionConnected ? (
                  <div className="flex items-center gap-2 px-3 py-1 bg-blue-500/10 border border-blue-500/20 rounded-lg">
                     <CheckCircle2 className="w-3.5 h-3.5 text-blue-400" />
                     <span className="text-[10px] font-black uppercase text-blue-400">Linked</span>
+                 </div>
+               ) : (
+                 <div className="flex items-center gap-2 px-3 py-1 bg-amber-500/10 border border-amber-500/20 rounded-lg">
+                    <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                    <span className="text-[10px] font-black uppercase text-amber-400">Required</span>
                  </div>
                )}
             </div>
             
             <h2 className="text-2xl font-bold text-white mb-2">Notion</h2>
-            <p className="text-white/40 text-sm mb-8 leading-relaxed">
+            <p className="text-white/40 text-sm leading-relaxed mb-6">
                Directly manifest your portfolio into your Notion workspace as beautiful, structured pages.
             </p>
+
+            {!isNotionConnected && (
+              <div className="flex items-center gap-2 mb-8">
+                {["Authorize", "Pick Workspace", "Done!"].map((step, i) => (
+                  <div key={step} className="flex items-center gap-2">
+                    <div className="w-5 h-5 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-[9px] font-black text-white/40">{i + 1}</div>
+                    <span className="text-[11px] text-white/40 font-medium">{step}</span>
+                    {i < 2 && <div className="w-4 h-px bg-white/10" />}
+                  </div>
+                ))}
+              </div>
+            )}
 
             {isNotionConnected && notionWorkspace ? (
               <div className="flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/5 mb-6">
@@ -204,11 +226,11 @@ export function IntegrationsPage() {
               className={`w-full py-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all ${
                 isNotionConnected 
                   ? "bg-white/5 text-white/40 hover:bg-white/10 hover:text-white border border-white/5" 
-                  : "bg-white text-black shadow-[0_0_20px_rgba(255,255,255,0.1)]"
+                  : "bg-white text-black shadow-[0_0_30px_rgba(255,255,255,0.15)] hover:shadow-[0_0_40px_rgba(255,255,255,0.25)]"
               }`}
             >
               {isConnecting === "notion" ? <Loader2 className="w-5 h-5 animate-spin" /> : <Database className="w-5 h-5" />}
-              {isNotionConnected ? "Disconnect Notion" : "Connect Notion"}
+              {isNotionConnected ? "Disconnect Notion" : "Connect Notion — One Click"}
             </motion.button>
           </div>
         </motion.div>
