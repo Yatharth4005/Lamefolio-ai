@@ -1,9 +1,48 @@
-import { Sparkles, Send, Zap } from "lucide-react";
+import { Sparkles, Send, Zap, Loader2 } from "lucide-react";
 import { motion } from "motion/react";
 import { useState } from "react";
+import { useGitHub } from "../context/GitHubContext";
+import { generatePortfolio } from "../lib/api";
+import { toast } from "sonner";
 
 export function ModernAIChat() {
   const [isFocused, setIsFocused] = useState(false);
+  const [prompt, setPrompt] = useState("");
+  const { githubHandle, isGenerating, setIsGenerating } = useGitHub();
+
+  const handleSend = async () => {
+    if (!githubHandle) {
+      toast.error("Please configure your GitHub handle first!");
+      return;
+    }
+    if (!prompt) {
+      toast.error("Please describe your experience!");
+      return;
+    }
+
+    try {
+      setIsGenerating(true);
+      toast.info("Generating your Notion portfolio... This might take a few seconds.");
+      
+      const result = await generatePortfolio(githubHandle, prompt);
+      
+      toast.success("Portfolio generated successfully!", {
+        description: "Your new portfolio is ready in Notion.",
+        action: {
+          label: "View Notion",
+          onClick: () => window.open(result.url, "_blank"),
+        },
+        duration: 10000,
+      });
+      setPrompt("");
+    } catch (error: any) {
+      toast.error("Generation failed", {
+        description: error.message,
+      });
+    } finally {
+      setIsGenerating(false);
+    }
+  };
 
   return (
     <motion.div
@@ -13,7 +52,7 @@ export function ModernAIChat() {
       className="relative group"
     >
       {/* Glow effect on focus */}
-      {isFocused && (
+      {(isFocused || isGenerating) && (
         <div className="absolute -inset-[1px] bg-gradient-to-r from-purple-500 to-blue-500 rounded-2xl blur-xl opacity-30 animate-pulse" />
       )}
       
@@ -37,7 +76,7 @@ export function ModernAIChat() {
             </div>
             <div className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-500/10 border border-purple-500/20 rounded-lg">
               <Zap className="w-3.5 h-3.5 text-purple-400" />
-              <span className="text-xs font-medium text-purple-400">Powered by GPT-4</span>
+              <span className="text-xs font-medium text-purple-400">Powered by Gemini 1.5</span>
             </div>
           </div>
 
@@ -46,16 +85,25 @@ export function ModernAIChat() {
               placeholder="E.g., I'm a full-stack developer specializing in React and Node.js with 5 years of experience building scalable web applications..."
               className="w-full px-5 py-4 bg-white/[0.02] border border-white/[0.08] rounded-xl text-sm text-white placeholder:text-white/30 resize-none focus:outline-none focus:border-purple-500/50 focus:bg-white/[0.03] transition-all duration-200"
               rows={4}
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
               onFocus={() => setIsFocused(true)}
               onBlur={() => setIsFocused(false)}
+              disabled={isGenerating}
             />
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className="absolute bottom-4 right-4 p-3 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-xl hover:shadow-lg hover:shadow-purple-500/50 transition-all group"
+              onClick={handleSend}
+              disabled={isGenerating}
+              className="absolute bottom-4 right-4 p-3 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-xl hover:shadow-lg hover:shadow-purple-500/50 transition-all group disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-blue-500 rounded-xl blur-lg opacity-0 group-hover:opacity-50 transition-opacity" />
-              <Send className="w-4 h-4 relative z-10" />
+              {isGenerating ? (
+                <Loader2 className="w-4 h-4 relative z-10 animate-spin" />
+              ) : (
+                <Send className="w-4 h-4 relative z-10" />
+              )}
             </motion.button>
           </div>
 

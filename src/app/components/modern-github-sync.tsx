@@ -1,7 +1,10 @@
-import { Github, RefreshCw, CheckCircle2, Activity } from "lucide-react";
+import { Github, RefreshCw, CheckCircle2, Activity, User } from "lucide-react";
 import { motion } from "motion/react";
+import { useGitHub } from "../context/GitHubContext";
 
 export function ModernGitHubSync() {
+  const { githubHandle, setGithubHandle } = useGitHub();
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -13,29 +16,42 @@ export function ModernGitHubSync() {
       <div className="absolute -inset-[1px] bg-gradient-to-r from-purple-500 to-blue-500 rounded-2xl opacity-0 group-hover:opacity-20 blur-xl transition-opacity duration-500" />
       
       <div className="relative backdrop-blur-xl bg-white/[0.03] border border-white/[0.08] rounded-2xl p-6 hover:bg-white/[0.05] hover:border-white/[0.12] transition-all duration-300">
-        <div className="flex items-start justify-between mb-6">
-          <div className="flex items-start gap-3">
-            <div className="w-12 h-12 bg-gradient-to-br from-gray-900 to-gray-700 rounded-xl flex items-center justify-center relative">
-              <div className="absolute inset-0 bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl blur-lg opacity-50" />
-              <Github className="w-6 h-6 text-white relative z-10" />
+        <div className="flex flex-col gap-4 mb-6">
+          <div className="flex items-start justify-between">
+            <div className="flex items-start gap-3">
+              <div className="w-12 h-12 bg-gradient-to-br from-gray-900 to-gray-700 rounded-xl flex items-center justify-center relative">
+                <div className="absolute inset-0 bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl blur-lg opacity-50" />
+                <Github className="w-6 h-6 text-white relative z-10" />
+              </div>
+              <div>
+                <h3 className="text-base font-semibold text-white mb-1 tracking-tight">
+                  GitHub Integration
+                </h3>
+                <p className="text-sm text-white/40">
+                  Sync repositories & contributions
+                </p>
+              </div>
             </div>
-            <div>
-              <h3 className="text-base font-semibold text-white mb-1 tracking-tight">
-                GitHub Integration
-              </h3>
-              <p className="text-sm text-white/40">
-                Sync repositories & contributions
-              </p>
-            </div>
+            <motion.button
+              whileHover={{ rotate: 180, scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              transition={{ type: "spring", stiffness: 200 }}
+              className="p-2 hover:bg-white/[0.05] rounded-lg transition-colors"
+            >
+              <RefreshCw className="w-4 h-4 text-white/60" />
+            </motion.button>
           </div>
-          <motion.button
-            whileHover={{ rotate: 180, scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            transition={{ type: "spring", stiffness: 200 }}
-            className="p-2 hover:bg-white/[0.05] rounded-lg transition-colors"
-          >
-            <RefreshCw className="w-4 h-4 text-white/60" />
-          </motion.button>
+
+          <div className="relative">
+            <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+            <input
+              type="text"
+              placeholder="Enter GitHub handle"
+              className="w-full bg-white/[0.02] border border-white/[0.08] rounded-xl py-2 pl-9 pr-4 text-sm text-white focus:outline-none focus:border-purple-500/50 transition-all"
+              value={githubHandle}
+              onChange={(e) => setGithubHandle(e.target.value)}
+            />
+          </div>
         </div>
 
         {/* Sync Status */}

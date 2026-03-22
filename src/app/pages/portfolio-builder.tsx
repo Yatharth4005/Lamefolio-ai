@@ -1,9 +1,38 @@
-import { Sparkles, Eye, Download, Share2, Plus, Edit3, Palette } from "lucide-react";
+import { Sparkles, Eye, Download, Share2, Plus, Edit3, Palette, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { motion } from "motion/react";
+import { useGitHub } from "../context/GitHubContext";
+import { generatePortfolio } from "../lib/api";
+import { toast } from "sonner";
 
 export function PortfolioBuilderPage() {
   const [activeTab, setActiveTab] = useState("all");
+  const { githubHandle, isGenerating, setIsGenerating } = useGitHub();
+
+  const handleGenerate = async () => {
+    if (!githubHandle) {
+      toast.error("Please configure your GitHub handle in the dashboard first!");
+      return;
+    }
+
+    try {
+      setIsGenerating(true);
+      toast.info("AI is analyzing your profile to fill in missing sections...");
+      
+      const result = await generatePortfolio(githubHandle, "Fill in missing sections for my portfolio based on my GitHub data.");
+      
+      toast.success("Portfolio updated!", {
+        action: { 
+          label: "View in Notion", 
+          onClick: () => window.open(result.url, "_blank") 
+        }
+      });
+    } catch (error: any) {
+      toast.error("Generation failed", { description: error.message });
+    } finally {
+      setIsGenerating(false);
+    }
+  };
 
   const templates = [
     { id: 1, name: "Modern Developer", style: "Minimal", color: "Purple", gradient: "from-purple-500 to-pink-500" },
@@ -90,9 +119,12 @@ export function PortfolioBuilderPage() {
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="px-8 py-3 bg-white text-purple-600 rounded-xl font-semibold hover:bg-white/95 transition-all shadow-lg"
+            onClick={handleGenerate}
+            disabled={isGenerating}
+            className="px-8 py-3 bg-white text-purple-600 rounded-xl font-semibold hover:bg-white/95 transition-all shadow-lg flex items-center gap-2 disabled:opacity-50"
           >
-            Generate Missing Sections
+            {isGenerating && <Loader2 className="w-4 h-4 animate-spin" />}
+            {isGenerating ? "Generating..." : "Generate Missing Sections"}
           </motion.button>
         </div>
       </motion.div>

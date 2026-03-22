@@ -1,7 +1,39 @@
-import { Sparkles, ArrowRight } from "lucide-react";
+import { Sparkles, ArrowRight, Play, Loader2 } from "lucide-react";
 import { motion } from "motion/react";
+import { useGitHub } from "../context/GitHubContext";
+import { generatePortfolio } from "../lib/api";
+import { toast } from "sonner";
 
 export function ModernHero() {
+  const { githubHandle, isGenerating, setIsGenerating } = useGitHub();
+
+  const handleGenerate = async () => {
+    if (!githubHandle) {
+      toast.error("Please configure your GitHub handle in the sidebar first!");
+      return;
+    }
+
+    try {
+      setIsGenerating(true);
+      toast.info(`Generating portfolio for ${githubHandle}...`);
+      
+      const result = await generatePortfolio(githubHandle, "Build a professional portfolio showcasing my main skills and projects.");
+      
+      toast.success("Portfolio published to Notion!", {
+        description: "Click below to view your new page.",
+        action: {
+          label: "Open Notion",
+          onClick: () => window.open(result.url, "_blank"),
+        },
+        duration: 10000,
+      });
+    } catch (error: any) {
+      toast.error("Failed to generate portfolio", { description: error.message });
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -33,7 +65,7 @@ export function ModernHero() {
         >
           Welcome back,{" "}
           <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent">
-            John
+            {githubHandle || "Creator"}
           </span>{" "}
           👋
         </motion.h1>
@@ -42,60 +74,67 @@ export function ModernHero() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
-          className="text-lg text-white/60 max-w-2xl"
+          className="text-lg text-white/60 max-w-2xl mb-8"
         >
-          Let's build an amazing portfolio that showcases your skills and achievements
+          Let's build an amazing portfolio that showcases your skills and achievements.
         </motion.p>
       </div>
 
-      {/* CTA Card */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5 }}
-        whileHover={{ scale: 1.01 }}
-        className="relative group overflow-hidden rounded-2xl"
+        className="relative group overflow-hidden rounded-[2.5rem]"
       >
-        {/* Animated gradient background */}
-        <div className="absolute inset-0 bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 opacity-90" />
-        <div className="absolute inset-0 bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 opacity-0 group-hover:opacity-100 blur-xl transition-opacity duration-500" />
+        <div className="absolute inset-0 bg-gradient-to-r from-purple-600/90 via-pink-600/90 to-blue-600/90" />
+        {/* Animated accent line */}
+        <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-white/30 to-transparent" />
         
-        {/* Noise texture */}
-        <div 
-          className="absolute inset-0 opacity-10"
-          style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='2' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
-          }}
-        />
-        
-        <div className="relative p-8 flex items-center justify-between">
-          <div className="flex-1">
-            <div className="flex items-center gap-2 mb-3">
-              <Sparkles className="w-5 h-5 text-white" />
-              <span className="text-sm font-semibold text-white/90 uppercase tracking-wider">
-                AI-Powered
-              </span>
+        <div className="relative p-8 md:p-12">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-12">
+            <div className="max-w-2xl">
+              <h2 className="text-3xl md:text-4xl font-bold text-white mb-6 tracking-tight leading-tight">
+                Your Professional <span className="text-white/80">Notion Portfolio</span> is Just One Click Away
+              </h2>
+              
+              <p className="text-white/80 mb-8 leading-relaxed">
+                Connect your GitHub, describe your career goals, and let our AI engine build a high-quality portfolio directly in your Notion workspace.
+              </p>
+
+              <div className="flex flex-wrap gap-4">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={handleGenerate}
+                  disabled={isGenerating}
+                  className="px-8 py-4 bg-white text-gray-950 rounded-2xl font-bold flex items-center gap-3 hover:bg-white/90 transition-all shadow-2xl shadow-white/10 disabled:opacity-50"
+                >
+                  {isGenerating ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <Sparkles className="w-5 h-5" />
+                  )}
+                  {isGenerating ? "Generating..." : "Generate Portfolio"}
+                  <ArrowRight className="w-4 h-4 ml-1" />
+                </motion.button>
+                
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="px-8 py-4 bg-black/20 backdrop-blur-md border border-white/20 text-white rounded-2xl font-bold flex items-center gap-3 hover:bg-black/30 transition-all"
+                >
+                  <Play className="w-5 h-5" />
+                  Watch Demo
+                </motion.button>
+              </div>
             </div>
-            <h2 className="text-2xl md:text-3xl font-bold text-white mb-3 tracking-tight">
-              Generate Your Portfolio in Minutes
-            </h2>
-            <p className="text-white/80 text-sm md:text-base mb-6 max-w-2xl">
-              Our AI assistant analyzes your experience and automatically creates a stunning portfolio optimized for your career goals
-            </p>
-            <motion.button
-              whileHover={{ scale: 1.05, x: 4 }}
-              whileTap={{ scale: 0.95 }}
-              className="px-8 py-4 bg-white text-purple-600 rounded-xl font-semibold hover:bg-white/95 transition-all shadow-2xl shadow-white/20 flex items-center gap-2 group"
-            >
-              Generate Portfolio
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </motion.button>
-          </div>
-          
-          {/* Decorative element */}
-          <div className="hidden lg:block relative">
-            <div className="w-40 h-40 rounded-2xl border-2 border-white/20 backdrop-blur-sm transform rotate-12 group-hover:rotate-6 transition-transform duration-500" />
-            <div className="absolute top-8 left-8 w-40 h-40 rounded-2xl border-2 border-white/10 backdrop-blur-sm transform -rotate-6 group-hover:rotate-0 transition-transform duration-500" />
+
+            {/* Decorative Icon */}
+            <div className="hidden lg:block">
+              <div className="w-48 h-48 bg-white/10 rounded-[3rem] backdrop-blur-xl border border-white/20 flex items-center justify-center rotate-6 animate-pulse">
+                <Sparkles className="w-20 h-20 text-white/40" />
+              </div>
+            </div>
           </div>
         </div>
       </motion.div>
