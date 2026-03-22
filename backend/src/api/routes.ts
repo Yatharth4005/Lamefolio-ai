@@ -25,11 +25,19 @@ export async function portfolioRoutes(fastify: FastifyInstance) {
       }
 
       console.log('--- Triggering Portfolio Generation ---');
+
+      // Save User prompt to messages IMMEDIATELY (before long sync)
+      if (github_handle && user_prompt) {
+        console.log(`📝 Persistence User Build Prompt for ${github_handle}`);
+        await db.saveMessage(github_handle, 'user', user_prompt);
+      }
+
       const result = await orchestrator.generatePortfolio(github_handle, user_prompt);
       
-      // Save to database if handle is real
-      if (github_handle && github_handle !== 'manual_entry') {
+      // Track usage and save history if handle is provided
+      if (github_handle) {
         const handle = github_handle;
+
         await db.savePortfolio({
           user_handle: handle,
           notion_url: result.url
@@ -38,6 +46,11 @@ export async function portfolioRoutes(fastify: FastifyInstance) {
         // Track usage (points)
         await db.upsertUser(handle);
         await db.decrementPoints(handle);
+
+        // Save AI response to messages
+        await db.saveMessage(handle, 'ai', github_handle === 'manual_entry' 
+          ? `I've processed the details you provided and generated your Notion portfolio!` 
+          : `Excellent news! I've analyzed your GitHub and built your portfolio in Notion.`);
       }
 
       return reply.send({
@@ -106,14 +119,24 @@ export async function portfolioRoutes(fastify: FastifyInstance) {
 
   fastify.post('/chat', async (request, reply) => {
     try {
-      const { message } = request.body as { message: string };
+      const { message, handle } = request.body as { message: string, handle?: string };
       
       if (!message) {
         return reply.status(400).send({ error: 'Message is required' });
       }
 
+      if (handle) {
+        console.log(`📝 Saving user message for ${handle}`);
+        await db.saveMessage(handle, 'user', message);
+      }
+
       const response = await orchestrator.getChatResponse(message);
       
+      if (handle) {
+        console.log(`🤖 Saving AI response for ${handle}`);
+        await db.saveMessage(handle, 'ai', response);
+      }
+
       return reply.send({
         success: true,
         data: response,
@@ -123,6 +146,16 @@ export async function portfolioRoutes(fastify: FastifyInstance) {
         success: false,
         error: error.message,
       });
+    }
+  });
+
+  fastify.get('/chat/history/:handle', async (request, reply) => {
+    try {
+      const { handle } = request.params as { handle: string };
+      const history = await db.getMessages(handle);
+      return reply.send({ success: true, history });
+    } catch (error: any) {
+      return reply.status(500).send({ error: error.message });
     }
   });
 

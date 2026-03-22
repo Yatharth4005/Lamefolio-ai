@@ -2,9 +2,10 @@ import { Sparkles, Send, Zap, Loader2, User, Bot, ExternalLink, Globe, ChevronDo
 import { motion, AnimatePresence } from "motion/react";
 import { useState, useRef, useEffect } from "react";
 import { useGitHub } from "../context/GitHubContext";
-import { generatePortfolio, getChatResponse } from "../lib/api";
+import { generatePortfolio, getChatResponse, getChatHistory } from "../lib/api";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
+import { useNavigate } from "react-router";
 
 interface Message {
   id: string;
@@ -75,16 +76,10 @@ function ThinkingTrace() {
 }
 
 export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
+  const navigate = useNavigate();
   const [isFocused, setIsFocused] = useState(false);
   const [input, setInput] = useState("");
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: "initial",
-      role: "ai",
-      content: "Hi there! I'm your AI Portfolio assistant. Just describe your work, or type 'build my portfolio' and I'll create a stunning Notion page for you!",
-      timestamp: new Date(),
-    },
-  ]);
+  const [messages, setMessages] = useState<Message[]>([]);
   
   const { githubHandle, isGenerating, setIsGenerating, addNotification, displayName, generationCount, incrementGenerationCount, plan, points } = useGitHub();
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -96,6 +91,38 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
   useEffect(() => {
     scrollToBottom();
   }, [messages, isGenerating]);
+
+  // Load History
+  useEffect(() => {
+    const handle = githubHandle || displayName;
+    if (!handle) return;
+
+    const loadHistory = async () => {
+      try {
+        const history = await getChatHistory(handle);
+        if (history && history.length > 0) {
+          setMessages(history.map((m: any) => ({
+            id: m.id.toString(),
+            role: m.role,
+            content: m.content,
+            timestamp: new Date(m.created_at)
+          })));
+        } else {
+          setMessages([
+            {
+              id: "initial",
+              role: "ai",
+              content: "Hi there! I'm your AI Portfolio assistant. Just describe your work, or type 'build my portfolio' and I'll create a stunning Notion page for you!",
+              timestamp: new Date(),
+            }
+          ]);
+        }
+      } catch (error) {
+        console.error("Failed to load history:", error);
+      }
+    };
+    loadHistory();
+  }, [githubHandle, displayName]);
 
   const handleSend = async () => {
     if (!input.trim() || isGenerating) return;
@@ -139,7 +166,7 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
             id: (Date.now() + 1).toString(),
             role: "ai",
             content: "You've reached your limit of 3 portfolio generations on the **Free Plan**! Upgrading to **Pro** gives you unlimited generations, custom domains, and more. Would you like to check out our plans?",
-            actionUrl: "/billing",
+            actionUrl: "/settings",
             timestamp: new Date(),
           },
         ]);
@@ -202,7 +229,7 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
     // Case 3: General Chat
     try {
       setIsGenerating(true);
-      const responseText = await getChatResponse(currentInput);
+      const responseText = await getChatResponse(currentInput, githubHandle || displayName || "manual_entry");
       
       setMessages((prev) => [
         ...prev,
@@ -309,11 +336,11 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
                     <motion.button
                       whileHover={{ scale: 1.02, y: -2 }}
                       whileTap={{ scale: 0.98 }}
-                      onClick={() => window.open(message.actionUrl, "_blank")}
+                      onClick={() => message.actionUrl?.startsWith("/") ? navigate(message.actionUrl) : window.open(message.actionUrl, "_blank")}
                       className="mt-8 w-full py-5 bg-white text-black rounded-2xl text-[11px] font-black uppercase tracking-[0.2em] flex items-center justify-center gap-3 shadow-2xl hover:bg-gray-100 transition-colors"
                     >
                       <ExternalLink className="w-4 h-4" />
-                      Manifest in Notion
+                      {message.actionUrl === "/settings" ? "Upgrade to Pro" : "Manifest in Notion"}
                     </motion.button>
                   )}
                 </div>

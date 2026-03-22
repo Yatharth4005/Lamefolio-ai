@@ -52,13 +52,13 @@ export async function syncKnowledge(content: string, category?: string) {
   return response.json();
 }
 
-export async function getChatResponse(message: string) {
+export async function getChatResponse(message: string, handle?: string) {
   const response = await fetch(`${API_BASE_URL}/chat`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ message }),
+    body: JSON.stringify({ message, handle }),
   });
 
   if (!response.ok) {
@@ -67,6 +67,13 @@ export async function getChatResponse(message: string) {
 
   const result = await response.json();
   return result.data;
+}
+
+export async function getChatHistory(handle: string) {
+  const response = await fetch(`${API_BASE_URL}/chat/history/${handle}`);
+  if (!response.ok) throw new Error("Failed to fetch chat history");
+  const result = await response.json();
+  return result.history;
 }
 
 export async function getGitHubAuthUrl() {

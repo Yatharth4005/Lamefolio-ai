@@ -47,6 +47,16 @@ export class DatabaseService {
           created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
         );
       `;
+
+      await this.sql`
+        CREATE TABLE IF NOT EXISTS messages (
+          id SERIAL PRIMARY KEY,
+          user_handle TEXT NOT NULL,
+          role TEXT NOT NULL,
+          content TEXT NOT NULL,
+          created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+        );
+      `;
       console.log('✅ Database initialized successfully');
     } catch (error) {
       console.error('❌ Failed to initialize database:', error);
@@ -56,7 +66,7 @@ export class DatabaseService {
   async savePortfolio(record: PortfolioRecord) {
      return this.sql`
         INSERT INTO portfolios (user_handle, notion_url, theme)
-        VALUES (${record.user_handle}, ${record.notion_url}, ${record.theme || 'modern'})
+        VALUES (LOWER(${record.user_handle}), ${record.notion_url}, ${record.theme || 'modern'})
         RETURNING *
      `;
   }
@@ -64,7 +74,7 @@ export class DatabaseService {
   async getPortfolios(user_handle: string) {
      return this.sql<PortfolioRecord[]>`
         SELECT * FROM portfolios 
-        WHERE user_handle = ${user_handle}
+        WHERE LOWER(user_handle) = LOWER(${user_handle})
         ORDER BY created_at DESC
      `;
   }
@@ -72,7 +82,7 @@ export class DatabaseService {
   async clearPortfolios(user_handle: string) {
      return this.sql`
         DELETE FROM portfolios 
-        WHERE user_handle = ${user_handle}
+        WHERE LOWER(user_handle) = LOWER(${user_handle})
      `;
   }
 
@@ -80,7 +90,7 @@ export class DatabaseService {
    async upsertUser(handle: string, displayName?: string) {
       return this.sql`
         INSERT INTO users (handle, display_name)
-        VALUES (${handle}, ${displayName || null})
+        VALUES (LOWER(${handle}), ${displayName || null})
         ON CONFLICT (handle) DO UPDATE SET
           display_name = EXCLUDED.display_name
         RETURNING *
@@ -89,7 +99,7 @@ export class DatabaseService {
 
    async getUser(handle: string) {
       const results = await this.sql`
-        SELECT * FROM users WHERE handle = ${handle}
+        SELECT * FROM users WHERE LOWER(handle) = LOWER(${handle})
       `;
       return results[0] || null;
    }
@@ -98,8 +108,25 @@ export class DatabaseService {
       return this.sql`
         UPDATE users 
         SET points = GREATEST(0, points - 1)
-        WHERE handle = ${handle}
+        WHERE LOWER(handle) = LOWER(${handle})
         RETURNING *
+      `;
+   }
+
+   // Message Management
+   async saveMessage(handle: string, role: string, content: string) {
+      return this.sql`
+        INSERT INTO messages (user_handle, role, content)
+        VALUES (LOWER(${handle}), ${role}, ${content})
+        RETURNING *
+      `;
+   }
+
+   async getMessages(handle: string) {
+      return this.sql`
+        SELECT * FROM messages 
+        WHERE LOWER(user_handle) = LOWER(${handle})
+        ORDER BY created_at ASC
       `;
    }
 }
