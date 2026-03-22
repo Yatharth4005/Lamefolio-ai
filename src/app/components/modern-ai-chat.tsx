@@ -1,9 +1,10 @@
-import { Sparkles, Send, Zap, Loader2, User, Bot, ExternalLink, Globe } from "lucide-react";
+import { Sparkles, Send, Zap, Loader2, User, Bot, ExternalLink, Globe, ChevronDown, CheckCircle2 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useState, useRef, useEffect } from "react";
 import { useGitHub } from "../context/GitHubContext";
 import { generatePortfolio, getChatResponse } from "../lib/api";
 import { toast } from "sonner";
+import ReactMarkdown from "react-markdown";
 
 interface Message {
   id: string;
@@ -15,6 +16,62 @@ interface Message {
 
 interface ModernAIChatProps {
   immersive?: boolean;
+}
+
+function ThinkingTrace() {
+  const [currentStep, setCurrentStep] = useState(0);
+  const steps = [
+    "Spinning up synaptic gears...",
+    "Querying the digital void...",
+    "Bending the laws of architecture...",
+    "Rerouting cosmic data packets...",
+    "Injecting brilliance into Notion..."
+  ];
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentStep((prev) => (prev < steps.length - 1 ? prev + 1 : prev));
+    }, 3000);
+    return () => clearInterval(timer);
+  }, []);
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center gap-4">
+         <div className="flex gap-1">
+            <motion.div 
+               animate={{ scale: [1, 1.2, 1] }} 
+               transition={{ repeat: Infinity, duration: 1.5 }}
+               className="w-2.5 h-2.5 bg-purple-500 rounded-full blur-[2px]" 
+            />
+         </div>
+         <p className="text-[10px] text-white/40 font-black uppercase tracking-[0.4em] animate-pulse">Thinking...</p>
+      </div>
+
+      <div className="bg-white/[0.01] border border-white/5 rounded-3xl p-6 backdrop-blur-3xl">
+         {steps.slice(0, currentStep + 1).map((step, idx) => (
+            <motion.div 
+               key={idx}
+               initial={{ opacity: 0, x: -15 }}
+               animate={{ opacity: 1, x: 0 }}
+               className="flex items-center gap-4 py-2"
+            >
+               {idx === currentStep ? (
+                  <div className="relative">
+                    <Loader2 className="w-4 h-4 text-purple-400 animate-spin" />
+                    <div className="absolute inset-0 bg-purple-400/20 blur-md animate-pulse" />
+                  </div>
+               ) : (
+                  <CheckCircle2 className="w-4 h-4 text-green-500/40" />
+               )}
+               <span className={`text-[13px] tracking-tight ${idx === currentStep ? "text-white/90 font-bold italic" : "text-white/20"}`}>
+                  {step}
+               </span>
+            </motion.div>
+         ))}
+      </div>
+    </div>
+  );
 }
 
 export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
@@ -66,7 +123,7 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
         {
           id: (Date.now() + 1).toString(),
           role: "ai",
-          content: "I'd love to analyze your GitHub, but you haven't connected your account yet! Please head over to the **GitHub Sync** page to set your handle, and then we can build something amazing together.",
+          content: "I'd love to analyze your GitHub, but you haven't connected your account yet! Please head over to the **Integrations** page to set your handle, and then we can build something amazing together.",
           timestamp: new Date(),
         },
       ]);
@@ -211,9 +268,22 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
                 <div className={`p-6 rounded-[1.8rem] text-[15px] leading-[1.6] shadow-md ${
                   message.role === "user" 
                     ? "bg-[#1A1A1A] border border-white/10 text-white/90 rounded-tr-none" 
-                    : "bg-[#111111] border border-white/5 text-white/80 rounded-tl-none font-medium"
+                    : "bg-[#111111] border border-white/5 text-white/80 rounded-tl-none font-medium prose prose-invert max-w-none"
                 }`}>
-                  {message.content}
+                  {message.role === "user" ? (
+                    message.content
+                  ) : (
+                    <ReactMarkdown 
+                      components={{
+                        p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+                        li: ({ children }) => <li className="ml-4 list-disc">{children}</li>,
+                        ul: ({ children }) => <ul className="space-y-1 mb-2">{children}</ul>,
+                        strong: ({ children }) => <strong className="text-white font-bold">{children}</strong>
+                      }}
+                    >
+                      {message.content}
+                    </ReactMarkdown>
+                  )}
                   
                   {message.actionUrl && (
                     <motion.button
@@ -238,17 +308,12 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
             animate={{ opacity: 1, scale: 1 }}
             className="flex justify-start"
           >
-            <div className="flex gap-5">
+            <div className="flex gap-5 w-full max-w-[85%]">
               <div className="w-11 h-11 rounded-2xl bg-white text-black flex items-center justify-center shadow-xl">
-                <Loader2 className="w-5 h-5 animate-spin" />
+                <Bot className="w-5 h-5" />
               </div>
-              <div className="bg-[#111111] border border-white/5 p-6 rounded-[1.8rem] rounded-tl-none">
-                <div className="flex gap-2.5">
-                  <span className="w-2.5 h-2.5 bg-white/60 rounded-full animate-bounce [animation-delay:-0.3s]" />
-                  <span className="w-2.5 h-2.5 bg-white/40 rounded-full animate-bounce [animation-delay:-0.15s]" />
-                  <span className="w-2.5 h-2.5 bg-white/20 rounded-full animate-bounce" />
-                </div>
-                <p className="text-[10px] text-white/30 font-black uppercase mt-4 tracking-[0.4em]">Optimizing Neurons...</p>
+              <div className="flex-1">
+                 <ThinkingTrace />
               </div>
             </div>
           </motion.div>

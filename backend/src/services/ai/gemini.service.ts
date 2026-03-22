@@ -1,5 +1,6 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { env } from '../../config/env.js';
+import { ASSISTANT_SYSTEM_INSTRUCTION, PORTFOLIO_SCHEMA_PROMPT } from '../../config/prompts.js';
 
 const genAI = new GoogleGenerativeAI(env.GEMINI_API_KEY);
 
@@ -7,36 +8,14 @@ export class GeminiService {
   private model;
 
   constructor() {
-    this.model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+    this.model = genAI.getGenerativeModel({ 
+      model: 'gemini-2.5-flash',
+      systemInstruction: ASSISTANT_SYSTEM_INSTRUCTION
+    });
   }
 
   async generatePortfolioSchema(rawData: any, userPrompt: string) {
-    const prompt = `
-      System: You are an AI that structures professional portfolios for Notion.
-      Task: Based on the provided GitHub repository metadata and user bio/prompt, generate a structured "Semantic Asset Map" for a professional Notion portfolio.
-      
-      Output Schema Requirements:
-      Return a JSON object with:
-      - title: Portfolio Page Title
-      - hero: { bio: string, tagline: string, social_links: string[] }
-      - skills: string[]
-      - projects: Array of {
-          title: string,
-          description: string,
-          stars: number,
-          tech_stack: string[],
-          url: string,
-          notion_layout: 'column' | 'card'
-        }
-      - timeline: Array of { date: string, event: string }
-      
-      Input Data:
-      ---
-      GitHub Data: ${JSON.stringify(rawData)}
-      User Input: ${userPrompt}
-      ---
-      Return ONLY valid JSON.
-    `;
+    const prompt = PORTFOLIO_SCHEMA_PROMPT(rawData, userPrompt);
 
     const result = await this.model.generateContent(prompt);
     const response = await result.response;
