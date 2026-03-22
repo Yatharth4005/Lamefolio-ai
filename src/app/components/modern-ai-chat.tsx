@@ -81,7 +81,7 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
   
-  const { githubHandle, isGenerating, setIsGenerating, addNotification, displayName, generationCount, incrementGenerationCount, plan, points } = useGitHub();
+  const { githubHandle, isGenerating, setIsGenerating, addNotification, displayName, generationCount, incrementGenerationCount, plan, points, user } = useGitHub();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -307,10 +307,14 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
               className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
             >
               <div className={`flex gap-5 max-w-[85%] ${message.role === "user" ? "flex-row-reverse" : ""}`}>
-                <div className={`w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-xl ${
+                <div className={`w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-xl overflow-hidden ${
                   message.role === "user" ? "bg-white/10 border border-white/10" : "bg-white text-black"
                 }`}>
-                  {message.role === "user" ? <User className="w-5 h-5" /> : <Bot className="w-5 h-5" />}
+                  {message.role === "user" ? (
+                    user?.avatar ? <img src={user.avatar} className="w-full h-full object-cover" alt="user" /> : <User className="w-5 h-5" />
+                  ) : (
+                    <Bot className="w-5 h-5" />
+                  )}
                 </div>
                 <div className={`p-6 rounded-[1.8rem] text-[15px] leading-[1.6] shadow-md ${
                   message.role === "user" 

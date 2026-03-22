@@ -162,11 +162,9 @@ export function GitHubProvider({ children }: { children: ReactNode }) {
     setToken(null);
     setUser(null);
     setGithubHandle("");
-    setDisplayName("");
     localStorage.removeItem("github_token");
     localStorage.removeItem("github_user");
     localStorage.removeItem("github_handle");
-    localStorage.removeItem("display_name");
     localStorage.removeItem("generation_count");
     setGenerationCount(0);
   };

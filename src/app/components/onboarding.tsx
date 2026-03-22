@@ -9,6 +9,10 @@ export function Onboarding() {
   const [step, setStep] = useState(1);
   const [isVisible, setIsVisible] = useState(!displayName);
 
+  React.useEffect(() => {
+    if (displayName) setIsVisible(false);
+  }, [displayName]);
+
   if (!isVisible) return null;
 
   const handleNext = () => {
