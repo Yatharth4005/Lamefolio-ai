@@ -6,7 +6,7 @@ import { useNavigate } from "react-router";
 import { useGitHub } from "../context/GitHubContext";
 
 export function ModernHeader() {
-  const { user, isConnected, displayName, notifications, markNotificationRead, clearNotifications, disconnectGitHub, disconnectNotion, setDisplayName, generationCount, points, plan } = useGitHub();
+  const { user, isConnected, isNotionConnected, displayName, notifications, markNotificationRead, clearNotifications, setDisplayName, generationCount, points, plan, signOut } = useGitHub();
   const navigate = useNavigate();
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
@@ -27,6 +27,13 @@ export function ModernHeader() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  const handleSignOut = () => {
+    signOut();
+    setShowProfile(false);
+    navigate("/");
+    window.location.reload();
+  };
   return (
     <header className="h-16 backdrop-blur-md border-b border-white/[0.08] flex items-center justify-between px-6 sticky top-0 z-40"
       style={{ background: "rgba(19, 19, 26, 0.6)" }}
@@ -38,17 +45,19 @@ export function ModernHeader() {
 
       {/* Right Section */}
       <div className="flex items-center gap-3">
-        {/* AI Credits Badge */}
-        <motion.button 
-          onClick={() => navigate("/settings/billing")}
-          whileHover={{ scale: 1.05 }}
-          className="hidden md:flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500/10 to-blue-500/10 border border-purple-500/20 rounded-xl"
-        >
-          <Sparkles className="w-4 h-4 text-purple-400" />
-          <span className="text-sm font-medium text-white/90">
-            {plan === "Free" ? `${points} / 3 Credits` : "Unlimited Credits"}
-          </span>
-        </motion.button>
+        {/* AI Credits Badge - Hidden if GitHub is not connected */}
+        {isConnected && (
+          <motion.button 
+            onClick={() => navigate("/settings/billing")}
+            whileHover={{ scale: 1.05 }}
+            className="hidden md:flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500/10 to-blue-500/10 border border-purple-500/20 rounded-xl"
+          >
+            <Sparkles className="w-4 h-4 text-purple-400" />
+            <span className="text-sm font-medium text-white/90">
+              {plan === "Free" ? `${points} / 3 Credits` : "Unlimited Credits"}
+            </span>
+          </motion.button>
+        )}
 
         {/* Notifications */}
         <div className="relative" ref={notificationRef}>
@@ -166,12 +175,7 @@ export function ModernHeader() {
 
                 <div className="p-2 border-t border-white/[0.04]">
                   <button 
-                    onClick={() => {
-                      disconnectGitHub();
-                      disconnectNotion();
-                      setShowProfile(false);
-                      window.location.reload();
-                    }}
+                    onClick={handleSignOut}
                     className="w-full flex items-center gap-3 px-3 py-2 text-sm text-red-400 hover:bg-red-500/10 rounded-xl transition-all"
                   >
                     <LogOut className="w-4 h-4" />
@@ -184,5 +188,6 @@ export function ModernHeader() {
         </div>
       </div>
     </header>
+
   );
 }

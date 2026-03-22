@@ -69,6 +69,7 @@ interface GitHubContextType {
   // Actions
   disconnectGitHub: () => void;
   disconnectNotion: () => void;
+  signOut: () => void;
 
   // Notifications
   notifications: AppNotification[];
@@ -227,6 +228,21 @@ export function GitHubProvider({ children }: { children: ReactNode }) {
     setNotifications([]);
   };
 
+  const signOut = () => {
+    // Clear State
+    setToken(null);
+    setUser(null);
+    setGithubHandle("");
+    setDisplayName("");
+    setNotionToken(null);
+    setNotionWorkspace(null);
+    setNotifications([]);
+    setGenerationCount(0);
+    
+    // Clear Local Storage
+    localStorage.clear();
+  };
+
   return (
     <GitHubContext.Provider
       value={{
@@ -250,6 +266,7 @@ export function GitHubProvider({ children }: { children: ReactNode }) {
 
         disconnectGitHub,
         disconnectNotion,
+        signOut,
 
         notifications,
         addNotification,

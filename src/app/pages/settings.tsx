@@ -5,7 +5,7 @@ import { useParams, useNavigate } from "react-router";
 import { useGitHub } from "../context/GitHubContext";
 
 export function SettingsPage() {
-  const { displayName, user, githubHandle } = useGitHub();
+  const { displayName, user, githubHandle, signOut } = useGitHub();
   const { tab } = useParams();
   const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState(tab || "profile");
@@ -19,6 +19,12 @@ export function SettingsPage() {
   const handleSectionChange = (sectionId: string) => {
     setActiveSection(sectionId);
     navigate(`/settings/${sectionId}`);
+  };
+
+  const handleSignOut = () => {
+    signOut();
+    navigate("/");
+    window.location.reload();
   };
 
   const sections = [
@@ -71,6 +77,7 @@ export function SettingsPage() {
               ))}
               <div className="pt-4 border-t border-white/[0.08] mt-4">
                 <motion.button
+                  onClick={handleSignOut}
                   whileHover={{ x: 4 }}
                   className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-400 hover:bg-red-500/10 transition-all border border-red-500/20"
                 >
