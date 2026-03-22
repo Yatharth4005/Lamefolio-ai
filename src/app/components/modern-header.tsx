@@ -1,13 +1,17 @@
-import { Bell, Sparkles, Check, ExternalLink, X } from "lucide-react";
+import { Bell, Sparkles, Check, ExternalLink, X, Settings, LogOut, User as UserIcon, Shield } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { CommandPalette } from "./command-palette";
 import { motion, AnimatePresence } from "motion/react";
+import { useNavigate } from "react-router";
 import { useGitHub } from "../context/GitHubContext";
 
 export function ModernHeader() {
-  const { user, isConnected, displayName, notifications, markNotificationRead, clearNotifications } = useGitHub();
+  const { user, isConnected, displayName, notifications, markNotificationRead, clearNotifications, disconnectGitHub, disconnectNotion, setDisplayName } = useGitHub();
+  const navigate = useNavigate();
   const [showNotifications, setShowNotifications] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
   const notificationRef = useRef<HTMLDivElement>(null);
+  const profileRef = useRef<HTMLDivElement>(null);
 
   const unreadCount = notifications.filter(n => !n.read).length;
 
@@ -15,6 +19,9 @@ export function ModernHeader() {
     const handleClickOutside = (event: MouseEvent) => {
       if (notificationRef.current && !notificationRef.current.contains(event.target as Node)) {
         setShowNotifications(false);
+      }
+      if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
+        setShowProfile(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -111,20 +118,64 @@ export function ModernHeader() {
           </AnimatePresence>
         </div>
 
-        <motion.div
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          className="w-9 h-9 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center cursor-pointer relative group"
-        >
-          {isConnected && user?.avatar ? (
-            <img src={user.avatar} className="w-full h-full rounded-full object-cover relative z-10" alt="avatar" />
-          ) : (
-            <span className="text-white text-sm font-medium relative z-10">
-              {displayName ? displayName.substring(0, 1).toUpperCase() : (isConnected && user ? user.username.substring(0, 1).toUpperCase() : "U")}
-            </span>
-          )}
-          <div className="absolute inset-0 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full blur-md opacity-50 group-hover:opacity-75 transition-opacity" />
-        </motion.div>
+        <div className="relative" ref={profileRef}>
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => setShowProfile(!showProfile)}
+            className="w-9 h-9 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center cursor-pointer relative group"
+          >
+            {isConnected && user?.avatar ? (
+              <img src={user.avatar} className="w-full h-full rounded-full object-cover relative z-10" alt="avatar" />
+            ) : (
+              <span className="text-white text-sm font-medium relative z-10">
+                {displayName ? displayName.substring(0, 1).toUpperCase() : (isConnected && user ? user.username.substring(0, 1).toUpperCase() : "U")}
+              </span>
+            )}
+            <div className="absolute inset-0 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full blur-md opacity-50 group-hover:opacity-75 transition-opacity" />
+          </motion.div>
+
+          <AnimatePresence>
+            {showProfile && (
+              <motion.div
+                initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                className="absolute right-0 mt-2 w-56 bg-[#1a1a24] border border-white/[0.08] rounded-2xl shadow-2xl overflow-hidden z-[100]"
+              >
+                <div className="p-4 border-b border-white/[0.04]">
+                  <p className="text-xs text-white/40 uppercase font-black tracking-widest mb-1">Account</p>
+                  <p className="text-sm font-bold text-white truncate">{displayName || (user?.username ?? "Creator")}</p>
+                </div>
+                
+                <div className="p-2">
+                  <button 
+                    onClick={() => { setShowProfile(false); navigate("/settings"); }}
+                    className="w-full flex items-center gap-3 px-3 py-2 text-sm text-white/70 hover:text-white hover:bg-white/[0.05] rounded-xl transition-all group"
+                  >
+                    <UserIcon className="w-4 h-4 text-white/40 group-hover:text-purple-400" />
+                    Profile Settings
+                  </button>
+                </div>
+
+                <div className="p-2 border-t border-white/[0.04]">
+                  <button 
+                    onClick={() => {
+                      disconnectGitHub();
+                      disconnectNotion();
+                      setShowProfile(false);
+                      window.location.reload();
+                    }}
+                    className="w-full flex items-center gap-3 px-3 py-2 text-sm text-red-400 hover:bg-red-500/10 rounded-xl transition-all"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    Sign Out
+                  </button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
     </header>
   );
