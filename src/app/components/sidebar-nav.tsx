@@ -1,5 +1,6 @@
 import { LayoutDashboard, Wand2, GitBranch, Settings } from "lucide-react";
 import { Link, useLocation } from "react-router";
+import { useGitHub } from "../context/GitHubContext";
 
 const navItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/" },
@@ -10,6 +11,7 @@ const navItems = [
 
 export function SidebarNav() {
   const location = useLocation();
+  const { user, isConnected, displayName } = useGitHub();
 
   return (
     <aside className="w-64 h-screen bg-white border-r border-gray-200 flex flex-col">
@@ -51,11 +53,17 @@ export function SidebarNav() {
       <div className="p-4 border-t border-gray-200">
         <div className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-50 cursor-pointer">
           <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-full flex items-center justify-center">
-            <span className="text-white text-sm font-medium">JD</span>
+            {isConnected && user?.avatar ? (
+              <img src={user.avatar} className="w-full h-full rounded-full object-cover" alt="avatar" />
+            ) : (
+              <span className="text-white text-sm font-medium">
+                {(displayName || user?.username || "C").substring(0, 1).toUpperCase()}
+              </span>
+            )}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-gray-900 truncate">John Doe</p>
-            <p className="text-xs text-gray-500 truncate">john@example.com</p>
+            <p className="text-sm font-medium text-gray-900 truncate">{displayName || user?.username || "Creator"}</p>
+            <p className="text-xs text-gray-500 truncate">{isConnected ? "Pro Plan" : "Free Plan"}</p>
           </div>
         </div>
       </div>

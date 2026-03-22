@@ -1,10 +1,12 @@
 import { Sparkles } from "lucide-react";
+import { useGitHub } from "../context/GitHubContext";
 
 export function DashboardHero() {
+  const { displayName, githubHandle } = useGitHub();
   return (
     <div className="mb-8">
       <h1 className="text-3xl font-semibold text-gray-900 mb-2">
-        Welcome back, John 👋
+        Welcome back, {displayName || githubHandle || "Creator"} 👋
       </h1>
       <p className="text-gray-600">
         Let's build an amazing portfolio that showcases your skills and achievements.

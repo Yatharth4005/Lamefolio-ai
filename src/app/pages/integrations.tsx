@@ -9,7 +9,8 @@ import { toast } from "sonner";
 export function IntegrationsPage() {
   const { 
     user, setUser, token, setToken, setGithubHandle, isConnected,
-    notionToken, setNotionToken, notionWorkspace, setNotionWorkspace, isNotionConnected 
+    notionToken, setNotionToken, notionWorkspace, setNotionWorkspace, isNotionConnected,
+    disconnectGitHub, disconnectNotion
   } = useGitHub();
   
   const [isConnecting, setIsConnecting] = useState<string | null>(null);
@@ -140,7 +141,7 @@ export function IntegrationsPage() {
             <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              onClick={isConnected ? () => setToken(null) : initiateGitHubAuth}
+              onClick={isConnected ? disconnectGitHub : initiateGitHubAuth}
               disabled={isConnecting === "github"}
               className={`w-full py-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all ${
                 isConnected 
@@ -198,7 +199,7 @@ export function IntegrationsPage() {
             <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              onClick={isNotionConnected ? () => setNotionToken(null) : initiateNotionAuth}
+              onClick={isNotionConnected ? disconnectNotion : initiateNotionAuth}
               disabled={isConnecting === "notion"}
               className={`w-full py-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all ${
                 isNotionConnected 

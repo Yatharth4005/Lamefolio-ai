@@ -1,8 +1,10 @@
 import { Bell, Sparkles } from "lucide-react";
 import { CommandPalette } from "./command-palette";
 import { motion } from "motion/react";
+import { useGitHub } from "../context/GitHubContext";
 
 export function ModernHeader() {
+  const { user, isConnected, displayName } = useGitHub();
   return (
     <header className="h-16 backdrop-blur-md border-b border-white/[0.08] flex items-center justify-between px-6 sticky top-0 z-40"
       style={{ background: "rgba(19, 19, 26, 0.6)" }}
@@ -32,14 +34,19 @@ export function ModernHeader() {
           </span>
         </motion.button>
 
-        {/* User Avatar */}
         <motion.div
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           className="w-9 h-9 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center cursor-pointer relative group"
         >
+          {isConnected && user?.avatar ? (
+            <img src={user.avatar} className="w-full h-full rounded-full object-cover relative z-10" alt="avatar" />
+          ) : (
+            <span className="text-white text-sm font-medium relative z-10">
+              {displayName ? displayName.substring(0, 1).toUpperCase() : (isConnected && user ? user.username.substring(0, 1).toUpperCase() : "U")}
+            </span>
+          )}
           <div className="absolute inset-0 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full blur-md opacity-50 group-hover:opacity-75 transition-opacity" />
-          <span className="text-white text-sm font-medium relative z-10">JD</span>
         </motion.div>
       </div>
     </header>

@@ -34,6 +34,8 @@ interface GitHubContextType {
   token: string | null;
   setToken: (token: string | null) => void;
   isConnected: boolean;
+  displayName: string;
+  setDisplayName: (name: string) => void;
 
   // Notion
   notionToken: string | null;
@@ -41,6 +43,10 @@ interface GitHubContextType {
   notionWorkspace: NotionWorkspace | null;
   setNotionWorkspace: (nw: NotionWorkspace | null) => void;
   isNotionConnected: boolean;
+
+  // Actions
+  disconnectGitHub: () => void;
+  disconnectNotion: () => void;
 }
 
 const GitHubContext = createContext<GitHubContextType | undefined>(undefined);
@@ -54,6 +60,7 @@ export function GitHubProvider({ children }: { children: ReactNode }) {
     return saved ? JSON.parse(saved) : null;
   });
   const [token, setToken] = useState(() => localStorage.getItem("github_token"));
+  const [displayName, setDisplayName] = useState(() => localStorage.getItem("display_name") || "");
 
   // Notion States
   const [notionToken, setNotionToken] = useState(() => localStorage.getItem("notion_token"));
@@ -77,6 +84,10 @@ export function GitHubProvider({ children }: { children: ReactNode }) {
     else localStorage.removeItem("github_token");
   }, [token]);
 
+  useEffect(() => {
+    localStorage.setItem("display_name", displayName);
+  }, [displayName]);
+
   // Persistent Effects Notion
   useEffect(() => {
     if (notionToken) localStorage.setItem("notion_token", notionToken);
@@ -87,6 +98,24 @@ export function GitHubProvider({ children }: { children: ReactNode }) {
     if (notionWorkspace) localStorage.setItem("notion_workspace", JSON.stringify(notionWorkspace));
     else localStorage.removeItem("notion_workspace");
   }, [notionWorkspace]);
+
+  const disconnectGitHub = () => {
+    setToken(null);
+    setUser(null);
+    setGithubHandle("");
+    setDisplayName("");
+    localStorage.removeItem("github_token");
+    localStorage.removeItem("github_user");
+    localStorage.removeItem("github_handle");
+    localStorage.removeItem("display_name");
+  };
+
+  const disconnectNotion = () => {
+    setNotionToken(null);
+    setNotionWorkspace(null);
+    localStorage.removeItem("notion_token");
+    localStorage.removeItem("notion_workspace");
+  };
 
   return (
     <GitHubContext.Provider
@@ -100,12 +129,17 @@ export function GitHubProvider({ children }: { children: ReactNode }) {
         token,
         setToken,
         isConnected: !!token,
+        displayName,
+        setDisplayName,
 
         notionToken,
         setNotionToken,
         notionWorkspace,
         setNotionWorkspace,
-        isNotionConnected: !!notionToken
+        isNotionConnected: !!notionToken,
+
+        disconnectGitHub,
+        disconnectNotion
       }}
     >
       {children}

@@ -1,7 +1,8 @@
 import { LayoutDashboard, Wand2, GitBranch, Settings, ChevronLeft, ChevronRight } from "lucide-react";
-import { Link, useLocation } from "react-router";
+import { Link, useLocation, useNavigate } from "react-router";
 import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
+import { useGitHub } from "../context/GitHubContext";
 
 const navItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/" },
@@ -13,6 +14,8 @@ const navItems = [
 export function ModernSidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, isConnected, displayName } = useGitHub();
 
   return (
     <motion.aside
@@ -97,28 +100,51 @@ export function ModernSidebar() {
         </ul>
       </nav>
 
-      {/* User Profile */}
+      {/* User Profile / Connect CTA */}
       <div className="p-4 border-t border-white/[0.08]">
-        <div className={`flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/[0.03] cursor-pointer transition-colors ${collapsed ? "justify-center" : ""}`}>
-          <div className="w-9 h-9 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center relative group flex-shrink-0">
-            <div className="absolute inset-0 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full blur-md opacity-50 group-hover:opacity-75 transition-opacity" />
-            <span className="text-white text-sm font-medium relative z-10">JD</span>
+        {(displayName || (isConnected && user)) ? (
+          <div className={`flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/[0.03] cursor-pointer transition-colors ${collapsed ? "justify-center" : ""}`}>
+            <div className="w-9 h-9 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center relative group flex-shrink-0">
+              {isConnected && user?.avatar ? (
+                <img src={user.avatar} className="w-full h-full rounded-full object-cover relative z-10" alt="avatar" />
+              ) : (
+                <span className="text-white text-sm font-medium relative z-10">
+                  {(displayName || user?.username || "C").substring(0, 1).toUpperCase()}
+                </span>
+              )}
+              <div className="absolute inset-0 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full blur-md opacity-50 group-hover:opacity-75 transition-opacity" />
+            </div>
+            <AnimatePresence mode="wait">
+              {!collapsed && (
+                <motion.div
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -10 }}
+                  transition={{ duration: 0.2 }}
+                  className="flex-1 min-0"
+                >
+                  <p className="text-sm font-medium text-white truncate">{displayName || user?.username}</p>
+                  <p className="text-xs text-white/40 truncate">{isConnected ? "Pro Plan" : "Free Plan"}</p>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
-          <AnimatePresence mode="wait">
+        ) : (
+          <button 
+            onClick={() => navigate("/integrations")}
+            className={`flex items-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-r from-purple-500/10 to-blue-500/10 border border-purple-500/20 hover:border-purple-500/40 transition-all group w-full ${collapsed ? "justify-center" : ""}`}
+          >
+            <div className="w-9 h-9 bg-purple-500/20 rounded-full flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+              <GitBranch className="w-4 h-4 text-purple-400" />
+            </div>
             {!collapsed && (
-              <motion.div
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -10 }}
-                transition={{ duration: 0.2 }}
-                className="flex-1 min-w-0"
-              >
-                <p className="text-sm font-medium text-white truncate">John Doe</p>
-                <p className="text-xs text-white/40 truncate">Pro Plan</p>
-              </motion.div>
+              <div className="text-left overflow-hidden">
+                <p className="text-[11px] font-black uppercase tracking-widest text-white/90">Connect GitHub</p>
+                <p className="text-[10px] text-white/40 truncate">Sync projects now</p>
+              </div>
             )}
-          </AnimatePresence>
-        </div>
+          </button>
+        )}
       </div>
 
       {/* Collapse Button */}

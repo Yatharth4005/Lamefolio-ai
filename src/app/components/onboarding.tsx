@@ -1,13 +1,13 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { Github, ArrowRight, Sparkles, Wand2, CheckCircle2 } from "lucide-react";
+import { Github, ArrowRight, Sparkles, Wand2, CheckCircle2, User } from "lucide-react";
 import { useGitHub } from "../context/GitHubContext";
 
 export function Onboarding() {
-  const { githubHandle, setGithubHandle } = useGitHub();
+  const { displayName, setDisplayName } = useGitHub();
   const [inputValue, setInputValue] = useState("");
   const [step, setStep] = useState(1);
-  const [isVisible, setIsVisible] = useState(!githubHandle);
+  const [isVisible, setIsVisible] = useState(!displayName);
 
   if (!isVisible) return null;
 
@@ -16,7 +16,7 @@ export function Onboarding() {
       setStep(2);
     } else if (step === 2) {
       if (inputValue.trim()) {
-        setGithubHandle(inputValue.trim());
+        setDisplayName(inputValue.trim());
         setStep(3);
         // Delay closing to show success state
         setTimeout(() => {
@@ -82,27 +82,27 @@ export function Onboarding() {
                   </motion.div>
                 )}
 
-                {step === 2 && (
+                 {step === 2 && (
                   <motion.div
                     key="step2"
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -20 }}
                   >
-                    <div className="w-16 h-16 bg-white/[0.05] border border-white/[0.1] rounded-2xl flex items-center justify-center mb-8">
-                       <Github className="w-8 h-8 text-white" />
+                    <div className="w-16 h-16 bg-white/[0.05] border border-white/[0.1] rounded-2xl flex items-center justify-center mb-8 text-white font-bold text-2xl">
+                       <User className="w-8 h-8" />
                     </div>
                     <h2 className="text-3xl font-black text-white mb-3 tracking-tight">
-                       Connect your GitHub
+                       What should we call you?
                     </h2>
                     <p className="text-white/40 mb-8">
-                       We'll use your username to personalize your dashboard and sync your best work.
+                       This will be your display name and it's how we'll address you on the dashboard.
                     </p>
                     
                     <div className="relative mb-8">
                       <input
                         type="text"
-                        placeholder="Enter your GitHub username"
+                        placeholder="Enter your name"
                         autoFocus
                         value={inputValue}
                         onChange={(e) => setInputValue(e.target.value)}
@@ -135,10 +135,10 @@ export function Onboarding() {
                        <CheckCircle2 className="w-12 h-12 text-green-400 relative z-10" />
                     </div>
                     <h2 className="text-4xl font-black text-white mb-4 tracking-tight">
-                       You're all set, <span className="text-purple-400">{inputValue}</span>!
+                       You're all set, <span className="text-purple-400">{displayName}</span>!
                     </h2>
                     <p className="text-white/40 text-lg">
-                       Welcome back. Preparing your personalized experience...
+                       Welcome aboard. Preparing your personalized experience...
                     </p>
                   </motion.div>
                 )}
