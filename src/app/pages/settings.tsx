@@ -332,6 +332,7 @@ function DomainSettings() {
 
 
 function BillingSettings() {
+  const { plan } = useGitHub();
   const plans = [
     {
       id: "free",
@@ -339,7 +340,7 @@ function BillingSettings() {
       price: "$0",
       icon: Sparkles,
       features: ["3 AI Generations", "Notion Integration", "Basic Analytics", "Community Support"],
-      isCurrent: true,
+      isCurrent: plan.toLowerCase() === "free",
       gradient: "from-gray-500/20 to-gray-800/20",
       borderColor: "border-white/10"
     },
@@ -349,7 +350,7 @@ function BillingSettings() {
       price: "$19",
       icon: Zap,
       features: ["Unlimited Generations", "Custom Domain", "Advanced Analytics", "Priority Notion Sync"],
-      isCurrent: false,
+      isCurrent: plan.toLowerCase() === "pro",
       gradient: "from-purple-500/20 to-blue-500/20",
       borderColor: "border-purple-500/30",
       popular: true
@@ -360,7 +361,7 @@ function BillingSettings() {
       price: "$49",
       icon: Crown,
       features: ["Teams & Collaboration", "White-label Output", "Dedicated Manager", "Beta Feature Access"],
-      isCurrent: false,
+      isCurrent: plan.toLowerCase() === "premium",
       gradient: "from-amber-500/20 to-orange-500/20",
       borderColor: "border-amber-500/30"
     }

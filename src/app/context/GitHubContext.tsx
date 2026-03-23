@@ -55,7 +55,7 @@ interface GitHubContextType {
   isNotionConnected: boolean;
 
   // Plan & Usage
-  plan: "Free" | "Pro";
+  plan: string;
   generationCount: number; // For Free plan, this shows 'points left' if we change logic
   points: number;
   incrementGenerationCount: () => void;
@@ -105,7 +105,7 @@ export function GitHubProvider({ children }: { children: ReactNode }) {
 
   const [generationCount, setGenerationCount] = useState(0);
   const [points, setPoints] = useState(3);
-  const [plan, setPlan] = useState<"Free" | "Pro">("Free");
+  const [plan, setPlan] = useState<string>("Free");
 
   const [theme, setTheme] = useState<"dark" | "light" | "auto">(() => {
     return (localStorage.getItem("app_theme") as "dark" | "light" | "auto") || "dark";

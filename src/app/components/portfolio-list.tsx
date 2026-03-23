@@ -66,23 +66,21 @@ export function PortfolioList() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {portfolios.map((item) => (
-        <motion.div
+        <motion.a
           key={item.id}
+          href={item.notion_url}
+          target="_blank"
+          rel="noreferrer"
           whileHover={{ y: -5 }}
-          className="group relative p-6 bg-white/[0.03] border border-white/[0.08] rounded-3xl hover:bg-white/[0.05] transition-all"
+          className="group relative p-6 bg-white/[0.03] border border-white/[0.08] rounded-3xl hover:bg-white/[0.05] hover:border-white/[0.12] transition-all cursor-pointer block"
         >
           <div className="flex justify-between items-start mb-6">
             <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center">
                <Globe className="w-6 h-6 text-white/40 group-hover:text-purple-400 transition-colors" />
             </div>
-            <a 
-              href={item.notion_url} 
-              target="_blank" 
-              rel="noreferrer"
-              className="p-2 bg-white/5 rounded-lg hover:bg-white/10 transition-colors"
-            >
-              <ExternalLink className="w-4 h-4 text-white/40" />
-            </a>
+            <div className="p-2 bg-white/5 rounded-lg group-hover:bg-white/10 transition-colors">
+              <ExternalLink className="w-4 h-4 text-white/40 group-hover:text-white transition-colors" />
+            </div>
           </div>
 
           <h3 className="text-white font-bold mb-2 truncate pr-6">Notion Portfolio</h3>
@@ -94,15 +92,7 @@ export function PortfolioList() {
                 {new Date(item.created_at).toLocaleDateString()}
              </span>
           </div>
-
-          <motion.a
-            href={item.notion_url}
-            target="_blank"
-            className="absolute bottom-6 right-6 p-2 bg-purple-500 text-white rounded-lg opacity-0 group-hover:opacity-100 transition-all shadow-lg shadow-purple-500/20"
-          >
-            <ArrowUpRight className="w-4 h-4" />
-          </motion.a>
-        </motion.div>
+        </motion.a>
       ))}
     </div>
   );

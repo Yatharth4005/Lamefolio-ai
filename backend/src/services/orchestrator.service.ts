@@ -34,38 +34,38 @@ export class OrchestratorService {
 
     // 4. Create Notion Page
     console.log('📝 Creating Notion page...');
-    const parentPageId = env.NOTION_PAGE_ID!; 
+    const parentPageId = env.NOTION_PAGE_ID!;
     const result = await this.notion.createPage(parentPageId, portfolioSchema.title, blocks);
 
     return {
-       url: (result as any).url,
-       id: result.id,
+      url: (result as any).url,
+      id: result.id,
     };
   }
 
   async generateDocumentation(repoUrl: string) {
-     const [owner, repo] = repoUrl.split('/').slice(-2);
-     console.log(`📖 Generating docs for: ${repo}`);
-     
-     const readme = await this.github.getRepoReadme(owner, repo);
-     const docSchema = await this.ai.generateDevDocs([{ name: repo, content: readme }], repo);
-     
-     const blocks = this.transformer.convertToDocsBlocks(docSchema);
-     const parentPageId = env.NOTION_PAGE_ID!;
-     const result = await this.notion.createPage(parentPageId, `Docs: ${repo}`, blocks);
-     
-     return {
-        url: (result as any).url,
-        id: result.id,
-     };
+    const [owner, repo] = repoUrl.split('/').slice(-2);
+    console.log(`📖 Generating docs for: ${repo}`);
+
+    const readme = await this.github.getRepoReadme(owner, repo);
+    const docSchema = await this.ai.generateDevDocs([{ name: repo, content: readme }], repo);
+
+    const blocks = this.transformer.convertToDocsBlocks(docSchema);
+    const parentPageId = env.NOTION_PAGE_ID!;
+    const result = await this.notion.createPage(parentPageId, `Docs: ${repo}`, blocks);
+
+    return {
+      url: (result as any).url,
+      id: result.id,
+    };
   }
 
   async getChatResponse(message: string) {
     const history = [
       { role: 'user', parts: [{ text: "Hello" }] },
-      { role: 'model', parts: [{ text: "Hi! I am Layerio AI. I help you build stunning portfolios and documentation." }] }
+      { role: 'model', parts: [{ text: "Hi! I am Lamefolio AI. I help you build stunning portfolios and documentation." }] }
     ] as any;
-    
+
     return this.ai.chat(message, history);
   }
 }
