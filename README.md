@@ -49,7 +49,7 @@ Clone and install dependencies for both the frontend and backend:
 
 ```bash
 # Main project (Frontend)
-cd Layerio
+cd Lamefolioai
 npm install
 
 # Backend
