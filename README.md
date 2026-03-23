@@ -89,7 +89,7 @@ The application will be accessible at `http://localhost:5173`.
 ## 🗺️ Project Structure
 
 ```text
-Layerio/
+Lamefolioai/
 ├── src/
 │   ├── app/
 │   │   ├── components/  # Modern UI components
