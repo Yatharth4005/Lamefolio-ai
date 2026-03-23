@@ -4,7 +4,6 @@
 
 lamefolio.ai transforms your career journey into a professional, high-converting portfolio directly in your Notion workspace. By connecting your GitHub and describing your professional goals, our Gemini-powered engine curates your best work and builds a complete portfolio automatically.
 
-![lamefolio.ai Welcome Screen](https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&q=80&w=1200&h=600)
 
 ## 🚀 Key Features
 
@@ -50,7 +49,7 @@ Clone and install dependencies for both the frontend and backend:
 
 ```bash
 # Main project (Frontend)
-cd Layerio
+cd Lamefolioai
 npm install
 
 # Backend
@@ -90,7 +89,7 @@ The application will be accessible at `http://localhost:5173`.
 ## 🗺️ Project Structure
 
 ```text
-Layerio/
+Lamefolioai/
 ├── src/
 │   ├── app/
 │   │   ├── components/  # Modern UI components
