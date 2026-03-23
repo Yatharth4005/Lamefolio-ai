@@ -44,8 +44,11 @@ export async function portfolioRoutes(fastify: FastifyInstance) {
         });
 
         // Track usage (points)
-        await db.upsertUser(handle);
-        await db.decrementPoints(handle);
+        const [userRecord] = await db.upsertUser(handle);
+        if (userRecord && userRecord.plan !== 'Pro') {
+          await db.decrementPoints(handle);
+        }
+
 
         // Save AI response to messages
         await db.saveMessage(handle, 'ai', github_handle === 'manual_entry' 

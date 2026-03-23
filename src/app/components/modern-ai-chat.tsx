@@ -20,60 +20,92 @@ interface ModernAIChatProps {
 }
 
 function ThinkingTrace() {
+  const [isOpen, setIsOpen] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const steps = [
-    "Spinning up synaptic gears...",
-    "Querying the digital void...",
-    "Bending the laws of architecture...",
-    "Rerouting cosmic data packets...",
-    "Injecting brilliance into Notion..."
+    "Analyzing project requirements...",
+    "Crawling GitHub repositories...",
+    "Extracting core tech stack...",
+    "Synthesizing achievement patterns...",
+    "Generating Notion block architecture...",
+    "Pushing final assets to workspace..."
   ];
 
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentStep((prev) => (prev < steps.length - 1 ? prev + 1 : prev));
-    }, 3000);
+    }, 2500);
     return () => clearInterval(timer);
   }, []);
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-4">
-         <div className="flex gap-1">
-            <motion.div 
-               animate={{ scale: [1, 1.2, 1] }} 
-               transition={{ repeat: Infinity, duration: 1.5 }}
-               className="w-2.5 h-2.5 bg-purple-500 rounded-full blur-[2px]" 
-            />
-         </div>
-         <p className="text-[10px] text-white/40 font-black uppercase tracking-[0.4em] animate-pulse">Thinking...</p>
-      </div>
+    <div className="space-y-3">
+      {/* Header / Trigger */}
+      <button 
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center gap-3 group transition-colors bg-white/[0.03] hover:bg-white/[0.06] border border-white/5 px-4 py-2.5 rounded-2xl"
+      >
+        <div className="flex gap-1 relative">
+           <motion.div 
+              animate={{ 
+                scale: [1, 1.3, 1],
+                opacity: [0.5, 1, 0.5]
+              }} 
+              transition={{ repeat: Infinity, duration: 2 }}
+              className="w-2.5 h-2.5 bg-purple-500 rounded-full blur-[2px]" 
+           />
+           <div className="absolute inset-0 bg-purple-500/20 blur-md animate-pulse rounded-full" />
+        </div>
+        <p className="text-[10px] text-white/40 font-black uppercase tracking-[0.4em] group-hover:text-white/60 transition-colors">
+          Thinking...
+        </p>
+        <motion.div
+          animate={{ rotate: isOpen ? 180 : 0 }}
+          className="text-white/20 group-hover:text-white/40 border-l border-white/10 pl-3 ml-1"
+        >
+          <ChevronDown className="w-3.5 h-3.5" />
+        </motion.div>
+      </button>
 
-      <div className="bg-white/[0.01] border border-white/5 rounded-3xl p-6 backdrop-blur-3xl">
-         {steps.slice(0, currentStep + 1).map((step, idx) => (
-            <motion.div 
-               key={idx}
-               initial={{ opacity: 0, x: -15 }}
-               animate={{ opacity: 1, x: 0 }}
-               className="flex items-center gap-4 py-2"
-            >
-               {idx === currentStep ? (
-                  <div className="relative">
-                    <Loader2 className="w-4 h-4 text-purple-400 animate-spin" />
-                    <div className="absolute inset-0 bg-purple-400/20 blur-md animate-pulse" />
-                  </div>
-               ) : (
-                  <CheckCircle2 className="w-4 h-4 text-green-500/40" />
-               )}
-               <span className={`text-[13px] tracking-tight ${idx === currentStep ? "text-white/90 font-bold italic" : "text-white/20"}`}>
-                  {step}
-               </span>
-            </motion.div>
-         ))}
-      </div>
+      {/* Collapsible Steps */}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div 
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="overflow-hidden"
+          >
+            <div className="bg-white/[0.015] border border-white/5 rounded-[2rem] p-6 backdrop-blur-3xl space-y-1">
+               {steps.slice(0, currentStep + 1).map((step, idx) => (
+                  <motion.div 
+                     key={idx}
+                     initial={{ opacity: 0, x: -10 }}
+                     animate={{ opacity: 1, x: 0 }}
+                     className="flex items-center gap-4 py-1.5"
+                  >
+                     <div className="flex-shrink-0">
+                        {idx === currentStep ? (
+                           <div className="relative">
+                             <Loader2 className="w-3.5 h-3.5 text-purple-400/60 animate-spin" />
+                           </div>
+                        ) : (
+                           <CheckCircle2 className="w-3.5 h-3.5 text-purple-500/30" />
+                        )}
+                     </div>
+                     <span className={`text-[12px] tracking-tight ${idx === currentStep ? "text-white/60 font-medium italic" : "text-white/20"}`}>
+                        {step}
+                     </span>
+                  </motion.div>
+               ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
+
 
 export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
   const navigate = useNavigate();

@@ -48,10 +48,12 @@ User Input: ${userPrompt}
 
 IMPORTANT:
 - Categorize skills precisely into frontend, backend, and testing_devops.
+- LIMIT: Provide exactly 5 primary, most impactful skills for EACH category. Do not exceed 5.
 - Do NOT use markdown bolding (e.g., **text**) inside JSON strings. The transformer handles formatting.
 - Ensure the project description is clear and concise.
 - Achievements should be extracted from the user's bio or GitHub activity (e.g., "Top 1% contributor", "Maintained X stars repo").
 
 Return ONLY valid JSON.
 `;
+
 
