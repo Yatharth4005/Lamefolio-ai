@@ -86,6 +86,15 @@ export class DatabaseService {
      `;
   }
 
+  async deletePortfolio(id: number, user_handle: string) {
+     return this.sql`
+        DELETE FROM portfolios 
+        WHERE id = ${id} AND LOWER(user_handle) = LOWER(${user_handle})
+        RETURNING *
+     `;
+  }
+
+
    // User Management
    async upsertUser(handle: string, displayName?: string) {
       return this.sql`

@@ -243,6 +243,22 @@ export async function portfolioRoutes(fastify: FastifyInstance) {
     }
   });
 
+  fastify.delete('/portfolios/:handle/:id', async (request, reply) => {
+    try {
+      const { handle, id } = request.params as { handle: string, id: string };
+      const result = await db.deletePortfolio(parseInt(id), handle);
+      
+      if (result.length === 0) {
+        return reply.status(404).send({ success: false, error: 'Portfolio not found or unauthorized' });
+      }
+
+      return reply.send({ success: true, message: `Portfolio ${id} deleted` });
+    } catch (error: any) {
+      return reply.status(500).send({ error: error.message });
+    }
+  });
+
+
   // --- USER DATA ---
   fastify.get('/user/:handle', async (request, reply) => {
     try {

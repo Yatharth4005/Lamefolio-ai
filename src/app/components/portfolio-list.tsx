@@ -1,8 +1,8 @@
-import { ExternalLink, Clock, Globe, ArrowUpRight, FolderOpen, Loader2 } from "lucide-react";
+import { ExternalLink, Clock, Globe, ArrowUpRight, FolderOpen, Loader2, Trash2 } from "lucide-react";
 import { motion } from "motion/react";
 import { useEffect, useState } from "react";
 import { useGitHub } from "../context/GitHubContext";
-import { getUserPortfolios } from "../lib/api";
+import { getUserPortfolios, deletePortfolio } from "../lib/api";
 
 interface Portfolio {
   id: number;
@@ -32,6 +32,23 @@ export function PortfolioList() {
       console.error(err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDelete = async (e: React.MouseEvent, id: number) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (!githubHandle) return;
+    
+    if (!confirm("Are you sure you want to delete this manifesto?")) return;
+
+    try {
+      await deletePortfolio(githubHandle, id);
+      setPortfolios(prev => prev.filter(p => p.id !== id));
+    } catch (err) {
+      console.error(err);
+      alert("Failed to delete portfolio");
     }
   };
 
@@ -78,8 +95,17 @@ export function PortfolioList() {
             <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center">
                <Globe className="w-6 h-6 text-white/40 group-hover:text-purple-400 transition-colors" />
             </div>
-            <div className="p-2 bg-white/5 rounded-lg group-hover:bg-white/10 transition-colors">
-              <ExternalLink className="w-4 h-4 text-white/40 group-hover:text-white transition-colors" />
+            <div className="flex gap-2">
+              <div 
+                onClick={(e) => handleDelete(e, item.id)}
+                className="p-2 bg-white/5 rounded-lg hover:bg-red-500/20 group/del transition-colors"
+                title="Delete Portfolio"
+              >
+                <Trash2 className="w-4 h-4 text-white/20 group-hover/del:text-red-400 transition-colors" />
+              </div>
+              <div className="p-2 bg-white/5 rounded-lg group-hover:bg-white/10 transition-colors">
+                <ExternalLink className="w-4 h-4 text-white/40 group-hover:text-white transition-colors" />
+              </div>
             </div>
           </div>
 
@@ -97,3 +123,4 @@ export function PortfolioList() {
     </div>
   );
 }
+

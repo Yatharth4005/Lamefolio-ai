@@ -129,3 +129,12 @@ export async function getUserData(handle: string) {
   if (!response.ok) throw new Error("Failed to fetch user data");
   return response.json();
 }
+
+export async function deletePortfolio(handle: string, id: number) {
+  const response = await fetch(`${API_BASE_URL}/portfolios/${handle}/${id}`, {
+    method: "DELETE"
+  });
+  if (!response.ok) throw new Error("Failed to delete portfolio");
+  return response.json();
+}
+
