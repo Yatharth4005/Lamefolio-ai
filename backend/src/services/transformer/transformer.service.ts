@@ -8,14 +8,17 @@ export class TransformerService {
     // 1. Hero Section
     blocks.push(...PortfolioTemplates.hero(assetMap.title, assetMap.hero.tagline, assetMap.hero.bio));
 
-    // 2. Skills
-    blocks.push(PortfolioTemplates.sectionHeader('Skills', '🧠'));
-    blocks.push(...PortfolioTemplates.skillsCloud(assetMap.skills));
+    // 2. Skills (Categorized Stack)
+    blocks.push(PortfolioTemplates.sectionHeader('My Stack', '📊'));
+    blocks.push(...PortfolioTemplates.stackColumns(
+      assetMap.skills.frontend || [], 
+      assetMap.skills.backend || [], 
+      assetMap.skills.testing_devops || []
+    ));
 
     // 3. Projects
     blocks.push(PortfolioTemplates.sectionHeader('Projets', '🚧'));
     
-    // Using columns or just stacking cards
     for (const project of assetMap.projects) {
       blocks.push(...PortfolioTemplates.projectCard(
         project.title, 
@@ -25,7 +28,13 @@ export class TransformerService {
       ));
     }
 
-    // 4. Contact/Links
+    // 4. Achievements (if any)
+    if (assetMap.achievements && assetMap.achievements.length > 0) {
+      blocks.push(PortfolioTemplates.sectionHeader('Achievements', '🏆'));
+      blocks.push(...PortfolioTemplates.achievements(assetMap.achievements));
+    }
+
+    // 5. Contact/Links
     blocks.push(PortfolioTemplates.sectionHeader('Connect', '🔗'));
     blocks.push({
       object: 'block',
@@ -40,6 +49,7 @@ export class TransformerService {
 
     return blocks;
   }
+
 
   convertToDocsBlocks(docSchema: any) {
     const blocks: any[] = [];

@@ -35,7 +35,7 @@ export class OrchestratorService {
     // 4. Create Notion Page
     console.log('📝 Creating Notion page...');
     const parentPageId = env.NOTION_PAGE_ID!;
-    const result = await this.notion.createPage(parentPageId, portfolioSchema.title, blocks);
+    const result = await this.notion.createPage(parentPageId, portfolioSchema.title, blocks, portfolioSchema.cover_image);
 
     return {
       url: (result as any).url,

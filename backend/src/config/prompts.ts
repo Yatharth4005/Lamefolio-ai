@@ -21,8 +21,13 @@ Task: Based on the provided GitHub repository metadata and user bio/prompt, gene
 Output Schema Requirements:
 Return a JSON object with:
 - title: Portfolio Page Title
+- cover_image: A URL to a minimal, professional background image (use Unsplash source URLs like "https://images.unsplash.com/photo-1497215728101-856f4ea42174" or similar high-quality architectural/minimalist photos)
 - hero: { bio: string, tagline: string, social_links: string[] }
-- skills: string[]
+- skills: {
+    frontend: string[],
+    backend: string[],
+    testing_devops: string[]
+  }
 - projects: Array of {
     title: string,
     description: string,
@@ -31,6 +36,7 @@ Return a JSON object with:
     url: string,
     notion_layout: 'column' | 'card'
   }
+- achievements: Array<{ title: string, description: string }>
 - timeline: Array of { date: string, event: string }
 
 Input Data:
@@ -38,5 +44,13 @@ Input Data:
 GitHub Data: ${JSON.stringify(rawData)}
 User Input: ${userPrompt}
 ---
+
+IMPORTANT:
+- Categorize skills precisely into frontend, backend, and testing_devops.
+- Do NOT use markdown bolding (e.g., **text**) inside JSON strings. The transformer handles formatting.
+- Ensure the project description is clear and concise.
+- Achievements should be extracted from the user's bio or GitHub activity (e.g., "Top 1% contributor", "Maintained X stars repo").
+
 Return ONLY valid JSON.
 `;
+

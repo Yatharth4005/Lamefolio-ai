@@ -32,10 +32,11 @@ export class NotionService {
     return response.data;
   }
 
-  async createPage(parentPageId: string, title: string, blocks: any[]) {
+  async createPage(parentPageId: string, title: string, blocks: any[], coverUrl?: string) {
     try {
       const response = await this.notion.pages.create({
         parent: { page_id: parentPageId },
+        cover: coverUrl ? { type: 'external', external: { url: coverUrl } } : undefined,
         properties: {
           title: [
             {
@@ -46,6 +47,7 @@ export class NotionService {
         children: blocks,
       });
       return response;
+
     } catch (e: any) {
       console.error('Notion integration error:', e.body || e.message);
       throw new Error(`Notion API failure: ${e.message}`);

@@ -29,7 +29,10 @@ export const PortfolioTemplates = {
       object: 'block',
       type: 'callout',
       callout: {
-        rich_text: [{ type: 'text', text: { content: `**${title}**\n${description}` } }],
+        rich_text: [
+          { type: 'text', text: { content: title }, annotations: { bold: true } },
+          { type: 'text', text: { content: `\n${description}` } }
+        ],
         icon: { type: 'emoji', emoji: '🛠️' },
         color: 'default',
         children: [
@@ -44,24 +47,105 @@ export const PortfolioTemplates = {
             object: 'block',
             type: 'paragraph',
             paragraph: {
-              rich_text: [{ type: 'text', text: { content: `Stack: ${tech.join(', ')}` } }],
+              rich_text: [
+                { type: 'text', text: { content: 'Stack: ' }, annotations: { bold: true } },
+                { type: 'text', text: { content: tech.join(', ') } }
+              ],
             },
            }
         ]
       },
     },
   ],
-  skillsCloud: (skills: string[]) => [
+  stackColumns: (frontend: string[], backend: string[], testing: string[]) => [
     {
       object: 'block',
-      type: 'paragraph',
-      paragraph: {
-        rich_text: skills.map((skill, index) => ({
-          type: 'text',
-          text: { content: (index === 0 ? '' : ' • ') + skill },
-          annotations: { bold: true, code: true }
-        }))
+      type: 'column_list',
+      column_list: {
+        children: [
+          {
+            object: 'block',
+            type: 'column',
+            column: {
+              children: [
+                {
+                  object: 'block',
+                  type: 'callout',
+                  callout: {
+                    rich_text: [{ type: 'text', text: { content: 'Frontend' }, annotations: { bold: true } }],
+                    icon: { type: 'emoji', emoji: '🎨' },
+                    color: 'blue_background',
+                    children: frontend.map(s => ({
+                      object: 'block',
+                      type: 'bulleted_list_item',
+                      bulleted_list_item: { rich_text: [{ type: 'text', text: { content: s } }] }
+                    }))
+                  }
+                }
+              ]
+            }
+          },
+          {
+            object: 'block',
+            type: 'column',
+            column: {
+              children: [
+                {
+                  object: 'block',
+                  type: 'callout',
+                  callout: {
+                    rich_text: [{ type: 'text', text: { content: 'Backend' }, annotations: { bold: true } }],
+                    icon: { type: 'emoji', emoji: '⚙️' },
+                    color: 'purple_background',
+                    children: backend.map(s => ({
+                      object: 'block',
+                      type: 'bulleted_list_item',
+                      bulleted_list_item: { rich_text: [{ type: 'text', text: { content: s } }] }
+                    }))
+                  }
+                }
+              ]
+            }
+          },
+          {
+            object: 'block',
+            type: 'column',
+            column: {
+              children: [
+                {
+                  object: 'block',
+                  type: 'callout',
+                  callout: {
+                    rich_text: [{ type: 'text', text: { content: 'Testing & DevOps' }, annotations: { bold: true } }],
+                    icon: { type: 'emoji', emoji: '🧪' },
+                    color: 'green_background',
+                    children: testing.map(s => ({
+                      object: 'block',
+                      type: 'bulleted_list_item',
+                      bulleted_list_item: { rich_text: [{ type: 'text', text: { content: s } }] }
+                    }))
+                  }
+                }
+              ]
+            }
+          }
+        ]
       }
     }
+  ],
+  achievements: (items: { title: string, description: string }[]) => [
+    ...items.map(item => ({
+      object: 'block',
+      type: 'callout',
+      callout: {
+        rich_text: [
+          { type: 'text', text: { content: item.title }, annotations: { bold: true } },
+          { type: 'text', text: { content: `: ${item.description}` } }
+        ],
+        icon: { type: 'emoji', emoji: '🏆' },
+        color: 'yellow_background'
+      }
+    }))
   ]
 };
+
