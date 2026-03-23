@@ -21,7 +21,7 @@ export function SidebarNav() {
           <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
             <Wand2 className="w-5 h-5 text-white" />
           </div>
-          <span className="font-semibold text-lg">PortfolioAI</span>
+          <span className="font-semibold text-lg">lamefolio.ai</span>
         </Link>
       </div>
 

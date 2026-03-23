@@ -291,7 +291,7 @@ function DomainSettings() {
           <div className="flex gap-3">
             <input
               type="text"
-              defaultValue="johndoe.portfolioai.com"
+              defaultValue="johndoe.lamefolio.ai"
               className="flex-1 px-4 py-3 bg-white/[0.03] border border-white/[0.08] rounded-xl text-white/50"
               disabled
             />

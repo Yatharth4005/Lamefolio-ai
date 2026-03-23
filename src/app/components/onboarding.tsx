@@ -71,7 +71,7 @@ export function Onboarding() {
                        <Wand2 className="w-10 h-10 text-white" />
                     </div>
                     <h2 className="text-4xl font-black text-white mb-4 tracking-tight">
-                       Welcome to <span className="bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">PortfolioAI</span>
+                       Welcome to <span className="bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">lamefolio.ai</span>
                     </h2>
                     <p className="text-white/40 text-lg mb-10">
                        The most advanced AI-powered portfolio engine. Let's get you set up in seconds.
