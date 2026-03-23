@@ -22,7 +22,7 @@ export function ModernSidebar() {
       initial={false}
       animate={{ width: collapsed ? 80 : 240 }}
       transition={{ duration: 0.3, ease: "easeInOut" }}
-      className="h-screen relative backdrop-blur-md border-r border-white/[0.08] flex flex-col"
+      className="h-screen relative backdrop-blur-md border-r border-white/[0.08] flex flex-col z-50 shadow-[20px_0_50px_rgba(0,0,0,0.3)]"
       style={{
         background: "rgba(19, 19, 26, 0.6)",
       }}
@@ -150,12 +150,12 @@ export function ModernSidebar() {
       {/* Collapse Button */}
       <button
         onClick={() => setCollapsed(!collapsed)}
-        className="absolute -right-3 top-6 w-6 h-6 bg-[#13131a] border border-white/[0.08] rounded-full flex items-center justify-center hover:bg-white/[0.05] transition-colors z-20"
+        className="absolute -right-3.5 top-6 w-7 h-7 bg-[#1a1a24] border border-white/[0.12] rounded-full flex items-center justify-center hover:bg-purple-500/10 hover:border-purple-500/30 transition-all z-50 group/collapse shadow-xl"
       >
         {collapsed ? (
-          <ChevronRight className="w-3 h-3 text-white/60" />
+          <ChevronRight className="w-3.5 h-3.5 text-white/40 group-hover/collapse:text-purple-400 transition-colors" />
         ) : (
-          <ChevronLeft className="w-3 h-3 text-white/60" />
+          <ChevronLeft className="w-3.5 h-3.5 text-white/40 group-hover/collapse:text-purple-400 transition-colors" />
         )}
       </button>
     </motion.aside>

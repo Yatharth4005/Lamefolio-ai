@@ -38,10 +38,14 @@ export function ModernHeader() {
     <header className="h-16 backdrop-blur-md border-b border-white/[0.08] flex items-center justify-between px-6 sticky top-0 z-40"
       style={{ background: "rgba(19, 19, 26, 0.6)" }}
     >
-      {/* Search / Command Palette */}
-      <div className="flex-1 max-w-xl">
+      {/* Search / Command Palette - Centered */}
+      <div className="absolute left-1/2 -translate-x-1/2 w-full max-w-md hidden md:block">
         <CommandPalette />
       </div>
+
+      {/* Spacer for mobile or to keep flex balance */}
+      <div className="flex-1 md:hidden" />
+      <div className="hidden md:block flex-1" />
 
       {/* Right Section */}
       <div className="flex items-center gap-3">

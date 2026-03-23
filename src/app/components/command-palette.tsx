@@ -1,9 +1,22 @@
 import { Search, Command } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
+import { useNavigate } from "react-router";
 
 export function CommandPalette() {
   const [isOpen, setIsOpen] = useState(false);
+  const navigate = useNavigate();
+  const modalRef = useRef<HTMLDivElement>(null);
+
+  const items = [
+    { name: "Dashboard", path: "/" },
+    { name: "Portfolio Builder", path: "/portfolio-builder" },
+    { name: "GitHub Sync", path: "/integrations" },
+    { name: "Settings", path: "/settings/profile" },
+    { name: "Profile Settings", path: "/settings/profile" },
+    { name: "Billing", path: "/settings/billing" },
+    { name: "Notifications", path: "/settings/notifications" },
+  ];
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
@@ -11,17 +24,38 @@ export function CommandPalette() {
         e.preventDefault();
         setIsOpen((open) => !open);
       }
+      if (e.key === "Escape" && isOpen) {
+        setIsOpen(false);
+      }
     };
 
+    const handleClickOutside = (e: MouseEvent) => {
+      if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    
     document.addEventListener("keydown", down);
-    return () => document.removeEventListener("keydown", down);
-  }, []);
+    return () => {
+      document.removeEventListener("keydown", down);
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isOpen]);
+
+  const handleSelect = (path: string) => {
+    navigate(path);
+    setIsOpen(false);
+  };
 
   return (
     <>
       <button
         onClick={() => setIsOpen(true)}
-        className="flex items-center gap-3 px-4 py-2 rounded-xl bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.05] transition-all duration-200 group w-full max-w-md"
+        className="flex items-center gap-3 px-4 py-2 rounded-xl bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.05] transition-all duration-200 group w-full max-w-md mx-auto"
       >
         <Search className="w-4 h-4 text-white/40 group-hover:text-white/60 transition-colors" />
         <span className="text-sm text-white/40 group-hover:text-white/60 transition-colors flex-1 text-left">
@@ -39,11 +73,11 @@ export function CommandPalette() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              onClick={() => setIsOpen(false)}
-              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100]"
             />
-            <div className="fixed inset-0 z-50 flex items-start justify-center pt-[20vh] px-4">
+            <div className="fixed inset-0 z-[101] flex items-start justify-center pt-[20vh] px-4">
               <motion.div
+                ref={modalRef}
                 initial={{ opacity: 0, scale: 0.95, y: -20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95, y: -20 }}
@@ -63,21 +97,13 @@ export function CommandPalette() {
                 </div>
                 <div className="p-4 max-h-96 overflow-y-auto">
                   <div className="space-y-1">
-                    {[
-                      "Dashboard",
-                      "Portfolio Builder",
-                      "GitHub Sync",
-                      "Settings",
-                      "Profile Settings",
-                      "Appearance",
-                      "Billing",
-                    ].map((item) => (
+                    {items.map((item) => (
                       <button
-                        key={item}
-                        className="w-full text-left px-4 py-3 rounded-xl hover:bg-white/[0.05] text-white/80 hover:text-white transition-all"
-                        onClick={() => setIsOpen(false)}
+                        key={item.name}
+                        className="w-full text-left px-4 py-3 rounded-xl hover:bg-white/[0.05] text-white/80 hover:text-white transition-all font-medium"
+                        onClick={() => handleSelect(item.path)}
                       >
-                        {item}
+                        {item.name}
                       </button>
                     ))}
                   </div>
