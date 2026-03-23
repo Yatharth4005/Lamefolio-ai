@@ -1,4 +1,4 @@
-import { LayoutDashboard, Wand2, GitBranch, Settings, ChevronLeft, ChevronRight } from "lucide-react";
+import { LayoutDashboard, Wand2, GitBranch, Settings, ChevronLeft, ChevronRight, Layout } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router";
 import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
@@ -7,6 +7,7 @@ import { useGitHub } from "../context/GitHubContext";
 const navItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/" },
   { icon: Wand2, label: "Portfolio Builder", path: "/portfolio-builder" },
+  { icon: Layout, label: "Marketplace", path: "/marketplace" },
   { icon: GitBranch, label: "Integrations", path: "/integrations" },
   { icon: Settings, label: "Settings", path: "/settings" },
 ];

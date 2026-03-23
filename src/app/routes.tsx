@@ -4,6 +4,7 @@ import { DashboardPage } from "./pages/dashboard";
 import { PortfolioBuilderPage } from "./pages/portfolio-builder";
 import { IntegrationsPage } from "./pages/integrations";
 import { SettingsPage } from "./pages/settings";
+import { MarketplacePage } from "./pages/marketplace";
 
 export const router = createBrowserRouter([
   {
@@ -13,6 +14,7 @@ export const router = createBrowserRouter([
       { index: true, Component: DashboardPage },
       { path: "portfolio-builder", Component: PortfolioBuilderPage },
       { path: "integrations", Component: IntegrationsPage },
+      { path: "marketplace", Component: MarketplacePage },
       { path: "settings", Component: SettingsPage },
       { path: "settings/:tab", Component: SettingsPage },
     ],

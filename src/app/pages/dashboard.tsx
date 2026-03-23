@@ -2,8 +2,10 @@ import { ModernHero } from "../components/modern-hero";
 import { TemplateGallery } from "../components/template-gallery";
 import { PortfolioList } from "../components/portfolio-list";
 import { Sparkles, Layout, Globe } from "lucide-react";
+import { useNavigate } from "react-router";
 
 export function DashboardPage() {
+  const navigate = useNavigate();
   return (
     <div className="max-w-7xl mx-auto px-6 md:px-8 py-8">
       {/* Hero Section */}
@@ -25,7 +27,10 @@ export function DashboardPage() {
             </p>
           </div>
           
-          <button className="hidden md:flex items-center gap-2 text-sm font-bold text-white/40 hover:text-white transition-colors px-4 py-2 bg-white/[0.03] rounded-xl border border-white/[0.05]">
+          <button 
+            onClick={() => navigate("/marketplace")}
+            className="hidden md:flex items-center gap-2 text-sm font-bold text-white/40 hover:text-white transition-colors px-4 py-2 bg-white/[0.03] rounded-xl border border-white/[0.05]"
+          >
             <Layout className="w-4 h-4" />
             View Marketplace
           </button>

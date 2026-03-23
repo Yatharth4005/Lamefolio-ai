@@ -11,6 +11,7 @@ export function CommandPalette() {
   const items = [
     { name: "Dashboard", path: "/" },
     { name: "Portfolio Builder", path: "/portfolio-builder" },
+    { name: "Blueprint Marketplace", path: "/marketplace" },
     { name: "GitHub Sync", path: "/integrations" },
     { name: "Settings", path: "/settings/profile" },
     { name: "Profile Settings", path: "/settings/profile" },
