@@ -3,7 +3,7 @@ import { ModernAIChat } from "../components/modern-ai-chat";
 
 export function PortfolioBuilderPage() {
   return (
-    <div className="h-[calc(100vh-64px)] w-full flex flex-col bg-[#0A0A0A]">
+    <div className="h-[calc(100vh-64px)] w-full flex flex-col bg-background">
       {/* Immersive Chat workspace that fills the whole page area */}
       <div className="flex-1 min-h-0 flex flex-col">
         {/* Background Gradients for depth */}

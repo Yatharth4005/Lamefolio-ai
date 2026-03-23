@@ -99,35 +99,35 @@ export function MarketplacePage() {
         <div>
           <button 
             onClick={() => navigate("/")}
-            className="flex items-center gap-2 text-white/40 hover:text-white transition-colors mb-4 group"
+            className="flex items-center gap-2 text-foreground/40 hover:text-foreground transition-colors mb-4 group"
           >
             <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
             <span className="text-sm font-bold uppercase tracking-widest">Back to Dashboard</span>
           </button>
-          <h1 className="text-4xl md:text-5xl font-black text-white tracking-tight flex items-center gap-4">
+          <h1 className="text-4xl md:text-5xl font-black text-foreground tracking-tight flex items-center gap-4">
             Blueprint Marketplace
             <div className="flex items-center gap-2">
               <div className="w-2.5 h-2.5 bg-purple-500 rounded-full" />
               <Sparkles className="w-6 h-6 text-purple-400 animate-pulse" />
             </div>
           </h1>
-          <p className="text-lg text-white/40 mt-4 font-medium max-w-2xl">
+          <p className="text-lg text-foreground/40 mt-4 font-medium max-w-2xl">
             Discover battle-tested Notion blueprints engineered for every professional vertical.
           </p>
         </div>
 
         <div className="flex flex-col sm:flex-row gap-3">
            <div className="relative group min-w-[300px]">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 group-focus-within:text-purple-400 transition-colors" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/20 group-focus-within:text-purple-400 transition-colors" />
               <input 
                 type="text" 
                 placeholder="Search templates..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-white/[0.03] border border-white/[0.08] rounded-2xl py-3.5 pl-12 pr-4 text-white placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all font-medium"
+                className="w-full bg-secondary border border-border rounded-2xl py-3.5 pl-12 pr-4 text-foreground placeholder:text-foreground/20 focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all font-medium"
               />
            </div>
-           <button className="flex items-center justify-center gap-2 px-6 py-3.5 bg-white/[0.03] border border-white/[0.08] rounded-2xl text-white/60 hover:text-white hover:bg-white/[0.06] transition-all font-bold">
+           <button className="flex items-center justify-center gap-2 px-6 py-3.5 bg-secondary border border-border rounded-2xl text-foreground/60 hover:text-foreground hover:bg-muted transition-all font-bold">
               <SlidersHorizontal className="w-4 h-4" />
               Filters
            </button>
@@ -142,8 +142,8 @@ export function MarketplacePage() {
             onClick={() => setActiveCategory(cat.id)}
             className={`flex items-center gap-3 px-6 py-3 rounded-2xl font-bold whitespace-nowrap border transition-all ${
               activeCategory === cat.id
-                ? "bg-gradient-to-r from-purple-500/20 to-blue-500/20 border-purple-500/40 text-white shadow-lg shadow-purple-500/10"
-                : "bg-white/[0.02] border-white/[0.05] text-white/40 hover:text-white hover:bg-white/[0.05]"
+                ? "bg-gradient-to-r from-purple-500/20 to-blue-500/20 border-purple-500/40 text-foreground shadow-lg shadow-purple-500/10"
+                : "bg-secondary border-border text-foreground/40 hover:text-foreground hover:bg-muted"
             }`}
           >
             <cat.icon className={`w-4 h-4 ${activeCategory === cat.id ? "text-purple-400" : ""}`} />
@@ -169,7 +169,7 @@ export function MarketplacePage() {
               {/* Background Glow */}
               <div className={`absolute -inset-[1px] bg-gradient-to-r ${template.color} rounded-[2.5rem] opacity-0 group-hover:opacity-30 blur-2xl transition-opacity duration-500`} />
               
-              <div className="relative flex-1 backdrop-blur-xl bg-[#1a1a24]/40 border border-white/[0.08] rounded-[2.5rem] p-10 hover:bg-[#1a1a24]/60 hover:border-white/[0.15] transition-all duration-500 flex flex-col overflow-hidden">
+              <div className="relative flex-1 backdrop-blur-xl bg-background-secondary border border-border rounded-[2.5rem] p-10 hover:bg-muted/80 hover:border-sidebar-border transition-all duration-500 flex flex-col overflow-hidden">
                 {/* Badges */}
                 <div className="absolute top-8 right-8 flex gap-2">
                   {template.new && (
@@ -199,23 +199,23 @@ export function MarketplacePage() {
 
                 {/* Content */}
                 <div className="mb-8">
-                  <h3 className="text-3xl font-black text-white mb-4 tracking-tight group-hover:translate-x-1 transition-transform">
+                  <h3 className="text-3xl font-black text-foreground mb-4 tracking-tight group-hover:translate-x-1 transition-transform">
                     {template.title}
                   </h3>
-                  <p className="text-white/40 text-lg font-medium leading-relaxed">
+                  <p className="text-foreground/40 text-lg font-medium leading-relaxed">
                     {template.description}
                   </p>
                 </div>
 
                 {/* Stats */}
-                <div className="flex items-center gap-6 mb-10 pb-8 border-b border-white/[0.05]">
+                <div className="flex items-center gap-6 mb-10 pb-8 border-b border-border/50">
                    <div className="flex items-center gap-2">
                       <Zap className="w-4 h-4 text-orange-400" />
-                      <span className="text-sm font-bold text-white/60">{template.stats.users} installs</span>
+                      <span className="text-sm font-bold text-foreground/60">{template.stats.users} installs</span>
                    </div>
                    <div className="flex items-center gap-2">
                       <Star className="w-4 h-4 text-amber-400 fill-amber-400/20" />
-                      <span className="text-sm font-bold text-white/60">{template.stats.rating} rating</span>
+                      <span className="text-sm font-bold text-foreground/60">{template.stats.rating} rating</span>
                    </div>
                 </div>
 
@@ -241,13 +241,13 @@ export function MarketplacePage() {
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center py-20 bg-white/[0.02] rounded-[3rem] border border-dashed border-white/[0.1] mt-12"
+          className="text-center py-20 bg-secondary rounded-[3rem] border border-dashed border-border mt-12"
         >
-          <div className="w-20 h-20 bg-white/[0.03] rounded-3xl flex items-center justify-center mx-auto mb-6">
-            <Layout className="w-10 h-10 text-white/10" />
+          <div className="w-20 h-20 bg-muted rounded-3xl flex items-center justify-center mx-auto mb-6">
+            <Layout className="w-10 h-10 text-foreground/10" />
           </div>
-          <h3 className="text-2xl font-bold text-white mb-2">No blueprints found</h3>
-          <p className="text-white/40">Try adjusting your search or category filters.</p>
+          <h3 className="text-2xl font-bold text-foreground mb-2">No blueprints found</h3>
+          <p className="text-foreground/40">Try adjusting your search or category filters.</p>
           <button 
             onClick={() => { setSearchQuery(""); setActiveCategory("all"); }}
             className="mt-6 text-purple-400 font-bold hover:underline"
@@ -260,9 +260,9 @@ export function MarketplacePage() {
       {/* Footer CTA */}
       <div className="mt-20 relative rounded-[3rem] overflow-hidden group">
          <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-blue-600 opacity-10 group-hover:opacity-20 transition-opacity" />
-         <div className="relative p-12 md:p-20 text-center border border-white/[0.05] rounded-[3rem]">
-            <h2 className="text-4xl font-black text-white mb-6 tracking-tight">Don't see what you need?</h2>
-            <p className="text-xl text-white/40 mb-10 max-w-2xl mx-auto font-medium">
+         <div className="relative p-12 md:p-20 text-center border border-border rounded-[3rem]">
+            <h2 className="text-4xl font-black text-foreground mb-6 tracking-tight">Don't see what you need?</h2>
+            <p className="text-xl text-foreground/40 mb-10 max-w-2xl mx-auto font-medium">
                Our AI Synthesizer can build custom blueprints from any reference URL or PDF.
             </p>
             <button className="px-10 py-5 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-2xl font-black text-sm uppercase tracking-widest hover:opacity-90 transition-all shadow-xl shadow-purple-500/20">

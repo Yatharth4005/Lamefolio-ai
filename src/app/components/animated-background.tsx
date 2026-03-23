@@ -3,8 +3,8 @@ import { motion } from "motion/react";
 export function AnimatedBackground() {
   return (
     <div className="fixed inset-0 -z-10 overflow-hidden">
-      {/* Base gradient */}
-      <div className="absolute inset-0 bg-gradient-to-br from-[#0a0a0f] via-[#13131a] to-[#0a0a0f]" />
+      {/* Base background */}
+      <div className="absolute inset-0 bg-background" />
       
       {/* Animated gradient blobs */}
       <motion.div

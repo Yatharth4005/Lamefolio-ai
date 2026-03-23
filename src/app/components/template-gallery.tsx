@@ -62,7 +62,7 @@ export function TemplateGallery() {
           {/* Background Glow */}
           <div className={`absolute -inset-[1px] bg-gradient-to-r ${template.color} rounded-[2rem] opacity-0 group-hover:opacity-20 blur-xl transition-opacity duration-500`} />
           
-          <div className="relative flex-1 backdrop-blur-md bg-white/[0.03] border border-white/[0.08] rounded-[2rem] p-8 hover:bg-white/[0.06] hover:border-white/[0.12] transition-all duration-300 flex flex-col overflow-hidden">
+          <div className="relative flex-1 backdrop-blur-md bg-muted border border-border rounded-[2rem] p-8 hover:bg-white/[0.06] hover:border-white/[0.12] transition-all duration-300 flex flex-col overflow-hidden">
             {/* Template Type Indicator */}
             {template.premium && (
               <div className="absolute top-6 right-6 px-2.5 py-1 bg-purple-500/10 border border-purple-500/20 rounded-lg text-[10px] uppercase font-black text-purple-400 tracking-widest">
@@ -76,28 +76,28 @@ export function TemplateGallery() {
               <template.icon className="w-7 h-7 text-white relative z-10" />
             </div>
 
-            <h3 className="text-2xl font-bold text-white mb-3 tracking-tight group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-white group-hover:to-white/50 transition-all">
+            <h3 className="text-2xl font-bold text-foreground mb-3 tracking-tight group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-foreground group-hover:to-foreground/50 transition-all">
               {template.title}
             </h3>
             
-            <p className="text-white/40 text-sm mb-8 leading-relaxed line-clamp-2 min-h-[2.5rem]">
+            <p className="text-foreground/40 text-sm mb-8 leading-relaxed line-clamp-2 min-h-[2.5rem]">
               {template.description}
             </p>
 
             <div className="space-y-3 mb-8 flex-1">
               {template.features.map((feature) => (
-                <div key={feature} className="flex items-center gap-3 text-white/60 group-hover:text-white/80 transition-colors">
+                <div key={feature} className="flex items-center gap-3 text-foreground/60 group-hover:text-foreground/80 transition-colors">
                   <div className={`w-5 h-5 rounded-full bg-gradient-to-br ${template.color} flex items-center justify-center scale-75 opacity-70`}>
                     <Check className="w-3 h-3 text-white" />
                   </div>
-                  <span className="text-xs font-medium">{feature}</span>
+                  <span className="text-xs font-medium text-foreground/60">{feature}</span>
                 </div>
               ))}
             </div>
 
             <button
               onClick={() => handleUseTemplate(template.id)}
-              className="w-full py-4 px-6 bg-white/[0.03] hover:bg-white text-white hover:text-gray-950 border border-white/[0.08] rounded-2xl font-bold transition-all flex items-center justify-center gap-3 group/btn"
+              className="w-full py-4 px-6 bg-secondary hover:bg-foreground text-foreground hover:text-background border border-border rounded-2xl font-bold transition-all flex items-center justify-center gap-3 group/btn"
             >
               <span className="text-sm">Customize Template</span>
               <ChevronRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />

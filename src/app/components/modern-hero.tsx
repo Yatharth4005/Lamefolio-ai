@@ -51,7 +51,7 @@ export function ModernHero() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="text-4xl md:text-5xl font-bold text-white mb-3 tracking-tight"
+          className="text-4xl md:text-5xl font-bold text-foreground mb-3 tracking-tight"
         >
           {isConnected ? "Welcome back, " : "Ready to build, "}
           <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent">
@@ -64,7 +64,7 @@ export function ModernHero() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
-          className="text-lg text-white/60 max-w-2xl mb-8"
+          className="text-lg text-foreground/60 max-w-2xl mb-8"
         >
           Let's build an amazing portfolio that showcases your skills and achievements.
         </motion.p>

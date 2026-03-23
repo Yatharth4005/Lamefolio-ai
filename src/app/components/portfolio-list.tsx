@@ -54,10 +54,10 @@ export function PortfolioList() {
 
   if (!isConnected) {
     return (
-      <div className="p-12 border border-dashed border-white/10 rounded-3xl text-center bg-white/[0.02]">
-         <Globe className="w-10 h-10 text-white/20 mx-auto mb-4" />
-         <h4 className="text-white font-bold">No Connection Found</h4>
-         <p className="text-white/40 text-sm mt-1">Connect your account to see your portfolios.</p>
+      <div className="p-12 border border-dashed border-border rounded-3xl text-center bg-secondary">
+         <Globe className="w-10 h-10 text-foreground/20 mx-auto mb-4" />
+         <h4 className="text-foreground font-bold">No Connection Found</h4>
+         <p className="text-foreground/40 text-sm mt-1">Connect your account to see your portfolios.</p>
 
       </div>
     );
@@ -73,10 +73,10 @@ export function PortfolioList() {
 
   if (portfolios.length === 0) {
     return (
-      <div className="p-12 border border-dashed border-white/10 rounded-3xl text-center bg-white/[0.02]">
-         <FolderOpen className="w-10 h-10 text-white/20 mx-auto mb-4" />
-         <h4 className="text-white font-bold">No Portfolios Yet</h4>
-         <p className="text-white/40 text-sm mt-1">Start a conversation to build your first portfolio.</p>
+      <div className="p-12 border border-dashed border-border rounded-3xl text-center bg-secondary">
+         <FolderOpen className="w-10 h-10 text-foreground/20 mx-auto mb-4" />
+         <h4 className="text-foreground font-bold">No Portfolios Yet</h4>
+         <p className="text-foreground/40 text-sm mt-1">Start a conversation to build your first portfolio.</p>
       </div>
     );
   }
@@ -90,32 +90,32 @@ export function PortfolioList() {
           target="_blank"
           rel="noreferrer"
           whileHover={{ y: -5 }}
-          className="group relative p-6 bg-white/[0.03] border border-white/[0.08] rounded-3xl hover:bg-white/[0.05] hover:border-white/[0.12] transition-all cursor-pointer block"
+          className="group relative p-6 bg-secondary border border-border rounded-3xl hover:bg-muted hover:border-sidebar-border transition-all cursor-pointer block"
         >
           <div className="flex justify-between items-start mb-6">
-            <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center">
-               <Globe className="w-6 h-6 text-white/40 group-hover:text-purple-400 transition-colors" />
+            <div className="w-12 h-12 bg-muted rounded-2xl flex items-center justify-center">
+               <Globe className="w-6 h-6 text-foreground/40 group-hover:text-purple-400 transition-colors" />
             </div>
             <div className="flex gap-2">
               <div 
                 onClick={(e) => handleDelete(e, item.id)}
-                className="p-2 bg-white/5 rounded-lg hover:bg-red-500/20 group/del transition-colors"
+                className="p-2 bg-muted rounded-lg hover:bg-red-500/20 group/del transition-colors"
                 title="Delete Portfolio"
               >
-                <Trash2 className="w-4 h-4 text-white/20 group-hover/del:text-red-400 transition-colors" />
+                <Trash2 className="w-4 h-4 text-foreground/20 group-hover/del:text-red-400 transition-colors" />
               </div>
-              <div className="p-2 bg-white/5 rounded-lg group-hover:bg-white/10 transition-colors">
-                <ExternalLink className="w-4 h-4 text-white/40 group-hover:text-white transition-colors" />
+              <div className="p-2 bg-muted rounded-lg group-hover:bg-sidebar-accent transition-colors">
+                <ExternalLink className="w-4 h-4 text-foreground/40 group-hover:text-foreground transition-colors" />
               </div>
             </div>
           </div>
 
-          <h3 className="text-white font-bold mb-2 truncate pr-6">Notion Portfolio</h3>
-          <p className="text-white/40 text-xs mb-6 line-clamp-1">{item.notion_url}</p>
+          <h3 className="text-foreground font-bold mb-2 truncate pr-6">Notion Portfolio</h3>
+          <p className="text-foreground/40 text-xs mb-6 line-clamp-1">{item.notion_url}</p>
 
-          <div className="flex items-center gap-1.5 pt-4 border-t border-white/5">
-             <Clock className="w-3 h-3 text-white/20" />
-             <span className="text-[10px] uppercase font-black tracking-widest text-white/20">
+          <div className="flex items-center gap-1.5 pt-4 border-t border-border">
+             <Clock className="w-3 h-3 text-foreground/20" />
+             <span className="text-[10px] uppercase font-black tracking-widest text-foreground/20">
                 {new Date(item.created_at).toLocaleDateString()}
              </span>
           </div>

@@ -43,7 +43,7 @@ function ThinkingTrace() {
       {/* Header / Trigger */}
       <button 
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-3 group transition-colors bg-white/[0.03] hover:bg-white/[0.06] border border-white/5 px-4 py-2.5 rounded-2xl"
+        className="flex items-center gap-3 group transition-colors bg-secondary hover:bg-muted border border-border px-4 py-2.5 rounded-2xl"
       >
         <div className="flex gap-1 relative">
            <motion.div 
@@ -56,12 +56,12 @@ function ThinkingTrace() {
            />
            <div className="absolute inset-0 bg-purple-500/20 blur-md animate-pulse rounded-full" />
         </div>
-        <p className="text-[10px] text-white/40 font-black uppercase tracking-[0.4em] group-hover:text-white/60 transition-colors">
+        <p className="text-[10px] text-foreground/40 font-black uppercase tracking-[0.4em] group-hover:text-foreground/60 transition-colors">
           Thinking...
         </p>
         <motion.div
           animate={{ rotate: isOpen ? 180 : 0 }}
-          className="text-white/20 group-hover:text-white/40 border-l border-white/10 pl-3 ml-1"
+          className="text-foreground/20 group-hover:text-foreground/40 border-l border-border pl-3 ml-1"
         >
           <ChevronDown className="w-3.5 h-3.5" />
         </motion.div>
@@ -76,7 +76,7 @@ function ThinkingTrace() {
             exit={{ height: 0, opacity: 0 }}
             className="overflow-hidden"
           >
-            <div className="bg-white/[0.015] border border-white/5 rounded-[2rem] p-6 backdrop-blur-3xl space-y-1">
+            <div className="bg-muted border border-border rounded-[2rem] p-6 backdrop-blur-3xl space-y-1">
                {steps.slice(0, currentStep + 1).map((step, idx) => (
                   <motion.div 
                      key={idx}
@@ -93,7 +93,7 @@ function ThinkingTrace() {
                            <CheckCircle2 className="w-3.5 h-3.5 text-purple-500/30" />
                         )}
                      </div>
-                     <span className={`text-[12px] tracking-tight ${idx === currentStep ? "text-white/60 font-medium italic" : "text-white/20"}`}>
+                     <span className={`text-[12px] tracking-tight ${idx === currentStep ? "text-foreground/60 font-medium italic" : "text-foreground/20"}`}>
                         {step}
                      </span>
                   </motion.div>
@@ -306,15 +306,15 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className={`relative flex flex-col bg-[#0D0D0D] border-x border-white/[0.05] overflow-hidden w-full ${
-        immersive ? "h-full" : "h-[500px] rounded-[2rem] border border-white/[0.08]"
+      className={`relative flex flex-col bg-background-secondary border-x border-border overflow-hidden w-full ${
+        immersive ? "h-full" : "h-[500px] rounded-[2rem] border border-border"
       }`}
     >
       {/* Immersive Header - Integrated Dashboard info */}
-      <div className="flex items-center justify-between px-6 py-6 border-b border-white/[0.08] bg-white/[0.01]">
+      <div className="flex items-center justify-between px-6 py-6 border-b border-border bg-secondary/30">
         <div className="flex items-center gap-5">
            <div className={`flex flex-col ${immersive ? "" : "hidden"}`}>
-              <h1 className="text-xl font-bold text-white tracking-tight">AI Workspace</h1>
+              <h1 className="text-xl font-bold text-foreground tracking-tight">AI Workspace</h1>
            </div>
            
            {!immersive && (
@@ -322,16 +322,16 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
                 <div className="w-10 h-10 bg-purple-500/10 rounded-xl flex items-center justify-center">
                   <Sparkles className="w-5 h-5 text-purple-400" />
                 </div>
-                <h3 className="text-sm font-bold text-white">Assistant</h3>
+                <h3 className="text-sm font-bold text-foreground">Assistant</h3>
              </div>
            )}
         </div>
 
         <div className="flex items-center gap-6">
            {immersive && githubHandle && (
-              <div className="hidden sm:flex items-center gap-2 px-4 py-2 bg-white/[0.03] border border-white/[0.08] rounded-xl">
-                 <Globe className="w-3.5 h-3.5 text-white/40" />
-                 <span className="text-xs text-white/60 font-medium">@{githubHandle}</span>
+              <div className="hidden sm:flex items-center gap-2 px-4 py-2 bg-secondary border border-border rounded-xl">
+                 <Globe className="w-3.5 h-3.5 text-foreground/40" />
+                 <span className="text-xs text-foreground/60 font-medium">@{githubHandle}</span>
               </div>
            )}
            <div className="flex items-center gap-2 px-4 py-2 bg-purple-500/10 border border-purple-500/20 rounded-xl relative group overflow-hidden">
@@ -355,7 +355,7 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
             >
               <div className={`flex gap-5 max-w-[85%] ${message.role === "user" ? "flex-row-reverse" : ""}`}>
                 <div className={`w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-xl overflow-hidden ${
-                  message.role === "user" ? "bg-white/10 border border-white/10" : "bg-white text-black"
+                  message.role === "user" ? "bg-secondary border border-border" : "bg-white text-black"
                 }`}>
                   {message.role === "user" ? (
                     user?.avatar ? <img src={user.avatar} className="w-full h-full object-cover" alt="user" /> : <User className="w-5 h-5" />
@@ -365,8 +365,8 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
                 </div>
                 <div className={`p-6 rounded-[1.8rem] text-[15px] leading-[1.6] shadow-md ${
                   message.role === "user" 
-                    ? "bg-[#1A1A1A] border border-white/10 text-white/90 rounded-tr-none" 
-                    : "bg-[#111111] border border-white/5 text-white/80 rounded-tl-none font-medium prose prose-invert max-w-none"
+                    ? "bg-secondary border border-border text-foreground/90 rounded-tr-none" 
+                    : "bg-background border border-border text-foreground/80 rounded-tl-none font-medium prose prose-invert max-w-none"
                 }`}>
                   {message.role === "user" ? (
                     message.content
@@ -376,7 +376,7 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
                         p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
                         li: ({ children }) => <li className="ml-4 list-disc">{children}</li>,
                         ul: ({ children }) => <ul className="space-y-1 mb-2">{children}</ul>,
-                        strong: ({ children }) => <strong className="text-white font-bold">{children}</strong>
+                        strong: ({ children }) => <strong className="text-foreground font-bold">{children}</strong>
                       }}
                     >
                       {message.content}
@@ -420,7 +420,7 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
       </div>
 
       {/* Immersive Input bar */}
-      <div className="p-6 bg-white/[0.01] border-t border-white/[0.05]">
+      <div className="p-6 bg-secondary/30 border-t border-border mt-auto">
         <div className="relative group w-full">
           <div className="absolute -inset-1.5 bg-gradient-to-r from-purple-500/20 to-blue-500/20 rounded-[2.5rem] blur-2xl opacity-0 group-focus-within:opacity-100 transition-opacity duration-700" />
           <div className="relative flex items-center gap-4">
@@ -433,20 +433,20 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
               onFocus={() => setIsFocused(true)}
               onBlur={() => setIsFocused(false)}
               disabled={isGenerating}
-              className="flex-1 bg-[#1A1A1A] border border-white/[0.08] rounded-[1.8rem] px-8 py-6 text-[15px] text-white placeholder:text-white/20 focus:outline-none focus:border-white/30 transition-all font-medium shadow-inner"
+              className="flex-1 bg-secondary border border-border rounded-[1.8rem] px-8 py-6 text-[15px] text-foreground placeholder:text-foreground/20 focus:outline-none focus:border-foreground/30 transition-all font-medium shadow-inner"
             />
             <motion.button
               whileHover={{ scale: 1.05, rotate: 5 }}
               whileTap={{ scale: 0.95 }}
               onClick={handleSend}
               disabled={isGenerating || !input.trim()}
-              className="p-6 bg-white text-black rounded-2xl shadow-2xl disabled:opacity-20 disabled:grayscale transition-all flex items-center justify-center group/btn"
+              className="p-6 bg-foreground text-background rounded-2xl shadow-2xl disabled:opacity-20 disabled:grayscale transition-all flex items-center justify-center group/btn"
             >
               <Send className="w-6 h-6 group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1 transition-transform" />
             </motion.button>
           </div>
         </div>
-        <div className="flex justify-center gap-10 mt-8">
+        <div className="flex flex-wrap items-center justify-center gap-8 md:gap-14 mt-8 w-full overflow-hidden">
           {[ 
             { label: "Build Portfolio", prompt: "Build my portfolio using my GitHub data" },
             { label: "Analyze GitHub", prompt: "Analyze my GitHub repositories" },
@@ -455,10 +455,10 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
              <button
                key={tag.label}
                onClick={() => setInput(tag.prompt)}
-               className="text-[10px] font-black uppercase tracking-[0.3em] text-white/20 hover:text-white transition-all duration-300 relative group"
+               className="text-[10px] font-black uppercase tracking-[0.3em] text-foreground/20 hover:text-foreground transition-all duration-300 relative group"
              >
                {tag.label}
-               <span className="absolute -bottom-1 left-0 w-0 h-[1px] bg-white transition-all group-hover:w-full" />
+               <span className="absolute -bottom-1 left-0 w-0 h-[1px] bg-foreground transition-all group-hover:w-full" />
              </button>
           ))}
         </div>

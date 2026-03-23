@@ -1,4 +1,4 @@
-import { Bell, Sparkles, Check, ExternalLink, X, Settings, LogOut, User as UserIcon, Shield } from "lucide-react";
+import { Bell, Sparkles, Check, ExternalLink, X, Settings, LogOut, User as UserIcon, Shield, Moon, Sun } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { CommandPalette } from "./command-palette";
 import { motion, AnimatePresence } from "motion/react";
@@ -6,12 +6,10 @@ import { useNavigate } from "react-router";
 import { useGitHub } from "../context/GitHubContext";
 
 export function ModernHeader() {
-  const { user, isConnected, isNotionConnected, displayName, notifications, markNotificationRead, clearNotifications, setDisplayName, generationCount, points, plan, signOut } = useGitHub();
+  const { user, isConnected, isNotionConnected, displayName, notifications, markNotificationRead, clearNotifications, setDisplayName, generationCount, points, plan, signOut, theme, setTheme } = useGitHub();
   const navigate = useNavigate();
   const [showNotifications, setShowNotifications] = useState(false);
-  const [showProfile, setShowProfile] = useState(false);
   const notificationRef = useRef<HTMLDivElement>(null);
-  const profileRef = useRef<HTMLDivElement>(null);
 
   const unreadCount = notifications.filter(n => !n.read).length;
 
@@ -20,23 +18,14 @@ export function ModernHeader() {
       if (notificationRef.current && !notificationRef.current.contains(event.target as Node)) {
         setShowNotifications(false);
       }
-      if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
-        setShowProfile(false);
-      }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleSignOut = () => {
-    signOut();
-    setShowProfile(false);
-    navigate("/");
-    window.location.reload();
-  };
+
   return (
-    <header className="h-16 backdrop-blur-md border-b border-white/[0.08] flex items-center justify-between px-6 sticky top-0 z-40"
-      style={{ background: "rgba(19, 19, 26, 0.6)" }}
+    <header className="h-16 backdrop-blur-md border-b border-sidebar-border flex items-center justify-between px-6 sticky top-0 z-40 bg-sidebar"
     >
       {/* Search / Command Palette - Centered */}
       <div className="absolute left-1/2 -translate-x-1/2 w-full max-w-md hidden md:block">
@@ -57,11 +46,22 @@ export function ModernHeader() {
             className="hidden md:flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500/10 to-blue-500/10 border border-purple-500/20 rounded-xl"
           >
             <Sparkles className="w-4 h-4 text-purple-400" />
-            <span className="text-sm font-medium text-white/90">
+            <span className="text-sm font-medium text-sidebar-foreground/90">
               {plan === "Free" ? `${points} / 3 Credits` : "Unlimited Credits"}
             </span>
           </motion.button>
         )}
+
+        {/* Theme Toggle */}
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+          className="p-2.5 text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent rounded-xl transition-all group"
+          title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+        >
+          {theme === "dark" ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
+        </motion.button>
 
         {/* Notifications */}
         <div className="relative" ref={notificationRef}>
@@ -69,11 +69,11 @@ export function ModernHeader() {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => setShowNotifications(!showNotifications)}
-            className="relative p-2.5 text-white/60 hover:text-white hover:bg-white/[0.05] rounded-xl transition-all group"
+            className="relative p-2.5 text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent rounded-xl transition-all group"
           >
             <Bell className="w-5 h-5" />
             {unreadCount > 0 && (
-              <span className="absolute top-2 right-2 w-2 h-2 bg-purple-500 rounded-full ring-2 ring-[#13131a]">
+              <span className="absolute top-2 right-2 w-2 h-2 bg-purple-500 rounded-full ring-2 ring-background">
                 <span className="absolute inset-0 bg-purple-500 rounded-full animate-ping opacity-75" />
               </span>
             )}
@@ -85,10 +85,10 @@ export function ModernHeader() {
                 initial={{ opacity: 0, y: 10, scale: 0.95 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                className="absolute right-0 mt-2 w-80 bg-[#1a1a24] border border-white/[0.08] rounded-2xl shadow-2xl overflow-hidden z-[100]"
+                className="absolute right-0 mt-2 w-80 bg-background-secondary border border-sidebar-border rounded-2xl shadow-2xl overflow-hidden z-[100]"
               >
-                <div className="p-4 border-b border-white/[0.04] flex items-center justify-between">
-                  <h3 className="text-white font-semibold">Notifications</h3>
+                <div className="p-4 border-b border-sidebar-border/50 flex items-center justify-between">
+                  <h3 className="text-sidebar-foreground font-semibold">Notifications</h3>
                   <button onClick={clearNotifications} className="text-[11px] text-purple-400 hover:text-purple-300 font-bold uppercase tracking-wider">Clear all</button>
                 </div>
                 <div className="max-h-80 overflow-y-auto">
@@ -96,7 +96,7 @@ export function ModernHeader() {
                     notifications.map(n => (
                       <div 
                         key={n.id} 
-                        className={`p-4 border-b border-white/[0.02] hover:bg-white/[0.02] transition-colors group ${!n.read ? "bg-purple-500/5" : ""}`}
+                        className={`p-4 border-b border-sidebar-border/20 hover:bg-sidebar-accent transition-colors group ${!n.read ? "bg-purple-500/5" : ""}`}
                         onClick={() => markNotificationRead(n.id)}
                       >
                         <div className="flex gap-3">
@@ -104,9 +104,9 @@ export function ModernHeader() {
                             {n.type === 'success' ? <Check className="w-4 h-4" /> : <Sparkles className="w-4 h-4" />}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm text-white/90 leading-relaxed mb-1">{n.message}</p>
+                            <p className="text-sm text-sidebar-foreground/90 leading-relaxed mb-1">{n.message}</p>
                             <div className="flex items-center gap-3">
-                              <span className="text-[10px] text-white/30">{new Date(n.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                              <span className="text-[10px] text-sidebar-foreground/30">{new Date(n.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                               {n.actionUrl && (
                                 <a 
                                   href={n.actionUrl} 
@@ -125,10 +125,10 @@ export function ModernHeader() {
                     ))
                   ) : (
                     <div className="p-8 text-center">
-                      <div className="w-12 h-12 bg-white/[0.02] rounded-full flex items-center justify-center mx-auto mb-3">
-                        <Bell className="w-5 h-5 text-white/20" />
+                      <div className="w-12 h-12 bg-sidebar-accent rounded-full flex items-center justify-center mx-auto mb-3">
+                        <Bell className="w-5 h-5 text-sidebar-foreground/20" />
                       </div>
-                      <p className="text-sm text-white/40">No new notifications</p>
+                      <p className="text-sm text-sidebar-foreground/40">No new notifications</p>
                     </div>
                   )}
                 </div>
@@ -137,59 +137,6 @@ export function ModernHeader() {
           </AnimatePresence>
         </div>
 
-        <div className="relative" ref={profileRef}>
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => setShowProfile(!showProfile)}
-            className="w-9 h-9 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center cursor-pointer relative group"
-          >
-            {isConnected && user?.avatar ? (
-              <img src={user.avatar} className="w-full h-full rounded-full object-cover relative z-10" alt="avatar" />
-            ) : (
-              <span className="text-white text-sm font-medium relative z-10">
-                {displayName ? displayName.substring(0, 1).toUpperCase() : (isConnected && user ? user.username.substring(0, 1).toUpperCase() : "U")}
-              </span>
-            )}
-            <div className="absolute inset-0 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full blur-md opacity-50 group-hover:opacity-75 transition-opacity" />
-          </motion.div>
-
-          <AnimatePresence>
-            {showProfile && (
-              <motion.div
-                initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                className="absolute right-0 mt-2 w-56 bg-[#1a1a24] border border-white/[0.08] rounded-2xl shadow-2xl overflow-hidden z-[100]"
-              >
-                <div className="p-4 border-b border-white/[0.04]">
-                  <p className="text-xs text-white/40 uppercase font-black tracking-widest mb-1">Account</p>
-                  <p className="text-sm font-bold text-white truncate">{displayName || (user?.username ?? "Creator")}</p>
-                </div>
-                
-                <div className="p-2">
-                  <button 
-                    onClick={() => { setShowProfile(false); navigate("/settings/profile"); }}
-                    className="w-full flex items-center gap-3 px-3 py-2 text-sm text-white/70 hover:text-white hover:bg-white/[0.05] rounded-xl transition-all group"
-                  >
-                    <UserIcon className="w-4 h-4 text-white/40 group-hover:text-purple-400" />
-                    Profile Settings
-                  </button>
-                </div>
-
-                <div className="p-2 border-t border-white/[0.04]">
-                  <button 
-                    onClick={handleSignOut}
-                    className="w-full flex items-center gap-3 px-3 py-2 text-sm text-red-400 hover:bg-red-500/10 rounded-xl transition-all"
-                  >
-                    <LogOut className="w-4 h-4" />
-                    Sign Out
-                  </button>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
       </div>
     </header>
 

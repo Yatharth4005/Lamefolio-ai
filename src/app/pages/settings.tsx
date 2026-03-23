@@ -44,10 +44,10 @@ export function SettingsPage() {
         animate={{ opacity: 1, y: 0 }}
         className="mb-8"
       >
-        <h1 className="text-3xl md:text-4xl font-bold text-white mb-2 tracking-tight">
+        <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2 tracking-tight">
           Settings
         </h1>
-        <p className="text-white/60">
+        <p className="text-foreground/60">
           Manage your account settings and preferences
         </p>
       </motion.div>
@@ -60,7 +60,7 @@ export function SettingsPage() {
           transition={{ delay: 0.1 }}
           className="lg:col-span-1"
         >
-          <div className="backdrop-blur-xl bg-white/[0.03] border border-white/[0.08] rounded-2xl p-4 sticky top-24">
+          <div className="backdrop-blur-xl bg-muted border border-border rounded-2xl p-4 sticky top-24">
             <nav className="space-y-1">
               {sections.map((section) => (
                 <motion.button
@@ -69,8 +69,8 @@ export function SettingsPage() {
                   whileHover={{ x: 4 }}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
                     activeSection === section.id
-                      ? "bg-gradient-to-r from-purple-500/20 to-blue-500/20 text-white border border-purple-500/30"
-                      : "text-white/60 hover:text-white hover:bg-white/[0.03]"
+                      ? "bg-gradient-to-r from-purple-500/20 to-blue-500/20 text-foreground border border-purple-500/30"
+                      : "text-foreground/60 hover:text-foreground hover:bg-secondary"
                   }`}
                 >
                   <section.icon className="w-5 h-5" />
@@ -146,7 +146,7 @@ function ProfileSettings() {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="backdrop-blur-xl bg-white/[0.03] border border-white/[0.08] rounded-2xl p-6 md:p-8"
+      className="backdrop-blur-xl bg-muted border border-border rounded-2xl p-6 md:p-8"
     >
       <input 
         type="file" 
@@ -156,7 +156,7 @@ function ProfileSettings() {
         onChange={handleFileChange}
       />
       
-      <h2 className="text-xl font-bold text-white mb-6 tracking-tight">Profile Information</h2>
+      <h2 className="text-xl font-bold text-foreground mb-6 tracking-tight">Profile Information</h2>
       
       <div className="space-y-8">
         {/* Avatar Section */}
@@ -178,7 +178,7 @@ function ProfileSettings() {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => fileInputRef.current?.click()}
-              className="px-5 py-2.5 bg-white/[0.05] border border-white/[0.08] rounded-xl text-white/80 hover:bg-white/[0.08] hover:border-white/[0.12] transition-all text-sm font-medium mr-3"
+              className="px-5 py-2.5 bg-secondary border border-border rounded-xl text-foreground/80 hover:bg-muted transition-all text-sm font-medium mr-3"
             >
               Change Avatar
             </motion.button>
@@ -196,31 +196,31 @@ function ProfileSettings() {
         {/* Form Fields */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm font-medium text-white/70 mb-2">
+            <label className="block text-sm font-medium text-foreground/70 mb-2">
               Display Name
             </label>
             <input
               type="text"
               value={localName}
               onChange={(e) => setLocalName(e.target.value)}
-              className="w-full px-4 py-3 bg-white/[0.03] border border-white/[0.08] rounded-xl text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-transparent transition-all"
+              className="w-full px-4 py-3 bg-secondary border border-border rounded-xl text-foreground placeholder:text-foreground/30 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-transparent transition-all"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-white/70 mb-2">
+            <label className="block text-sm font-medium text-foreground/70 mb-2">
               GitHub Handle
             </label>
             <input
               type="text"
               readOnly
               value={githubHandle ? `@${githubHandle}` : "Not connected"}
-              className="w-full px-4 py-3 bg-white/[0.01] border border-white/[0.05] rounded-xl text-white/40 cursor-not-allowed italic"
+              className="w-full px-4 py-3 bg-muted border border-border rounded-xl text-foreground/40 cursor-not-allowed italic"
             />
           </div>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-white/70 mb-2">
+          <label className="block text-sm font-medium text-foreground/70 mb-2">
             Bio
           </label>
           <textarea
@@ -228,7 +228,7 @@ function ProfileSettings() {
             value={localBio}
             onChange={(e) => setLocalBio(e.target.value)}
             placeholder="No bio set on GitHub. Tell us about yourself!"
-            className="w-full px-4 py-3 bg-white/[0.03] border border-white/[0.08] rounded-xl text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-transparent transition-all resize-none"
+            className="w-full px-4 py-3 bg-secondary border border-border rounded-xl text-foreground placeholder:text-foreground/30 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-transparent transition-all resize-none"
           />
         </div>
 
@@ -261,16 +261,16 @@ function NotificationSettings() {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="backdrop-blur-xl bg-white/[0.03] border border-white/[0.08] rounded-2xl p-6 md:p-8"
+      className="backdrop-blur-xl bg-muted border border-border rounded-2xl p-6 md:p-8"
     >
-      <h2 className="text-xl font-bold text-white mb-6 tracking-tight">Notification Preferences</h2>
+      <h2 className="text-xl font-bold text-foreground mb-6 tracking-tight">Notification Preferences</h2>
       
       <div className="space-y-4">
         {notifications.map((item) => (
-          <div key={item.title} className="flex items-center justify-between py-4 border-b border-white/[0.05] last:border-0">
+          <div key={item.title} className="flex items-center justify-between py-4 border-b border-border/50 last:border-0">
             <div>
-              <p className="font-medium text-white">{item.title}</p>
-              <p className="text-sm text-white/50">{item.description}</p>
+              <p className="font-medium text-foreground">{item.title}</p>
+              <p className="text-sm text-foreground/50">{item.description}</p>
             </div>
             <label className="relative inline-flex items-center cursor-pointer">
               <input type="checkbox" className="sr-only peer" defaultChecked />
@@ -290,26 +290,26 @@ function DomainSettings() {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="backdrop-blur-xl bg-white/[0.03] border border-white/[0.08] rounded-2xl p-6 md:p-8"
+      className="backdrop-blur-xl bg-muted border border-border rounded-2xl p-6 md:p-8"
     >
-      <h2 className="text-xl font-bold text-white mb-6 tracking-tight">Custom Domain</h2>
+      <h2 className="text-xl font-bold text-foreground mb-6 tracking-tight">Custom Domain</h2>
       
       <div className="space-y-6">
         <div>
-          <label className="block text-sm font-medium text-white/70 mb-2">
+          <label className="block text-sm font-medium text-foreground/70 mb-2">
             Current Domain
           </label>
           <div className="flex gap-3">
             <input
               type="text"
               defaultValue="johndoe.lamefolio.ai"
-              className="flex-1 px-4 py-3 bg-white/[0.03] border border-white/[0.08] rounded-xl text-white/50"
+              className="flex-1 px-4 py-3 bg-secondary border border-border rounded-xl text-foreground/50"
               disabled
             />
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className="px-5 py-3 bg-white/[0.05] border border-white/[0.08] rounded-xl text-white/80 hover:bg-white/[0.08] hover:border-white/[0.12] transition-all font-medium"
+              className="px-5 py-3 bg-muted border border-border rounded-xl text-foreground/80 hover:bg-muted/80 transition-all font-medium"
             >
               Copy Link
             </motion.button>
@@ -406,20 +406,20 @@ function BillingSettings() {
               }`}>
                 <plan.icon className="w-6 h-6" />
               </div>
-              <h3 className="text-xl font-bold text-white mb-2">{plan.name}</h3>
+              <h3 className="text-xl font-bold text-foreground mb-2">{plan.name}</h3>
               <div className="flex items-baseline gap-1">
-                <span className="text-4xl font-black text-white">{plan.price}</span>
-                <span className="text-sm text-white/40">/month</span>
+                <span className="text-4xl font-black text-foreground">{plan.price}</span>
+                <span className="text-sm text-foreground/40">/month</span>
               </div>
             </div>
 
             <ul className="space-y-4 mb-10 flex-1">
               {plan.features.map((feature) => (
-                <li key={feature} className="flex items-center gap-3 text-sm text-white/70">
+                <li key={feature} className="flex items-center gap-3 text-sm text-foreground/70">
                   <div className={`w-1.5 h-1.5 rounded-full ${
                     plan.id === 'pro' ? 'bg-purple-500' : 
                     plan.id === 'premium' ? 'bg-amber-500' : 
-                    'bg-white/40'
+                    'bg-foreground/40'
                   }`} />
                   {feature}
                 </li>
@@ -431,10 +431,10 @@ function BillingSettings() {
               whileTap={{ scale: 0.98 }}
               className={`w-full py-4 rounded-xl font-bold text-sm tracking-tight transition-all ${
                 plan.isCurrent 
-                  ? "bg-white/5 text-white/40 border border-white/10 cursor-default" 
+                  ? "bg-secondary text-foreground/40 border border-border cursor-default" 
                   : plan.id === 'pro'
-                    ? "bg-white text-black hover:bg-gray-100"
-                    : "bg-white/10 text-white hover:bg-white/20 border border-white/10"
+                    ? "bg-foreground text-background hover:bg-foreground/90 shadow-lg shadow-black/5"
+                    : "bg-muted text-foreground hover:bg-muted/80 border border-border"
               }`}
             >
               {plan.isCurrent ? "Current Plan" : "Upgrade Plan"}
@@ -444,13 +444,13 @@ function BillingSettings() {
       </div>
 
       {/* Payment History Mockup */}
-      <div className="backdrop-blur-xl bg-white/[0.02] border border-white/[0.08] rounded-2xl p-6 md:p-8">
-        <h3 className="text-sm font-bold text-white mb-6 uppercase tracking-widest text-white/40">Billing History</h3>
+      <div className="backdrop-blur-xl bg-secondary border border-border rounded-2xl p-6 md:p-8">
+        <h3 className="text-sm font-bold text-foreground mb-6 uppercase tracking-widest opacity-40">Billing History</h3>
         <div className="space-y-4">
-          <div className="flex items-center justify-between py-4 border-b border-white/[0.03]">
+          <div className="flex items-center justify-between py-4 border-b border-border/50">
             <div>
-              <p className="text-sm font-medium text-white">Free Plan Enrollment</p>
-              <p className="text-xs text-white/30">March 22, 2026</p>
+              <p className="text-sm font-medium text-foreground">Free Plan Enrollment</p>
+              <p className="text-xs text-foreground/30">March 22, 2026</p>
             </div>
             <span className="text-xs px-3 py-1 bg-green-500/10 text-green-400 rounded-lg border border-green-500/20">Processed</span>
           </div>
