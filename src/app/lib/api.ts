@@ -138,3 +138,32 @@ export async function deletePortfolio(handle: string, id: number) {
   return response.json();
 }
 
+export async function linkGitHubToHandle(handle: string, github_handle: string, display_name?: string) {
+  const response = await fetch(`${API_BASE_URL}/user/${handle}/link-github`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ github_handle, display_name }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || "Failed to link GitHub handle");
+  }
+
+  return response.json();
+}
+
+export async function updateUserData(handle: string, display_name?: string, bio?: string) {
+  const response = await fetch(`${API_BASE_URL}/user/${handle}/update`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ display_name, bio }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || "Failed to update user data");
+  }
+
+  return response.json();
+}

@@ -42,10 +42,21 @@ export class DatabaseService {
           id SERIAL PRIMARY KEY,
           handle TEXT UNIQUE NOT NULL,
           display_name TEXT,
+          github_handle TEXT,
           points INTEGER DEFAULT 3,
           plan TEXT DEFAULT 'Free',
           created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
         );
+      `;
+
+      // Migration: Add github_handle if it doesn't exist
+      await this.sql`
+        DO $$ 
+        BEGIN 
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='users' AND column_name='github_handle') THEN
+            ALTER TABLE users ADD COLUMN github_handle TEXT;
+          END IF;
+        END $$;
       `;
 
       await this.sql`
@@ -96,12 +107,17 @@ export class DatabaseService {
 
 
    // User Management
-   async upsertUser(handle: string, displayName?: string) {
+   async upsertUser(handle: string, displayName?: string, githubHandle?: string) {
+      const lowerHandle = handle.toLowerCase();
+      
+      // If display name is not provided, we only want to set it if it doesn't exist yet
+      // This avoids overwriting an existing display name with the handle string
       return this.sql`
-        INSERT INTO users (handle, display_name)
-        VALUES (LOWER(${handle}), ${displayName || null})
+        INSERT INTO users (handle, display_name, github_handle)
+        VALUES (${lowerHandle}, ${displayName || handle}, ${githubHandle || null})
         ON CONFLICT (handle) DO UPDATE SET
-          display_name = EXCLUDED.display_name
+          display_name = COALESCE(NULLIF(${displayName || ''}, ''), users.display_name),
+          github_handle = COALESCE(${githubHandle || null}, users.github_handle)
         RETURNING *
       `;
    }
@@ -113,13 +129,94 @@ export class DatabaseService {
       return results[0] || null;
    }
 
+   async linkGithubToHandle(handle: string, githubHandle: string, displayName?: string) {
+      const lowerHandle = handle.toLowerCase();
+      const lowerGithubHandle = githubHandle.toLowerCase();
+
+      // Fetch the target user (the one with the GitHub handle as their primary ID)
+      const [targetUser] = await this.sql`SELECT * FROM users WHERE LOWER(handle) = ${lowerGithubHandle}`;
+      const [currentUser] = await this.sql`SELECT * FROM users WHERE LOWER(handle) = ${lowerHandle}`;
+
+      if (!currentUser) {
+         console.warn(`User ${handle} not found for linking`);
+         return null;
+      }
+
+      if (targetUser && lowerHandle !== lowerGithubHandle) {
+         console.log(`Merging ${lowerHandle} into existing GitHub account ${lowerGithubHandle}`);
+         
+         // 1. Move related data to the target account
+         await this.sql`UPDATE portfolios SET user_handle = ${lowerGithubHandle} WHERE LOWER(user_handle) = ${lowerHandle}`;
+         await this.sql`UPDATE messages SET user_handle = ${lowerGithubHandle} WHERE LOWER(user_handle) = ${lowerHandle}`;
+         
+         // 2. Consolidate stats (take max points, upgrade plan if either is pro)
+         const mergedPoints = Math.max(currentUser.points || 0, targetUser.points || 0);
+         const mergedPlan = (currentUser.plan === 'Pro' || targetUser.plan === 'Pro') ? 'Pro' : 'Free';
+         const finalDisplayName = displayName || currentUser.display_name || targetUser.display_name;
+
+         await this.sql`
+            UPDATE users 
+            SET points = ${mergedPoints}, 
+                plan = ${mergedPlan}, 
+                display_name = ${finalDisplayName},
+                github_handle = ${githubHandle}
+            WHERE handle = ${lowerGithubHandle}
+         `;
+
+         // 3. Delete the redundant local account
+         await this.sql`DELETE FROM users WHERE handle = ${lowerHandle}`;
+         
+         return this.getUser(lowerGithubHandle);
+      } else {
+         // rename current handle to github handle if they aren't already the same
+         if (lowerHandle !== lowerGithubHandle) {
+            console.log(`Renaming handle ${lowerHandle} to GitHub handle ${lowerGithubHandle}`);
+            
+            // Rename handle and update metadata
+            // Note: handle is UNIQUE, so we know this won't conflict because targetUser check failed
+            await this.sql`
+               UPDATE users 
+               SET handle = ${lowerGithubHandle}, 
+                   github_handle = ${githubHandle}, 
+                   display_name = COALESCE(NULLIF(${displayName || ''}, ''), display_name) 
+               WHERE handle = ${lowerHandle}
+            `;
+            
+            // Move related data
+            await this.sql`UPDATE portfolios SET user_handle = ${lowerGithubHandle} WHERE LOWER(user_handle) = ${lowerHandle}`;
+            await this.sql`UPDATE messages SET user_handle = ${lowerGithubHandle} WHERE LOWER(user_handle) = ${lowerHandle}`;
+            
+            return this.getUser(lowerGithubHandle);
+         } else {
+            // Already identified by GitHub handle, just update metadata
+            return this.upsertUser(lowerHandle, displayName, githubHandle);
+         }
+      }
+   }
+
    async decrementPoints(handle: string) {
-      return this.sql`
+      const user = await this.getUser(handle);
+      if (!user) return null;
+
+      const results = await this.sql`
         UPDATE users 
         SET points = GREATEST(0, points - 1)
         WHERE LOWER(handle) = LOWER(${handle})
         RETURNING *
       `;
+
+      const updatedUser = results[0];
+
+      // Sync points to all handles sharing this github account
+      if (updatedUser.github_handle) {
+        await this.sql`
+          UPDATE users 
+          SET points = ${updatedUser.points}
+          WHERE github_handle = ${updatedUser.github_handle}
+        `;
+      }
+
+      return updatedUser;
    }
 
    // Message Management

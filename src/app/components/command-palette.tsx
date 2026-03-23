@@ -37,11 +37,13 @@ export function CommandPalette() {
     };
 
     if (isOpen) {
+      document.body.style.overflow = "hidden";
       document.addEventListener("mousedown", handleClickOutside);
     }
     
     document.addEventListener("keydown", down);
     return () => {
+      document.body.style.overflow = "unset";
       document.removeEventListener("keydown", down);
       document.removeEventListener("mousedown", handleClickOutside);
     };
@@ -96,7 +98,7 @@ export function CommandPalette() {
                     />
                   </div>
                 </div>
-                <div className="p-4 max-h-96 overflow-y-auto">
+                <div className="p-4 max-h-96 overflow-y-auto no-scrollbar">
                   <div className="space-y-1">
                     {items.map((item) => (
                       <button

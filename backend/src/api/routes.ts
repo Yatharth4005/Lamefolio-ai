@@ -18,25 +18,26 @@ db.init();
 export async function portfolioRoutes(fastify: FastifyInstance) {
   fastify.post('/portfolio/generate', async (request, reply) => {
     try {
-      const { github_handle, user_prompt } = request.body as { github_handle: string, user_prompt: string };
+      const { github_handle: inputHandle, user_prompt } = request.body as { github_handle: string, user_prompt: string };
       
-      if (!github_handle) {
-        return reply.status(400).send({ error: 'GitHub handle is required' });
+      if (!inputHandle) {
+        return reply.status(400).send({ error: 'GitHub handle or local handle is required' });
       }
 
-      console.log('--- Triggering Portfolio Generation ---');
+      // Check if this is a local handle linked to a GitHub account
+      const user = await db.getUser(inputHandle);
+      const github_handle = user?.github_handle || inputHandle;
+
+      console.log(`--- Triggering Portfolio Generation for ${github_handle} (input: ${inputHandle}) ---`);
 
       // Save User prompt to messages IMMEDIATELY (before long sync)
-      if (github_handle && user_prompt) {
-        console.log(`📝 Persistence User Build Prompt for ${github_handle}`);
-        await db.saveMessage(github_handle, 'user', user_prompt);
-      }
+      console.log(`📝 Persistence User Build Prompt for ${inputHandle}`);
+      await db.saveMessage(inputHandle, 'user', user_prompt);
 
       const result = await orchestrator.generatePortfolio(github_handle, user_prompt);
       
-      // Track usage and save history if handle is provided
-      if (github_handle) {
-        const handle = github_handle;
+      // Track usage and save history
+      const handle = inputHandle;
 
         await db.savePortfolio({
           user_handle: handle,
@@ -54,7 +55,6 @@ export async function portfolioRoutes(fastify: FastifyInstance) {
         await db.saveMessage(handle, 'ai', github_handle === 'manual_entry' 
           ? `I've processed the details you provided and generated your Notion portfolio!` 
           : `Excellent news! I've analyzed your GitHub and built your portfolio in Notion.`);
-      }
 
       return reply.send({
         success: true,
@@ -185,6 +185,9 @@ export async function portfolioRoutes(fastify: FastifyInstance) {
       // Fetch user profile using the token
       const userProfile = await github.getUserProfile(token);
       
+      // Ensure user exists in our DB and is linked to their GitHub handle
+      await db.upsertUser(userProfile.username, userProfile.name || userProfile.username, userProfile.username);
+
       return reply.send({
         success: true,
         token,
@@ -266,9 +269,40 @@ export async function portfolioRoutes(fastify: FastifyInstance) {
   fastify.get('/user/:handle', async (request, reply) => {
     try {
       const { handle } = request.params as { handle: string };
-      // Ensure user exists
+      // Ensure user exists - will not overwrite existing fields because of COALESCE logic
       await db.upsertUser(handle);
       const user = await db.getUser(handle);
+      return reply.send({ success: true, user });
+    } catch (error: any) {
+      return reply.status(500).send({ error: error.message });
+    }
+  });
+
+  fastify.post('/user/:handle/link-github', async (request, reply) => {
+    try {
+      const { handle } = request.params as { handle: string };
+      const { github_handle, display_name } = request.body as { github_handle: string, display_name?: string };
+      
+      if (!github_handle) {
+         return reply.status(400).send({ error: 'github_handle is required' });
+      }
+ 
+      const user = await db.linkGithubToHandle(handle, github_handle, display_name);
+      return reply.send({ success: true, user });
+    } catch (error: any) {
+      return reply.status(500).send({ error: error.message });
+    }
+  });
+
+  fastify.post('/user/:handle/update', async (request, reply) => {
+    try {
+      const { handle } = request.params as { handle: string };
+      const { display_name, bio } = request.body as { display_name?: string, bio?: string };
+      
+      const user = await db.upsertUser(handle, display_name);
+      // bio update logic if needed, but upsertUser only handles displayName/githubHandle for now
+      // Let's stick to display_name as that's what's missing
+      
       return reply.send({ success: true, user });
     } catch (error: any) {
       return reply.status(500).send({ error: error.message });

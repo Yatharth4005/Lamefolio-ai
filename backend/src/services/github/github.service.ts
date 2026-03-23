@@ -42,6 +42,7 @@ export class GitHubService {
 
     return {
       username: user.login,
+      name: user.name,
       avatar: user.avatar_url,
       bio: user.bio,
       repos: repos.map(repo => ({

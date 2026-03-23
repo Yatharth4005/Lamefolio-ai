@@ -1,16 +1,16 @@
 import { Github, RefreshCw, CheckCircle2, XCircle, Star, GitFork, ExternalLink, Activity, Loader2, Database, LayoutPanelLeft, Sparkles } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useGitHub } from "../context/GitHubContext";
-import { getGitHubAuthUrl, handleGitHubCallback, getNotionAuthUrl, handleNotionCallback } from "../lib/api";
+import { getGitHubAuthUrl, handleGitHubCallback, getNotionAuthUrl, handleNotionCallback, linkGitHubToHandle } from "../lib/api";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router";
 import { toast } from "sonner";
 
 export function IntegrationsPage() {
   const { 
-    user, setUser, token, setToken, setGithubHandle, isConnected,
+    user, setUser, token, setToken, setGithubHandle, githubHandle, isConnected,
     notionToken, setNotionToken, notionWorkspace, setNotionWorkspace, isNotionConnected,
-    disconnectGitHub, disconnectNotion
+    disconnectGitHub, disconnectNotion, displayName, setDisplayName
   } = useGitHub();
   
   const [isConnecting, setIsConnecting] = useState<string | null>(null);
@@ -47,6 +47,21 @@ export function IntegrationsPage() {
         setToken(data.token);
         setUser(data.profile);
         setGithubHandle(data.profile.username);
+        
+        // Prefer GitHub's real name if it exists, otherwise use handle
+        const nameToSet = data.profile.name || data.profile.username;
+        setDisplayName(nameToSet);
+        
+        // Link the local handle to this GitHub account
+        const currentHandle = githubHandle || displayName;
+        if (currentHandle) {
+          try {
+            await linkGitHubToHandle(currentHandle, data.profile.username, nameToSet);
+          } catch (e) {
+            console.error("Failed to link GitHub to handle:", e);
+          }
+        }
+        
         toast.success("GitHub Connected Successfully!");
       } else {
         const data = await handleNotionCallback(code);

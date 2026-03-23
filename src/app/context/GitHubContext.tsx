@@ -13,6 +13,7 @@ interface GitHubRepo {
 
 interface GitHubUser {
   username: string;
+  name?: string;
   avatar: string;
   bio: string;
   repos: GitHubRepo[];
@@ -179,6 +180,9 @@ export function GitHubProvider({ children }: { children: ReactNode }) {
         if (userData.success && userData.user) {
           setPoints(userData.user.points);
           setPlan(userData.user.plan);
+          if (userData.user.display_name && !displayName) {
+             setDisplayName(userData.user.display_name);
+          }
         }
 
         const portfolioData = await getUserPortfolios(handle);

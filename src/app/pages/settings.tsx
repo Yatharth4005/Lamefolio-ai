@@ -3,6 +3,8 @@ import { useState, useEffect, useRef } from "react";
 import { motion } from "motion/react";
 import { useParams, useNavigate } from "react-router";
 import { useGitHub } from "../context/GitHubContext";
+import { updateUserData } from "../lib/api";
+import { toast } from "sonner";
 
 export function SettingsPage() {
   const { displayName, user, githubHandle, signOut } = useGitHub();
@@ -124,10 +126,19 @@ function ProfileSettings() {
     }
   };
 
-  const handleSave = () => {
-    setDisplayName(localName);
-    if (user) {
-      setUser({ ...user, bio: localBio });
+  const handleSave = async () => {
+    try {
+      const handle = githubHandle || displayName;
+      if (handle) {
+        await updateUserData(handle, localName, localBio);
+      }
+      setDisplayName(localName);
+      if (user) {
+        setUser({ ...user, bio: localBio });
+      }
+      toast.success("Profile updated successfully!");
+    } catch (error: any) {
+      toast.error(error.message);
     }
   };
 
