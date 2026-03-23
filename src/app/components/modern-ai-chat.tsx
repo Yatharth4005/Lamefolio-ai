@@ -305,7 +305,7 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
            <div className="flex items-center gap-2 px-4 py-2 bg-purple-500/10 border border-purple-500/20 rounded-xl relative group overflow-hidden">
             <div className="absolute inset-0 bg-purple-500/10 group-hover:bg-purple-500/20 transition-colors" />
             <Zap className="w-4 h-4 text-purple-400 font-bold relative z-10" />
-            <span className="text-xs font-black text-purple-400 uppercase tracking-widest leading-none pt-0.5 relative z-10">Gemini 2.5 Flash</span>
+            <span className="text-xs font-black text-purple-400 uppercase tracking-widest leading-none pt-0.5 relative z-10">Powered by Gemini</span>
           </div>
         </div>
       </div>

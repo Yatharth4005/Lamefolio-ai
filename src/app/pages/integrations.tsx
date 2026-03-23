@@ -110,33 +110,35 @@ export function IntegrationsPage() {
               : "bg-white/[0.02] border-white/10 hover:border-white/20"
           }`}
         >
-          <div className="relative z-10">
-            <div className="flex justify-between items-start mb-8">
-               <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center">
-                  <Github className="w-8 h-8 text-white" />
-               </div>
-               {isConnected && (
-                 <div className="flex items-center gap-2 px-3 py-1 bg-green-500/10 border border-green-500/20 rounded-lg">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-green-400" />
-                    <span className="text-[10px] font-black uppercase text-green-400">Linked</span>
-                 </div>
-               )}
-            </div>
-            
-            <h2 className="text-2xl font-bold text-white mb-2">GitHub</h2>
-            <p className="text-white/40 text-sm mb-8 leading-relaxed">
-               Sync your repositories, contributions, and project readmes to build a data-driven portfolio.
-            </p>
-
-            {isConnected && user ? (
-              <div className="flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/5 mb-6">
-                 <img src={user.avatar} className="w-12 h-12 rounded-xl" alt="avatar" />
-                 <div>
-                    <p className="text-white font-bold text-sm">@{user.username}</p>
-                    <p className="text-white/30 text-[10px] uppercase font-black tracking-widest">{user.repos.length} Repositories</p>
-                 </div>
+          <div className="relative z-10 flex flex-col h-full">
+            <div className="flex-1">
+              <div className="flex justify-between items-start mb-8">
+                <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center">
+                    <Github className="w-8 h-8 text-white" />
+                </div>
+                {isConnected && (
+                  <div className="flex items-center gap-2 px-3 py-1 bg-green-500/10 border border-green-500/20 rounded-lg">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-green-400" />
+                      <span className="text-[10px] font-black uppercase text-green-400">Linked</span>
+                  </div>
+                )}
               </div>
-            ) : null}
+              
+              <h2 className="text-2xl font-bold text-white mb-2">GitHub</h2>
+              <p className="text-white/40 text-sm mb-8 leading-relaxed">
+                Sync your repositories, contributions, and project readmes to build a data-driven portfolio.
+              </p>
+
+              {isConnected && user ? (
+                <div className="flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/5 mb-6">
+                  <img src={user.avatar} className="w-12 h-12 rounded-xl" alt="avatar" />
+                  <div>
+                      <p className="text-white font-bold text-sm">@{user.username}</p>
+                      <p className="text-white/30 text-[10px] uppercase font-black tracking-widest">{user.repos.length} Repositories</p>
+                  </div>
+                </div>
+              ) : null}
+            </div>
 
             <motion.button
               whileHover={{ scale: 1.02 }}
@@ -169,54 +171,56 @@ export function IntegrationsPage() {
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.015] to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 ease-in-out" />
           )}
 
-          <div className="relative z-10">
-            <div className="flex justify-between items-start mb-8">
-               <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center">
-                  <Database className="w-8 h-8 text-white" />
-               </div>
-               {isNotionConnected ? (
-                 <div className="flex items-center gap-2 px-3 py-1 bg-blue-500/10 border border-blue-500/20 rounded-lg">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-blue-400" />
-                    <span className="text-[10px] font-black uppercase text-blue-400">Linked</span>
-                 </div>
-               ) : (
-                 <div className="flex items-center gap-2 px-3 py-1 bg-amber-500/10 border border-amber-500/20 rounded-lg">
-                    <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                    <span className="text-[10px] font-black uppercase text-amber-400">Required</span>
-                 </div>
-               )}
-            </div>
-            
-            <h2 className="text-2xl font-bold text-white mb-2">Notion</h2>
-            <p className="text-white/40 text-sm leading-relaxed mb-6">
-               Directly manifest your portfolio into your Notion workspace as beautiful, structured pages.
-            </p>
-
-            {!isNotionConnected && (
-              <div className="flex items-center gap-2 mb-8">
-                {["Authorize", "Pick Workspace", "Done!"].map((step, i) => (
-                  <div key={step} className="flex items-center gap-2">
-                    <div className="w-5 h-5 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-[9px] font-black text-white/40">{i + 1}</div>
-                    <span className="text-[11px] text-white/40 font-medium">{step}</span>
-                    {i < 2 && <div className="w-4 h-px bg-white/10" />}
+          <div className="relative z-10 flex flex-col h-full">
+            <div className="flex-1">
+              <div className="flex justify-between items-start mb-8">
+                <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center">
+                    <Database className="w-8 h-8 text-white" />
+                </div>
+                {isNotionConnected ? (
+                  <div className="flex items-center gap-2 px-3 py-1 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-blue-400" />
+                      <span className="text-[10px] font-black uppercase text-blue-400">Linked</span>
                   </div>
-                ))}
+                ) : (
+                  <div className="flex items-center gap-2 px-3 py-1 bg-amber-500/10 border border-amber-500/20 rounded-lg">
+                      <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                      <span className="text-[10px] font-black uppercase text-amber-400">Required</span>
+                  </div>
+                )}
               </div>
-            )}
+              
+              <h2 className="text-2xl font-bold text-white mb-2">Notion</h2>
+              <p className="text-white/40 text-sm leading-relaxed mb-6">
+                Directly manifest your portfolio into your Notion workspace as beautiful, structured pages.
+              </p>
 
-            {isNotionConnected && notionWorkspace ? (
-              <div className="flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/5 mb-6">
-                 {notionWorkspace.avatar ? (
-                    <img src={notionWorkspace.avatar} className="w-12 h-12 rounded-xl" alt="notion" />
-                 ) : (
-                    <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center font-bold text-white">{notionWorkspace.name?.[0]}</div>
-                 )}
-                 <div>
-                    <p className="text-white font-bold text-sm">{notionWorkspace.name}</p>
-                    <p className="text-white/30 text-[10px] uppercase font-black tracking-widest">Workspace Integrated</p>
-                 </div>
-              </div>
-            ) : null}
+              {!isNotionConnected && (
+                <div className="flex items-center gap-2 mb-8">
+                  {["Authorize", "Pick Workspace", "Done!"].map((step, i) => (
+                    <div key={step} className="flex items-center gap-2">
+                      <div className="w-5 h-5 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-[9px] font-black text-white/40">{i + 1}</div>
+                      <span className="text-[11px] text-white/40 font-medium">{step}</span>
+                      {i < 2 && <div className="w-4 h-px bg-white/10" />}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {isNotionConnected && notionWorkspace ? (
+                <div className="flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/5 mb-6">
+                  {notionWorkspace.avatar ? (
+                      <img src={notionWorkspace.avatar} className="w-12 h-12 rounded-xl" alt="notion" />
+                  ) : (
+                      <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center font-bold text-white">{notionWorkspace.name?.[0]}</div>
+                  )}
+                  <div>
+                      <p className="text-white font-bold text-sm">{notionWorkspace.name}</p>
+                      <p className="text-white/30 text-[10px] uppercase font-black tracking-widest">Workspace Integrated</p>
+                  </div>
+                </div>
+              ) : null}
+            </div>
 
             <motion.button
               whileHover={{ scale: 1.02 }}

@@ -44,7 +44,7 @@ export function ModernHero() {
               <Sparkles className="w-4 h-4 text-purple-400 opacity-75" />
             </span>
           </div>
-          <span className="text-sm font-medium text-purple-400 uppercase tracking-widest bg-purple-500/5 px-2 py-0.5 rounded-lg border border-purple-500/20">Gemini 2.5 Flash</span>
+          <span className="text-sm font-medium text-purple-400 uppercase tracking-widest bg-purple-500/5 px-2 py-0.5 rounded-lg border border-purple-500/20">Powered by Gemini</span>
         </motion.div>
         
         <motion.h1
