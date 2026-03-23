@@ -180,7 +180,7 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
           {
             id: (Date.now() + 1).toString(),
             role: "ai",
-            content: "Before I can manifest your portfolio into Notion, you'll need to connect your Notion workspace! It only takes a few seconds — just click the button below to authorize access, and I'll take care of the rest. ✨",
+            content: "Before I can build your portfolio into Notion, you'll need to connect your Notion workspace! It only takes a few seconds — just click the button below to authorize access, and I'll take care of the rest. ✨",
             actionUrl: "/integrations",
             timestamp: new Date(),
           },
@@ -212,7 +212,7 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
             type: "success",
             actionUrl: result.url
           });
-          toast.success("Portfolio Manifested!");
+          toast.success("Portfolio Built!");
         } catch (error: any) {
           setMessages((prev) => [
             ...prev,
@@ -359,7 +359,7 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
                       className="mt-8 w-full py-5 bg-white text-black rounded-2xl text-[11px] font-black uppercase tracking-[0.2em] flex items-center justify-center gap-3 shadow-2xl hover:bg-gray-100 transition-colors"
                     >
                       <ExternalLink className="w-4 h-4" />
-                      {message.actionUrl === "/settings/billing" ? "UPGRADE TO PRO" : message.actionUrl === "/integrations" ? "CONNECT NOTION →" : "Manifest in Notion"}
+                      {message.actionUrl === "/settings/billing" ? "UPGRADE TO PRO" : message.actionUrl === "/integrations" ? "CONNECT NOTION →" : "View in Notion"}
                     </motion.button>
                   )}
                 </div>

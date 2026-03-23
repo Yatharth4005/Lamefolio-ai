@@ -50,8 +50,9 @@ export function DashboardPage() {
                </div>
             </h2>
             <p className="text-lg text-white/40 mt-3 font-medium">
-              Historical manifests generated through the Synthesizer.
+              Historical portfolios generated through the Synthesizer.
             </p>
+
           </div>
         </div>
         <PortfolioList />

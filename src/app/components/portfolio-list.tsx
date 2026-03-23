@@ -41,7 +41,7 @@ export function PortfolioList() {
     
     if (!githubHandle) return;
     
-    if (!confirm("Are you sure you want to delete this manifesto?")) return;
+    if (!confirm("Are you sure you want to delete this portfolio?")) return;
 
     try {
       await deletePortfolio(githubHandle, id);
@@ -57,7 +57,8 @@ export function PortfolioList() {
       <div className="p-12 border border-dashed border-white/10 rounded-3xl text-center bg-white/[0.02]">
          <Globe className="w-10 h-10 text-white/20 mx-auto mb-4" />
          <h4 className="text-white font-bold">No Connection Found</h4>
-         <p className="text-white/40 text-sm mt-1">Connect your account to see your manifests.</p>
+         <p className="text-white/40 text-sm mt-1">Connect your account to see your portfolios.</p>
+
       </div>
     );
   }

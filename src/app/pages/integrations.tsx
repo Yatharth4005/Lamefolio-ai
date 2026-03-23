@@ -192,8 +192,9 @@ export function IntegrationsPage() {
               
               <h2 className="text-2xl font-bold text-white mb-2">Notion</h2>
               <p className="text-white/40 text-sm leading-relaxed mb-6">
-                Directly manifest your portfolio into your Notion workspace as beautiful, structured pages.
+                Directly build your portfolio into your Notion workspace as beautiful, structured pages.
               </p>
+
 
               {!isNotionConnected && (
                 <div className="flex items-center gap-2 mb-8">
