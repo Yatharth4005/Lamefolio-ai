@@ -9,6 +9,8 @@ import { useNavigate } from "react-router";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "./ui/resizable";
 import { PortfolioPreview } from "./portfolio-preview";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "./ui/dropdown-menu";
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "./ui/tooltip";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "./ui/alert-dialog";
 
 interface Message {
   id: string;
@@ -35,6 +37,7 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
   const [historyItems, setHistoryItems] = useState<any[]>([]);
   const [renamingSessionId, setRenamingSessionId] = useState<number | null>(null);
   const [newName, setNewName] = useState("");
+  const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
   
   const { githubHandle, isGenerating, setIsGenerating, addNotification, displayName, incrementGenerationCount, plan, points, user, isNotionConnected } = useGitHub();
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -98,9 +101,7 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
       }
   };
 
-  const handleDeleteSession = async (e: React.MouseEvent, sessionId: number) => {
-      e.stopPropagation();
-      if (!confirm("Remove this conversation?")) return;
+  const handleDeleteSession = async (sessionId: number) => {
       try {
           await deleteChatSession(sessionId);
           if (currentSessionId === sessionId) {
@@ -109,6 +110,7 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
           }
           loadHistory();
           toast.success("Chat deleted");
+          setDeleteConfirmId(null);
       } catch (error) {
           toast.error("Failed to delete chat");
       }
@@ -142,7 +144,7 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
     setPreviewUrl(null);
     setPreviewId(null);
     setShowPreview(false);
-    toast.success("New chat started");
+    toast.success("New conversation started");
   };
 
   const handleSend = async () => {
@@ -222,23 +224,38 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
       
       {/* Sidebar - Theme Adaptive */}
       <div className="w-16 flex flex-col items-center py-6 gap-6 border-r border-border bg-background z-50">
-          <button 
-            onClick={handleNewChat}
-            className="w-10 h-10 flex items-center justify-center rounded-xl bg-secondary hover:bg-primary hover:text-primary-foreground transition-all group"
-            title="New Chat"
-          >
-            <Plus className="w-5 h-5 group-hover:scale-110 transition-transform" />
-          </button>
-          <button 
-            onClick={() => {
-              if (!showHistory) loadHistory();
-              setShowHistory(!showHistory);
-            }}
-            className={`w-10 h-10 flex items-center justify-center rounded-xl transition-all group ${showHistory ? "bg-primary text-primary-foreground" : "bg-transparent text-foreground/40 hover:text-foreground hover:bg-secondary"}`}
-            title="History"
-          >
-            <History className="w-5 h-5 group-hover:scale-110 transition-transform" />
-          </button>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button 
+                  onClick={handleNewChat}
+                  className="w-10 h-10 flex items-center justify-center rounded-xl bg-secondary hover:bg-primary hover:text-primary-foreground transition-all group active:scale-95"
+                >
+                  <Plus className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="right" className="bg-foreground text-background font-bold text-[10px] px-3 py-1.5 rounded-lg ml-2">
+                New Chat
+              </TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button 
+                  onClick={() => {
+                    if (!showHistory) loadHistory();
+                    setShowHistory(!showHistory);
+                  }}
+                  className={`w-10 h-10 flex items-center justify-center rounded-xl transition-all group active:scale-95 ${showHistory ? "bg-primary text-primary-foreground" : "bg-transparent text-foreground/40 hover:text-foreground hover:bg-secondary"}`}
+                >
+                  <History className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="right" className="bg-foreground text-background font-bold text-[10px] px-3 py-1.5 rounded-lg ml-2">
+                Chat History
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
       </div>
 
       <ResizablePanelGroup direction="horizontal" className="flex-1 overflow-hidden h-full">
@@ -317,8 +334,8 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
                                                     </DropdownMenuItem>
                                                     <DropdownMenuSeparator className="bg-border/50 my-1" />
                                                     <DropdownMenuItem 
-                                                        onClick={(e) => handleDeleteSession(e, item.id)}
-                                                        className="flex items-center gap-2 p-2 text-xs font-medium rounded-lg cursor-pointer text-red-400 hover:bg-red-500/10 transition-all font-bold"
+                                                        onClick={() => setDeleteConfirmId(item.id)}
+                                                        className="flex items-center gap-2 p-2 text-xs font-medium rounded-lg cursor-pointer text-red-500 hover:bg-red-500/10 transition-all font-bold"
                                                     >
                                                         <Trash2 className="w-3.5 h-3.5" />
                                                         Delete
@@ -465,7 +482,29 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
             </ResizablePanel>
           </>
         )}
-      </ResizablePanelGroup>
+          {/* Delete Confirmation Dialog */}
+          <AlertDialog open={deleteConfirmId !== null} onOpenChange={(open) => !open && setDeleteConfirmId(null)}>
+            <AlertDialogContent className="bg-background-secondary border border-border rounded-2xl p-6 shadow-2xl max-w-sm">
+                <AlertDialogHeader>
+                    <AlertDialogTitle className="text-xl font-bold">Delete Conversation?</AlertDialogTitle>
+                    <AlertDialogDescription className="text-sm opacity-60">
+                        This action cannot be undone. This will permanently remove the conversation from your history.
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter className="mt-6 flex gap-3">
+                    <AlertDialogCancel className="flex-1 bg-secondary text-foreground hover:bg-secondary/80 border-none rounded-xl py-3 font-bold text-xs uppercase tracking-widest">
+                        Cancel
+                    </AlertDialogCancel>
+                    <AlertDialogAction 
+                        onClick={() => deleteConfirmId && handleDeleteSession(deleteConfirmId)}
+                        className="flex-1 bg-red-500 text-white hover:bg-red-600 border-none rounded-xl py-3 font-bold text-xs uppercase tracking-widest"
+                    >
+                        Delete
+                    </AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </ResizablePanelGroup>
     </div>
   );
 }
