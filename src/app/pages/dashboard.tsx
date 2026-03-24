@@ -1,35 +1,31 @@
 import { ModernHero } from "../components/modern-hero";
 import { TemplateGallery } from "../components/template-gallery";
 import { PortfolioList } from "../components/portfolio-list";
-import { Sparkles, Layout, Globe } from "lucide-react";
+import { Layout } from "lucide-react";
 import { useNavigate } from "react-router";
 
 export function DashboardPage() {
   const navigate = useNavigate();
   return (
     <div className="max-w-7xl mx-auto px-6 md:px-8 py-8">
-      {/* Hero Section */}
+      {/* Greeting, integration status, and primary generate action */}
       <ModernHero />
 
-      {/* Portfolio Templates Section */}
+      {/* Portfolio Blueprints: template picker for starting a new portfolio */}
       <div className="mb-20">
-        <div className="flex items-end justify-between mb-12 border-b border-border pb-8">
+        <div className="flex items-end justify-between mb-8 border-b border-border pb-6">
           <div>
-            <h2 className="text-3xl font-black text-foreground tracking-tight flex items-center gap-4">
-               Portfolio Blueprints
-               <div className="flex items-center gap-2">
-                 <div className="w-2 h-2 bg-purple-500 rounded-full" />
-                 <Sparkles className="w-5 h-5 text-purple-400 animate-pulse" />
-               </div>
+            <h2 className="text-xl font-semibold text-foreground tracking-tight">
+              Portfolio Blueprints
             </h2>
-            <p className="text-lg text-foreground/40 mt-3 font-medium">
+            <p className="text-sm text-foreground/40 mt-1">
               Start with a battle-tested template or build from scratch.
             </p>
           </div>
-          
-          <button 
+
+          <button
             onClick={() => navigate("/marketplace")}
-            className="hidden md:flex items-center gap-2 text-sm font-bold text-foreground/40 hover:text-foreground transition-colors px-4 py-2 bg-secondary rounded-xl border border-border"
+            className="hidden md:flex items-center gap-2 text-sm font-medium text-foreground/40 hover:text-foreground transition-colors px-3 py-1.5 bg-secondary rounded-lg border border-border"
           >
             <Layout className="w-4 h-4" />
             View Marketplace
@@ -38,21 +34,16 @@ export function DashboardPage() {
         <TemplateGallery />
       </div>
 
-      {/* Portfolio Vault (Recently Generated) */}
+      {/* Portfolio Vault: previously generated portfolios for this user */}
       <div className="mb-20">
-        <div className="flex items-end justify-between mb-12 border-b border-border pb-8">
+        <div className="flex items-end justify-between mb-8 border-b border-border pb-6">
           <div>
-            <h2 className="text-3xl font-black text-foreground tracking-tight flex items-center gap-4">
-               Portfolio Vault
-               <div className="flex items-center gap-2">
-                 <div className="w-2 h-2 bg-purple-500 rounded-full opacity-50" />
-                 <Globe className="w-5 h-5 text-foreground/20" />
-               </div>
+            <h2 className="text-xl font-semibold text-foreground tracking-tight">
+              Portfolio Vault
             </h2>
-            <p className="text-lg text-foreground/40 mt-3 font-medium">
+            <p className="text-sm text-foreground/40 mt-1">
               Historical portfolios generated through the Synthesizer.
             </p>
-
           </div>
         </div>
         <PortfolioList />

@@ -54,11 +54,10 @@ export function PortfolioList() {
 
   if (!isConnected) {
     return (
-      <div className="p-12 border border-dashed border-border rounded-3xl text-center bg-secondary">
-         <Globe className="w-10 h-10 text-foreground/20 mx-auto mb-4" />
-         <h4 className="text-foreground font-bold">No Connection Found</h4>
-         <p className="text-foreground/40 text-sm mt-1">Connect your account to see your portfolios.</p>
-
+      <div className="p-12 border border-dashed border-border rounded-2xl text-center">
+        <Globe className="w-8 h-8 text-foreground/20 mx-auto mb-3" />
+        <h4 className="text-sm font-semibold text-foreground/60 mb-1">No Connection Found</h4>
+        <p className="text-foreground/30 text-xs">Connect your account to see your portfolios.</p>
       </div>
     );
   }
@@ -66,58 +65,60 @@ export function PortfolioList() {
   if (loading) {
     return (
       <div className="flex justify-center p-12">
-         <Loader2 className="w-8 h-8 text-purple-500 animate-spin" />
+        {/* Neutral spinner — inherits foreground color */}
+        <Loader2 className="w-6 h-6 text-foreground/30 animate-spin" />
       </div>
     );
   }
 
   if (portfolios.length === 0) {
     return (
-      <div className="p-12 border border-dashed border-border rounded-3xl text-center bg-secondary">
-         <FolderOpen className="w-10 h-10 text-foreground/20 mx-auto mb-4" />
-         <h4 className="text-foreground font-bold">No Portfolios Yet</h4>
-         <p className="text-foreground/40 text-sm mt-1">Start a conversation to build your first portfolio.</p>
+      <div className="p-12 border border-dashed border-border rounded-2xl text-center">
+        <FolderOpen className="w-8 h-8 text-foreground/20 mx-auto mb-3" />
+        <h4 className="text-sm font-semibold text-foreground/60 mb-1">No Portfolios Yet</h4>
+        <p className="text-foreground/30 text-xs">Start a conversation to build your first portfolio.</p>
       </div>
     );
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
       {portfolios.map((item) => (
         <motion.a
           key={item.id}
           href={item.notion_url}
           target="_blank"
           rel="noreferrer"
-          whileHover={{ y: -5 }}
-          className="group relative p-6 bg-secondary border border-border rounded-3xl hover:bg-muted hover:border-sidebar-border transition-all cursor-pointer block"
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="group p-5 bg-muted border border-border rounded-2xl hover:border-foreground/20 transition-colors block"
         >
-          <div className="flex justify-between items-start mb-6">
-            <div className="w-12 h-12 bg-muted rounded-2xl flex items-center justify-center">
-               <Globe className="w-6 h-6 text-foreground/40 group-hover:text-purple-400 transition-colors" />
+          <div className="flex justify-between items-start mb-5">
+            <div className="w-10 h-10 bg-background border border-border rounded-xl flex items-center justify-center">
+              <Globe className="w-5 h-5 text-foreground/40" />
             </div>
-            <div className="flex gap-2">
-              <div 
+            <div className="flex gap-1.5">
+              <button
                 onClick={(e) => handleDelete(e, item.id)}
-                className="p-2 bg-muted rounded-lg hover:bg-red-500/20 group/del transition-colors"
+                className="p-1.5 rounded-lg hover:bg-red-500/10 transition-colors"
                 title="Delete Portfolio"
               >
-                <Trash2 className="w-4 h-4 text-foreground/20 group-hover/del:text-red-400 transition-colors" />
-              </div>
-              <div className="p-2 bg-muted rounded-lg group-hover:bg-sidebar-accent transition-colors">
-                <ExternalLink className="w-4 h-4 text-foreground/40 group-hover:text-foreground transition-colors" />
+                <Trash2 className="w-4 h-4 text-foreground/20 hover:text-red-400 transition-colors" />
+              </button>
+              <div className="p-1.5 rounded-lg group-hover:bg-secondary transition-colors">
+                <ExternalLink className="w-4 h-4 text-foreground/30 group-hover:text-foreground/60 transition-colors" />
               </div>
             </div>
           </div>
 
-          <h3 className="text-foreground font-bold mb-2 truncate pr-6">Notion Portfolio</h3>
-          <p className="text-foreground/40 text-xs mb-6 line-clamp-1">{item.notion_url}</p>
+          <h3 className="text-sm font-semibold text-foreground mb-1">Notion Portfolio</h3>
+          <p className="text-foreground/30 text-xs mb-4 truncate">{item.notion_url}</p>
 
-          <div className="flex items-center gap-1.5 pt-4 border-t border-border">
-             <Clock className="w-3 h-3 text-foreground/20" />
-             <span className="text-[10px] uppercase font-black tracking-widest text-foreground/20">
-                {new Date(item.created_at).toLocaleDateString()}
-             </span>
+          <div className="flex items-center gap-1.5 pt-3 border-t border-border">
+            <Clock className="w-3 h-3 text-foreground/20" />
+            <span className="text-[10px] text-foreground/30">
+              {new Date(item.created_at).toLocaleDateString()}
+            </span>
           </div>
         </motion.a>
       ))}
