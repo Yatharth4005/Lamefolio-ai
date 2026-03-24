@@ -75,7 +75,7 @@ export const PortfolioTemplates = {
                     rich_text: [{ type: 'text', text: { content: 'Frontend' }, annotations: { bold: true } }],
                     icon: { type: 'emoji', emoji: '🎨' },
                     color: 'blue_background',
-                    children: frontend.map(s => ({
+                    children: frontend.filter(Boolean).map(s => ({
                       object: 'block',
                       type: 'bulleted_list_item',
                       bulleted_list_item: { rich_text: [{ type: 'text', text: { content: s } }] }
@@ -97,7 +97,7 @@ export const PortfolioTemplates = {
                     rich_text: [{ type: 'text', text: { content: 'Backend' }, annotations: { bold: true } }],
                     icon: { type: 'emoji', emoji: '⚙️' },
                     color: 'purple_background',
-                    children: backend.map(s => ({
+                    children: backend.filter(Boolean).map(s => ({
                       object: 'block',
                       type: 'bulleted_list_item',
                       bulleted_list_item: { rich_text: [{ type: 'text', text: { content: s } }] }
@@ -119,7 +119,7 @@ export const PortfolioTemplates = {
                     rich_text: [{ type: 'text', text: { content: 'Testing & DevOps' }, annotations: { bold: true } }],
                     icon: { type: 'emoji', emoji: '🧪' },
                     color: 'green_background',
-                    children: testing.map(s => ({
+                    children: testing.filter(Boolean).map(s => ({
                       object: 'block',
                       type: 'bulleted_list_item',
                       bulleted_list_item: { rich_text: [{ type: 'text', text: { content: s } }] }
@@ -133,19 +133,24 @@ export const PortfolioTemplates = {
       }
     }
   ],
-  achievements: (items: { title: string, description: string }[]) => [
-    ...items.map(item => ({
-      object: 'block',
-      type: 'callout',
-      callout: {
-        rich_text: [
-          { type: 'text', text: { content: item.title }, annotations: { bold: true } },
-          { type: 'text', text: { content: `: ${item.description}` } }
-        ],
-        icon: { type: 'emoji', emoji: '🏆' },
-        color: 'yellow_background'
-      }
-    }))
+  achievements: (items: any[]) => [
+    ...items.map(item => {
+      const title = typeof item === 'string' ? item : (item.title || 'Achievement');
+      const description = typeof item === 'string' ? '' : (item.description ? `: ${item.description}` : '');
+      
+      return {
+        object: 'block',
+        type: 'callout',
+        callout: {
+          rich_text: [
+            { type: 'text', text: { content: title }, annotations: { bold: true } },
+            { type: 'text', text: { content: description } }
+          ],
+          icon: { type: 'emoji', emoji: '🏆' },
+          color: 'yellow_background'
+        }
+      };
+    })
   ]
 };
 

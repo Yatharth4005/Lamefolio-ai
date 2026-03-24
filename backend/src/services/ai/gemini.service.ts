@@ -15,14 +15,42 @@ export class GeminiService {
   }
 
   async generatePortfolioSchema(rawData: any, userPrompt: string) {
-    const prompt = `Use this raw data: ${JSON.stringify(rawData)} and user prompt: "${userPrompt}" to generate a portfolio schema. Return ONLY JSON.`;
+    const prompt = `
+      Task: Transform the provided raw data (GitHub info + optional resume) into a high-level portfolio schema.
+      User Intent: "${userPrompt}"
+      
+      Raw Data: ${JSON.stringify(rawData)}
+      
+      Required Output Schema (JSON only):
+      {
+        "title": "Portfolio Title",
+        "cover_image": "https://source.unsplash.com/random/1600x900?minimalist",
+        "hero": {
+          "tagline": "A punchy 1-sentence bio",
+          "bio": "A longer professional bio of 2-3 sentences",
+          "social_links": ["https://github.com/...", "https://linkedin.com/..."]
+        },
+        "skills": {
+          "frontend": ["..."],
+          "backend": ["..."],
+          "testing_devops": ["..."]
+        },
+        "projects": [
+          { "title": "Project Name", "description": "...", "tech_stack": ["..."], "url": "..." }
+        ],
+        "achievements": ["..."]
+      }
+      
+      Return ONLY valid JSON.
+    `;
 
     const result = await this.model.generateContent(prompt);
     const response = await result.response;
     const text = response.text();
-
+    
     try {
-      return JSON.parse(text.replace(/```json|```/g, '').trim());
+      const jsonStr = text.match(/\{[\s\S]*\}/)?.[0] || text.replace(/```json|```/g, '').trim();
+      return JSON.parse(jsonStr);
     } catch (e) {
       console.error('Failed to parse AI output:', text);
       throw new Error('Invalid AI response format');

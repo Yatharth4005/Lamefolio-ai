@@ -5,42 +5,51 @@ export class TransformerService {
   convertToPortfolioBlocks(assetMap: any) {
     const blocks: any[] = [];
 
+    const hero = assetMap.hero || { tagline: "Professional Portfolio", bio: "Passionate developer building great things.", social_links: [] };
+
     // 1. Hero Section
-    blocks.push(...PortfolioTemplates.hero(assetMap.title, assetMap.hero.tagline, assetMap.hero.bio));
+    blocks.push(...PortfolioTemplates.hero(
+      assetMap.title || "My Portfolio", 
+      hero.tagline || "Professional Developer", 
+      hero.bio || "Building modern web applications."
+    ));
 
     // 2. Skills (Categorized Stack)
     blocks.push(PortfolioTemplates.sectionHeader('My Stack', '📊'));
+    const skills = assetMap.skills || {};
     blocks.push(...PortfolioTemplates.stackColumns(
-      assetMap.skills.frontend || [], 
-      assetMap.skills.backend || [], 
-      assetMap.skills.testing_devops || []
+      skills.frontend || [], 
+      skills.backend || [], 
+      skills.testing_devops || []
     ));
 
     // 3. Projects
-    blocks.push(PortfolioTemplates.sectionHeader('Projets', '🚧'));
+    blocks.push(PortfolioTemplates.sectionHeader('Projects', '🚧'));
+    const projects = Array.isArray(assetMap.projects) ? assetMap.projects : [];
     
-    for (const project of assetMap.projects) {
+    for (const project of projects) {
       blocks.push(...PortfolioTemplates.projectCard(
-        project.title, 
-        project.description, 
-        project.tech_stack, 
-        project.url
+        project.title || "Project Title", 
+        project.description || "Project description.", 
+        project.tech_stack || [], 
+        project.url || "#"
       ));
     }
 
     // 4. Achievements (if any)
-    if (assetMap.achievements && assetMap.achievements.length > 0) {
+    if (assetMap.achievements && Array.isArray(assetMap.achievements) && assetMap.achievements.length > 0) {
       blocks.push(PortfolioTemplates.sectionHeader('Achievements', '🏆'));
       blocks.push(...PortfolioTemplates.achievements(assetMap.achievements));
     }
 
     // 5. Contact/Links
     blocks.push(PortfolioTemplates.sectionHeader('Connect', '🔗'));
+    const socialLinks = Array.isArray(hero.social_links) ? hero.social_links : [];
     blocks.push({
       object: 'block',
       type: 'paragraph',
       paragraph: {
-        rich_text: assetMap.hero.social_links.map((link: string) => ({
+        rich_text: socialLinks.map((link: string) => ({
           type: 'text',
           text: { content: `${link}  `, link: { url: link } }
         }))
