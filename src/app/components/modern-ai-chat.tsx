@@ -48,16 +48,26 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
   // Load Sessions
   const loadHistory = async () => {
     const handle = githubHandle || displayName;
-    if (!handle) return;
+    console.log("🔍 Loading history for handle:", handle);
+    if (!handle) {
+      console.warn("⚠️ No handle available for loading history");
+      return;
+    }
     try {
       const sessions = await getChatSessions(handle);
-      setHistoryItems(sessions.map((s: any) => ({
-          id: s.id,
-          title: s.title,
-          date: new Date(s.created_at).toLocaleDateString()
-      })));
+      console.log("✅ Sessions received:", sessions);
+      if (Array.isArray(sessions)) {
+        setHistoryItems(sessions.map((s: any) => ({
+            id: s.id,
+            title: s.title,
+            date: new Date(s.created_at).toLocaleDateString()
+        })));
+      } else {
+        console.error("❌ Sessions is not an array:", sessions);
+        setHistoryItems([]);
+      }
     } catch (error) {
-      console.error("Failed to load sessions", error);
+      console.error("❌ Failed to load sessions:", error);
     }
   };
 
@@ -177,7 +187,10 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
             <Plus className="w-5 h-5 group-hover:scale-110 transition-transform" />
           </button>
           <button 
-            onClick={() => setShowHistory(!showHistory)}
+            onClick={() => {
+              if (!showHistory) loadHistory();
+              setShowHistory(!showHistory);
+            }}
             className={`w-10 h-10 flex items-center justify-center rounded-xl transition-all group ${showHistory ? "bg-primary text-primary-foreground" : "bg-transparent text-foreground/40 hover:text-foreground hover:bg-secondary"}`}
             title="History"
           >
