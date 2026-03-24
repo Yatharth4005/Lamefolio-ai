@@ -182,6 +182,38 @@ export async function portfolioRoutes(fastify: FastifyInstance) {
     }
   });
 
+  fastify.delete('/chat/sessions/:id', async (request, reply) => {
+    try {
+       const { id } = request.params as { id: string };
+       await db.deleteChatSession(parseInt(id));
+       return reply.send({ success: true, message: 'Session deleted' });
+    } catch (error: any) {
+       return reply.status(500).send({ error: error.message });
+    }
+  });
+
+  fastify.patch('/chat/sessions/:id/rename', async (request, reply) => {
+    try {
+       const { id } = request.params as { id: string };
+       const { title } = request.body as { title: string };
+       await db.renameChatSession(parseInt(id), title);
+       return reply.send({ success: true, message: 'Session renamed' });
+    } catch (error: any) {
+       return reply.status(500).send({ error: error.message });
+    }
+  });
+
+  fastify.patch('/chat/sessions/:id/pin', async (request, reply) => {
+    try {
+       const { id } = request.params as { id: string };
+       const { isPinned } = request.body as { isPinned: boolean };
+       await db.togglePinSession(parseInt(id), isPinned);
+       return reply.send({ success: true, message: isPinned ? 'Session pinned' : 'Session unpinned' });
+    } catch (error: any) {
+       return reply.status(500).send({ error: error.message });
+    }
+  });
+
   fastify.get('/chat/sessions/messages/:sessionId', async (request, reply) => {
     try {
        const { sessionId } = request.params as { sessionId: string };

@@ -1,13 +1,14 @@
-import { Sparkles, Send, Zap, Loader2, User, Bot, ExternalLink, Globe, ChevronDown, CheckCircle2, Layout, Plus, History, MessageSquare, Search, X } from "lucide-react";
+import { Sparkles, Send, Zap, Loader2, User, Bot, ExternalLink, Globe, ChevronDown, CheckCircle2, Layout, Plus, History, MessageSquare, Search, X, MoreHorizontal, Pin, Edit2, Trash2 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useState, useRef, useEffect } from "react";
 import { useGitHub } from "../context/GitHubContext";
-import { generatePortfolio, getChatResponse, getChatHistory, createChatSession, getChatSessions, getSessionMessages } from "../lib/api";
+import { generatePortfolio, getChatResponse, getChatHistory, createChatSession, getChatSessions, getSessionMessages, deleteChatSession, renameChatSession, togglePinSession } from "../lib/api";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
 import { useNavigate } from "react-router";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "./ui/resizable";
 import { PortfolioPreview } from "./portfolio-preview";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "./ui/dropdown-menu";
 
 interface Message {
   id: string;
@@ -32,6 +33,8 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
   const [currentSessionId, setCurrentSessionId] = useState<number | null>(null);
   
   const [historyItems, setHistoryItems] = useState<any[]>([]);
+  const [renamingSessionId, setRenamingSessionId] = useState<number | null>(null);
+  const [newName, setNewName] = useState("");
   
   const { githubHandle, isGenerating, setIsGenerating, addNotification, displayName, incrementGenerationCount, plan, points, user, isNotionConnected } = useGitHub();
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -60,6 +63,7 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
         setHistoryItems(sessions.map((s: any) => ({
             id: s.id,
             title: s.title,
+            is_pinned: s.is_pinned,
             date: new Date(s.created_at).toLocaleDateString()
         })));
       } else {
@@ -69,6 +73,45 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
     } catch (error) {
       console.error("❌ Failed to load sessions:", error);
     }
+  };
+
+  const handleTogglePin = async (e: React.MouseEvent, sessionId: number, currentPinned: boolean) => {
+      e.stopPropagation();
+      try {
+          await togglePinSession(sessionId, !currentPinned);
+          loadHistory();
+          toast.success(currentPinned ? "Unpinned chat" : "Pinned chat");
+      } catch (error) {
+          toast.error("Failed to update pin status");
+      }
+  };
+
+  const handleRename = async (sessionId: number) => {
+      if (!newName.trim()) return;
+      try {
+          await renameChatSession(sessionId, newName);
+          setRenamingSessionId(null);
+          loadHistory();
+          toast.success("Chat renamed");
+      } catch (error) {
+          toast.error("Failed to rename chat");
+      }
+  };
+
+  const handleDeleteSession = async (e: React.MouseEvent, sessionId: number) => {
+      e.stopPropagation();
+      if (!confirm("Remove this conversation?")) return;
+      try {
+          await deleteChatSession(sessionId);
+          if (currentSessionId === sessionId) {
+              setMessages([]);
+              setCurrentSessionId(null);
+          }
+          loadHistory();
+          toast.success("Chat deleted");
+      } catch (error) {
+          toast.error("Failed to delete chat");
+      }
   };
 
   useEffect(() => {
@@ -210,21 +253,82 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
                 <div className="space-y-1 overflow-y-auto custom-scrollbar pr-1">
                     {historyItems.length > 0 ? (
                         historyItems.map((item) => (
-                            <button 
-                                key={item.id}
-                                onClick={() => loadSession(item)}
-                                className={`w-full text-left p-3 rounded-xl text-xs font-semibold flex items-center gap-3 transition-all ${
-                                    currentSessionId === item.id 
-                                    ? "bg-secondary text-foreground border border-border shadow-md" 
-                                    : "text-foreground/40 hover:bg-secondary/50 hover:text-foreground border border-transparent"
-                                }`}
-                            >
-                                <MessageSquare className={`w-3.5 h-3.5 shrink-0 ${currentSessionId === item.id ? "text-primary" : "opacity-40"}`} />
-                                <div className="flex flex-col min-w-0">
-                                    <span className="truncate">{item.title}</span>
-                                    <span className="text-[9px] opacity-30 mt-0.5">{item.date}</span>
-                                </div>
-                            </button>
+                            <div key={item.id} className="relative group/item">
+                                {renamingSessionId === item.id ? (
+                                    <div className="flex items-center gap-2 p-3 bg-secondary rounded-xl border border-primary/30">
+                                        <input 
+                                            autoFocus
+                                            value={newName}
+                                            onChange={(e) => setNewName(e.target.value)}
+                                            onKeyDown={(e) => {
+                                                if (e.key === "Enter") handleRename(item.id);
+                                                if (e.key === "Escape") setRenamingSessionId(null);
+                                            }}
+                                            className="bg-transparent text-xs font-semibold w-full outline-none"
+                                        />
+                                        <button onClick={() => handleRename(item.id)} className="text-primary"><CheckCircle2 className="w-4 h-4" /></button>
+                                        <button onClick={() => setRenamingSessionId(null)} className="opacity-40"><X className="w-4 h-4" /></button>
+                                    </div>
+                                ) : (
+                                    <div className="flex items-center gap-1 group">
+                                        <button 
+                                            onClick={() => loadSession(item)}
+                                            className={`flex-1 text-left p-3 pr-8 rounded-xl text-xs font-semibold flex items-center gap-3 transition-all relative ${
+                                                currentSessionId === item.id 
+                                                ? "bg-secondary text-foreground border border-border shadow-md" 
+                                                : "text-foreground/40 hover:bg-secondary/50 hover:text-foreground border border-transparent"
+                                            }`}
+                                        >
+                                            <MessageSquare className={`w-3.5 h-3.5 shrink-0 ${currentSessionId === item.id ? "text-primary" : "opacity-40"}`} />
+                                            <div className="flex flex-col min-w-0 flex-1">
+                                                <div className="flex items-center gap-2 overflow-hidden">
+                                                    <span className="truncate">{item.title}</span>
+                                                    {item.is_pinned && <Pin className="w-2.5 h-2.5 text-primary shrink-0" />}
+                                                </div>
+                                                <span className="text-[9px] opacity-30 mt-0.5">{item.date}</span>
+                                            </div>
+                                        </button>
+
+                                        {/* Dropdown Menu Toggle */}
+                                        <div className="absolute right-2 top-1/2 -translate-y-1/2">
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <button className="p-1 rounded-lg hover:bg-secondary opacity-0 group-hover/item:opacity-100 transition-opacity">
+                                                        <MoreHorizontal className="w-3.5 h-3.5 text-foreground/40" />
+                                                    </button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end" className="w-40 bg-background-secondary border border-border rounded-xl p-1 shadow-2xl">
+                                                    <DropdownMenuItem 
+                                                        onClick={(e) => handleTogglePin(e, item.id, item.is_pinned)}
+                                                        className="flex items-center gap-2 p-2 text-xs font-medium rounded-lg cursor-pointer hover:bg-secondary transition-all"
+                                                    >
+                                                        <Pin className="w-3.5 h-3.5" />
+                                                        {item.is_pinned ? "Unpin chat" : "Pin chat"}
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem 
+                                                        onClick={() => {
+                                                            setRenamingSessionId(item.id);
+                                                            setNewName(item.title);
+                                                        }}
+                                                        className="flex items-center gap-2 p-2 text-xs font-medium rounded-lg cursor-pointer hover:bg-secondary transition-all"
+                                                    >
+                                                        <Edit2 className="w-3.5 h-3.5" />
+                                                        Rename
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuSeparator className="bg-border/50 my-1" />
+                                                    <DropdownMenuItem 
+                                                        onClick={(e) => handleDeleteSession(e, item.id)}
+                                                        className="flex items-center gap-2 p-2 text-xs font-medium rounded-lg cursor-pointer text-red-400 hover:bg-red-500/10 transition-all font-bold"
+                                                    >
+                                                        <Trash2 className="w-3.5 h-3.5" />
+                                                        Delete
+                                                    </DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
                         ))
                     ) : (
                         <p className="text-[11px] text-center opacity-20 py-10 font-medium">No recent chats</p>

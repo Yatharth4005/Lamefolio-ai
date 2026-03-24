@@ -94,6 +94,34 @@ export async function getChatSessions(handle: string) {
   return result.sessions;
 }
 
+export async function deleteChatSession(sessionId: number) {
+  const response = await fetch(`${API_BASE_URL}/chat/sessions/${sessionId}`, {
+    method: "DELETE"
+  });
+  if (!response.ok) throw new Error("Failed to delete session");
+  return response.json();
+}
+
+export async function renameChatSession(sessionId: number, title: string) {
+  const response = await fetch(`${API_BASE_URL}/chat/sessions/${sessionId}/rename`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ title }),
+  });
+  if (!response.ok) throw new Error("Failed to rename session");
+  return response.json();
+}
+
+export async function togglePinSession(sessionId: number, isPinned: boolean) {
+  const response = await fetch(`${API_BASE_URL}/chat/sessions/${sessionId}/pin`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ isPinned }),
+  });
+  if (!response.ok) throw new Error("Failed to toggle pin");
+  return response.json();
+}
+
 export async function getSessionMessages(sessionId: number) {
   const response = await fetch(`${API_BASE_URL}/chat/sessions/messages/${sessionId}`);
   if (!response.ok) throw new Error("Failed to fetch session messages");

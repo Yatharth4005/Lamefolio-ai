@@ -74,8 +74,19 @@ export class DatabaseService {
           id SERIAL PRIMARY KEY,
           user_handle TEXT NOT NULL,
           title TEXT NOT NULL,
+          is_pinned BOOLEAN DEFAULT FALSE,
           created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
         );
+      `;
+
+      // Migration: Drop is_archived if it exists
+      await this.sql`
+        DO $$ 
+        BEGIN 
+          IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='chat_sessions' AND column_name='is_archived') THEN
+            ALTER TABLE chat_sessions DROP COLUMN is_archived;
+          END IF;
+        END $$;
       `;
 
       // Migration: Add session_id and action_url to messages if they don't exist
@@ -255,7 +266,32 @@ export class DatabaseService {
       return this.sql`
         SELECT * FROM chat_sessions 
         WHERE LOWER(user_handle) = LOWER(${handle})
-        ORDER BY created_at DESC
+        ORDER BY is_pinned DESC, created_at DESC
+      `;
+   }
+
+   async deleteChatSession(sessionId: number) {
+      // Delete messages first? (Cascade delete is better but if not set...)
+      // Let's just delete the session.
+      await this.sql`DELETE FROM messages WHERE session_id = ${sessionId}`;
+      return this.sql`DELETE FROM chat_sessions WHERE id = ${sessionId} RETURNING *`;
+   }
+
+   async renameChatSession(sessionId: number, title: string) {
+      return this.sql`
+        UPDATE chat_sessions 
+        SET title = ${title} 
+        WHERE id = ${sessionId} 
+        RETURNING *
+      `;
+   }
+
+   async togglePinSession(sessionId: number, isPinned: boolean) {
+      return this.sql`
+        UPDATE chat_sessions 
+        SET is_pinned = ${isPinned} 
+        WHERE id = ${sessionId} 
+        RETURNING *
       `;
    }
 
