@@ -247,7 +247,7 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
          {showHistory && (
              <ResizablePanel defaultSize={20} minSize={15} className="bg-background-secondary border-r border-border p-4 flex flex-col gap-4 relative z-40">
                 <div className="flex items-center justify-between mb-2">
-                    <span className="text-[10px] font-black uppercase tracking-widest opacity-30">Your Chats</span>
+                    <span className="text-[10px] font-black uppercase tracking-widest opacity-50">Your Chats</span>
                     <button onClick={() => setShowHistory(false)}><X className="w-3 h-3 opacity-20 hover:opacity-100" /></button>
                 </div>
                 <div className="space-y-1 overflow-y-auto custom-scrollbar pr-1">
@@ -276,7 +276,7 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
                                             className={`flex-1 text-left p-3 pr-8 rounded-xl text-xs font-semibold flex items-center gap-3 transition-all relative ${
                                                 currentSessionId === item.id 
                                                 ? "bg-secondary text-foreground border border-border shadow-md" 
-                                                : "text-foreground/40 hover:bg-secondary/50 hover:text-foreground border border-transparent"
+                                                : "text-foreground/60 hover:bg-secondary/50 hover:text-foreground border border-transparent"
                                             }`}
                                         >
                                             <MessageSquare className={`w-3.5 h-3.5 shrink-0 ${currentSessionId === item.id ? "text-primary" : "opacity-40"}`} />
@@ -285,7 +285,7 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
                                                     <span className="truncate">{item.title}</span>
                                                     {item.is_pinned && <Pin className="w-2.5 h-2.5 text-primary shrink-0" />}
                                                 </div>
-                                                <span className="text-[9px] opacity-30 mt-0.5">{item.date}</span>
+                                                <span className="text-[9px] opacity-50 mt-0.5">{item.date}</span>
                                             </div>
                                         </button>
 
@@ -342,7 +342,7 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
             <div className="flex items-center justify-between px-8 py-5 border-b border-border bg-background/80 backdrop-blur-2xl z-20">
                 <div className="flex items-center gap-3">
                    <div className="w-2 h-2 rounded-full bg-primary shadow-[0_0_10px_rgba(168,85,247,0.5)]" />
-                   <h1 className="text-xs font-black uppercase tracking-[0.2em] opacity-40">AI Workspace v2</h1>
+                   <h1 className="text-xs font-black uppercase tracking-[0.2em] opacity-40">AI Workspace</h1>
                 </div>
 
                 <div className="flex items-center gap-4">
