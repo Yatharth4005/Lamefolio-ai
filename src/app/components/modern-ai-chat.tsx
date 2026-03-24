@@ -1,4 +1,4 @@
-import { Sparkles, Send, Zap, Loader2, User, Bot, ExternalLink, Globe, ChevronDown, CheckCircle2 } from "lucide-react";
+import { Sparkles, Send, Zap, Loader2, User, Bot, ExternalLink, Globe, ChevronDown, CheckCircle2, Layout } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useState, useRef, useEffect } from "react";
 import { useGitHub } from "../context/GitHubContext";
@@ -6,6 +6,8 @@ import { generatePortfolio, getChatResponse, getChatHistory } from "../lib/api";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
 import { useNavigate } from "react-router";
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "./ui/resizable";
+import { PortfolioPreview } from "./portfolio-preview";
 
 interface Message {
   id: string;
@@ -112,6 +114,9 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
   const [isFocused, setIsFocused] = useState(false);
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
+  const [showPreview, setShowPreview] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewId, setPreviewId] = useState<string | null>(null);
   
   const { githubHandle, isGenerating, setIsGenerating, addNotification, displayName, generationCount, incrementGenerationCount, plan, points, user, isNotionConnected } = useGitHub();
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -224,8 +229,11 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
       if (githubHandle || currentInput.length > 50) {
         try {
           setIsGenerating(true);
+          setShowPreview(true);
           const result = await generatePortfolio(githubHandle || displayName || "manual_entry", currentInput);
           incrementGenerationCount();
+          setPreviewUrl(result.url);
+          setPreviewId(result.id);
           
           setMessages((prev) => [
             ...prev,
@@ -306,12 +314,14 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className={`relative flex flex-col bg-background-secondary border-x border-border overflow-hidden w-full ${
+      className={`relative flex bg-background-secondary border-x border-border overflow-hidden w-full ${
         immersive ? "h-full" : "h-[500px] rounded-[2rem] border border-border"
       }`}
     >
-      {/* Immersive Header - Integrated Dashboard info */}
-      <div className="flex items-center justify-between px-6 py-6 border-b border-border bg-secondary/30">
+      <ResizablePanelGroup direction="horizontal" className="flex h-full w-full">
+        <ResizablePanel defaultSize={showPreview ? 50 : 100} minSize={30} className="flex flex-col">
+        {/* Immersive Header - Integrated Dashboard info */}
+        <div className="flex items-center justify-between px-6 py-6 border-b border-border bg-secondary/30">
         <div className="flex items-center gap-5">
            <div className={`flex flex-col ${immersive ? "" : "hidden"}`}>
               <h1 className="text-xl font-bold text-foreground tracking-tight">AI Workspace</h1>
@@ -335,12 +345,24 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
               </div>
            )}
            <div className="flex items-center gap-2 px-4 py-2 bg-purple-500/10 border border-purple-500/20 rounded-xl relative group overflow-hidden">
-            <div className="absolute inset-0 bg-purple-500/10 group-hover:bg-purple-500/20 transition-colors" />
-            <Zap className="w-4 h-4 text-purple-400 font-bold relative z-10" />
-            <span className="text-xs font-black text-purple-400 uppercase tracking-widest leading-none pt-0.5 relative z-10">Powered by Gemini</span>
-          </div>
-        </div>
-      </div>
+             <div className="absolute inset-0 bg-purple-500/10 group-hover:bg-purple-500/20 transition-colors" />
+             <Zap className="w-4 h-4 text-purple-400 font-bold relative z-10" />
+             <span className="text-xs font-black text-purple-400 uppercase tracking-widest leading-none pt-0.5 relative z-10">Powered by Gemini</span>
+           </div>
+
+           {(previewUrl || previewId) && !showPreview && (
+             <motion.button
+               initial={{ opacity: 0, x: 20 }}
+               animate={{ opacity: 1, x: 0 }}
+               onClick={() => setShowPreview(true)}
+               className="flex items-center gap-2 px-4 py-1.5 bg-foreground text-background rounded-xl text-[10px] font-black tracking-widest uppercase hover:opacity-90 transition-opacity border border-foreground/10"
+             >
+               <Layout className="w-3.5 h-3.5" />
+               <span className="hidden sm:inline">Show Preview</span>
+             </motion.button>
+           )}
+         </div>
+       </div>
 
       {/* Messages Area - Larger padding for Full Page */}
       <div className="flex-1 overflow-y-auto px-6 py-10 space-y-8 custom-scrollbar scroll-smooth">
@@ -463,6 +485,22 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
           ))}
         </div>
       </div>
+    </ResizablePanel>
+
+      {showPreview && (
+        <>
+          <ResizableHandle withHandle />
+          <ResizablePanel defaultSize={50} minSize={30}>
+            <PortfolioPreview 
+              isGenerating={isGenerating} 
+              url={previewUrl} 
+              id={previewId}
+              onClose={() => setShowPreview(false)} 
+            />
+          </ResizablePanel>
+        </>
+      )}
+      </ResizablePanelGroup>
     </motion.div>
   );
 }

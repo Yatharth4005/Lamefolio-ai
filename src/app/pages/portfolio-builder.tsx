@@ -10,7 +10,7 @@ export function PortfolioBuilderPage() {
         <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-purple-600/5 rounded-full blur-[180px] pointer-events-none" />
         <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-blue-600/5 rounded-full blur-[180px] pointer-events-none" />
 
-        <div className="relative z-10 flex-1 flex flex-col">
+        <div className="relative z-10 flex-1 flex flex-col min-h-0 overflow-hidden">
           {/* We pass a prop indicating this is now a full-screen page experience */}
           <ModernAIChat immersive={true} />
         </div>

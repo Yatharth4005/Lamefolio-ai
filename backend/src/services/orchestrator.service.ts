@@ -32,14 +32,30 @@ export class OrchestratorService {
     console.log('💎 Converting to blocks...');
     const blocks = this.transformer.convertToPortfolioBlocks(portfolioSchema);
 
-    // 4. Create Notion Page
-    console.log('📝 Creating Notion page...');
+    // 4. Create Notion Page (Initial)
+    console.log('📝 Creating Notion page structure...');
     const parentPageId = env.NOTION_PAGE_ID!;
-    const result = await this.notion.createPage(parentPageId, portfolioSchema.title, blocks, portfolioSchema.cover_image);
+    
+    // Create page with title first to get ID immediately
+    const pageresult = await this.notion.createPage(parentPageId, portfolioSchema.title, [], portfolioSchema.cover_image);
+    const pageId = pageresult.id;
+    const url = (pageresult as any).url;
+
+    // 5. Append blocks incrementally (in background or sequentially)
+    // For now, we do it sequentially but we could return the URL early if we wanted to true async
+    // In this MVP, we'll append blocks in batches of 10
+    console.log(`💎 Appending ${blocks.length} blocks to ${pageId}...`);
+    const batchSize = 10;
+    for (let i = 0; i < blocks.length; i += batchSize) {
+      const batch = blocks.slice(i, i + batchSize);
+      await this.notion.appendBlocks(pageId, batch);
+      console.log(`✅ Appended batch ${Math.floor(i/batchSize) + 1}/${Math.ceil(blocks.length/batchSize)}`);
+    }
 
     return {
-      url: (result as any).url,
-      id: result.id,
+      url: url,
+      id: pageId,
+      status: 'completed'
     };
   }
 

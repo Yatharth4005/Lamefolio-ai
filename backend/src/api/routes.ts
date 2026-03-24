@@ -308,4 +308,14 @@ export async function portfolioRoutes(fastify: FastifyInstance) {
       return reply.status(500).send({ error: error.message });
     }
   });
+
+  fastify.get('/notion/blocks/:pageId', async (request, reply) => {
+    try {
+      const { pageId } = request.params as { pageId: string };
+      const blocks = await notion.getBlocks(pageId);
+      return reply.send({ success: true, blocks });
+    } catch (error: any) {
+      return reply.status(500).send({ error: error.message });
+    }
+  });
 }

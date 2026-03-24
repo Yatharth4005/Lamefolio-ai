@@ -167,3 +167,9 @@ export async function updateUserData(handle: string, display_name?: string, bio?
 
   return response.json();
 }
+
+export async function getNotionBlocks(pageId: string) {
+  const response = await fetch(`${API_BASE_URL}/notion/blocks/${pageId}`);
+  if (!response.ok) throw new Error("Failed to fetch blocks");
+  return response.json();
+}

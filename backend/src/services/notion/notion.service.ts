@@ -64,4 +64,11 @@ export class NotionService {
          children: blocks
       });
   }
+
+  async getBlocks(pageId: string) {
+      const response = await this.notion.blocks.children.list({
+          block_id: pageId,
+      });
+      return response.results;
+  }
 }
