@@ -28,7 +28,7 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
   const [showPreview, setShowPreview] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [previewId, setPreviewId] = useState<string | null>(null);
-  const [showHistory, setShowHistory] = useState(true); // Open by default for better visibility
+  const [showHistory, setShowHistory] = useState(false);
   const [currentSessionId, setCurrentSessionId] = useState<number | null>(null);
   
   const [historyItems, setHistoryItems] = useState<any[]>([]);
@@ -73,6 +73,7 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
             id: m.id.toString(),
             role: m.role,
             content: m.content,
+            actionUrl: m.action_url,
             timestamp: new Date(m.created_at)
         })));
         setShowHistory(false);
@@ -127,7 +128,7 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
       
       if (isBuildIntent) {
           setShowPreview(true);
-          const result = await generatePortfolio(handle, currentInput);
+          const result = await generatePortfolio(handle, currentInput, sessionId!);
           incrementGenerationCount();
           setPreviewUrl(result.url);
           setPreviewId(result.id);
@@ -144,8 +145,6 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
               timestamp: new Date(),
             },
           ]);
-          // Note: In real production, the backend /portfolio/generate would also need to save these to the session
-          // For now, /chat/history handles standard messages
       } else {
           const response = await getChatResponse(currentInput, handle, sessionId || undefined);
           setMessages((prev) => [
@@ -166,20 +165,20 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
   };
 
   return (
-    <div className={`relative flex bg-[#0A0A0B] text-[#E4E4E5] w-full h-full overflow-hidden ${!immersive ? "border border-[#1F1F23] rounded-3xl" : ""}`}>
+    <div className={`relative flex bg-background text-foreground w-full h-full overflow-hidden ${!immersive ? "border border-border rounded-3xl" : ""}`}>
       
-      {/* Sidebar - Fix Size Icons */}
-      <div className="w-16 flex flex-col items-center py-6 gap-6 border-r border-[#1F1F23] bg-[#0A0A0B] z-50">
+      {/* Sidebar - Theme Adaptive */}
+      <div className="w-16 flex flex-col items-center py-6 gap-6 border-r border-border bg-background z-50">
           <button 
             onClick={handleNewChat}
-            className="w-10 h-10 flex items-center justify-center rounded-xl bg-[#1F1F23] hover:bg-white hover:text-black transition-all group"
+            className="w-10 h-10 flex items-center justify-center rounded-xl bg-secondary hover:bg-primary hover:text-primary-foreground transition-all group"
             title="New Chat"
           >
             <Plus className="w-5 h-5 group-hover:scale-110 transition-transform" />
           </button>
           <button 
             onClick={() => setShowHistory(!showHistory)}
-            className={`w-10 h-10 flex items-center justify-center rounded-xl transition-all group ${showHistory ? "bg-white text-black" : "bg-transparent text-foreground/40 hover:text-foreground hover:bg-[#1F1F23]"}`}
+            className={`w-10 h-10 flex items-center justify-center rounded-xl transition-all group ${showHistory ? "bg-primary text-primary-foreground" : "bg-transparent text-foreground/40 hover:text-foreground hover:bg-secondary"}`}
             title="History"
           >
             <History className="w-5 h-5 group-hover:scale-110 transition-transform" />
@@ -188,9 +187,9 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
 
       <ResizablePanelGroup direction="horizontal" className="flex-1 overflow-hidden h-full">
          
-         {/* History Panel */}
+         {/* History Panel - Theme Adaptive */}
          {showHistory && (
-             <ResizablePanel defaultSize={20} minSize={15} className="bg-[#0E0E10] border-r border-[#1F1F23] p-4 flex flex-col gap-4 relative z-40">
+             <ResizablePanel defaultSize={20} minSize={15} className="bg-background-secondary border-r border-border p-4 flex flex-col gap-4 relative z-40">
                 <div className="flex items-center justify-between mb-2">
                     <span className="text-[10px] font-black uppercase tracking-widest opacity-30">Your Chats</span>
                     <button onClick={() => setShowHistory(false)}><X className="w-3 h-3 opacity-20 hover:opacity-100" /></button>
@@ -201,9 +200,13 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
                             <button 
                                 key={item.id}
                                 onClick={() => loadSession(item)}
-                                className="w-full text-left p-3 rounded-xl text-xs font-semibold hover:bg-[#1F1F23] text-foreground/60 hover:text-white flex items-center gap-3 transition-colors"
+                                className={`w-full text-left p-3 rounded-xl text-xs font-semibold flex items-center gap-3 transition-all ${
+                                    currentSessionId === item.id 
+                                    ? "bg-secondary text-foreground border border-border shadow-md" 
+                                    : "text-foreground/40 hover:bg-secondary/50 hover:text-foreground border border-transparent"
+                                }`}
                             >
-                                <MessageSquare className="w-3.5 h-3.5 opacity-40 shrink-0" />
+                                <MessageSquare className={`w-3.5 h-3.5 shrink-0 ${currentSessionId === item.id ? "text-primary" : "opacity-40"}`} />
                                 <div className="flex flex-col min-w-0">
                                     <span className="truncate">{item.title}</span>
                                     <span className="text-[9px] opacity-30 mt-0.5">{item.date}</span>
@@ -217,11 +220,11 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
              </ResizablePanel>
          )}
 
-         <ResizablePanel defaultSize={showPreview ? 50 : 100} minSize={30} className="flex flex-col relative bg-[#0A0A0B]">
+         <ResizablePanel defaultSize={showPreview ? 50 : 100} minSize={30} className="flex flex-col relative bg-background">
             {/* Header */}
-            <div className="flex items-center justify-between px-8 py-5 border-b border-[#1F1F23]/50 bg-[#0A0A0B]/80 backdrop-blur-2xl z-20">
+            <div className="flex items-center justify-between px-8 py-5 border-b border-border bg-background/80 backdrop-blur-2xl z-20">
                 <div className="flex items-center gap-3">
-                   <div className="w-2 h-2 rounded-full bg-purple-500 shadow-[0_0_10px_rgba(168,85,247,0.5)]" />
+                   <div className="w-2 h-2 rounded-full bg-primary shadow-[0_0_10px_rgba(168,85,247,0.5)]" />
                    <h1 className="text-xs font-black uppercase tracking-[0.2em] opacity-40">AI Workspace v2</h1>
                 </div>
 
@@ -231,7 +234,7 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
                             initial={{ opacity: 0, scale: 0.9 }}
                             animate={{ opacity: 1, scale: 1 }}
                             onClick={() => setShowPreview(true)}
-                            className="flex items-center gap-2 px-4 py-2 bg-white text-black rounded-xl text-[10px] font-black tracking-widest uppercase hover:opacity-80 transition-all shadow-xl"
+                            className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-xl text-[10px] font-black tracking-widest uppercase hover:opacity-80 transition-all shadow-lg"
                         >
                             <Layout className="w-3.5 h-3.5" />
                             <span>Open Preview</span>
@@ -248,9 +251,9 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
                         animate={{ opacity: 1 }}
                         className="h-full flex flex-col items-center justify-center text-center max-w-md mx-auto"
                     >
-                        <Bot className="w-10 h-10 text-white/10 mb-6" />
+                        <Bot className="w-10 h-10 opacity-10 mb-6" />
                         <h2 className="text-2xl font-bold mb-3">Hi, I'm your AI Builder.</h2>
-                        <p className="text-[14px] text-white/30 leading-relaxed font-medium">
+                        <p className="text-[14px] leading-relaxed font-medium opacity-40">
                             I can analyze your GitHub repositories and build a professional Notion portfolio in seconds. Describe what you need.
                         </p>
                     </motion.div>
@@ -263,10 +266,10 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
                             className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}
                         >
                             <div className={`max-w-[80%] flex gap-4 ${m.role === "user" ? "flex-row-reverse" : "flex-row"}`}>
-                                <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${m.role === "user" ? "bg-[#1F1F23]" : "bg-white text-black"}`}>
+                                <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${m.role === "user" ? "bg-secondary" : "bg-primary text-primary-foreground"}`}>
                                     {m.role === "user" ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
                                 </div>
-                                <div className={`p-4 rounded-2xl text-[14px] leading-relaxed font-medium ${m.role === "user" ? "bg-white text-black shadow-2xl" : "bg-[#161618] border border-[#1F1F23]"}`}>
+                                <div className={`p-4 rounded-2xl text-[14px] leading-relaxed font-medium ${m.role === "user" ? "bg-primary text-primary-foreground shadow-xl" : "bg-secondary border border-border"}`}>
                                     <ReactMarkdown 
                                         components={{
                                             p: ({ children }) => <span className="block mb-2 last:mb-0">{children}</span>,
@@ -279,7 +282,7 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
                                     {m.actionUrl && (
                                         <button 
                                             onClick={() => window.open(m.actionUrl, "_blank")}
-                                            className="mt-4 w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-black/40 hover:bg-black/60 border border-white/5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all"
+                                            className="mt-4 w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-background/20 hover:bg-background/40 border border-foreground/5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all"
                                         >
                                             <ExternalLink className="w-3.5 h-3.5" />
                                             Visit Notion Site
@@ -293,10 +296,10 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
                 {isGenerating && (
                     <div className="flex justify-start">
                         <div className="flex gap-4">
-                            <div className="w-8 h-8 rounded-lg bg-white text-black flex items-center justify-center">
+                            <div className="w-8 h-8 rounded-lg bg-primary text-primary-foreground flex items-center justify-center">
                                 <Bot className="w-4 h-4" />
                             </div>
-                            <div className="flex items-center gap-2 px-4 py-2 bg-[#161618] border border-[#1F1F23] rounded-2xl">
+                            <div className="flex items-center gap-2 px-4 py-2 bg-secondary border border-border rounded-2xl">
                                 <Loader2 className="w-3 h-3 animate-spin opacity-40" />
                                 <span className="text-xs opacity-40 font-bold uppercase tracking-widest">Thinking...</span>
                             </div>
@@ -306,9 +309,9 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
                 <div ref={messagesEndRef} />
             </div>
 
-            {/* Slim Pill Input */}
+            {/* Slim Pill Input - Theme Adaptive */}
             <div className="pb-10 flex justify-center px-6">
-                <div className={`relative flex items-center max-w-2xl w-full bg-[#161618] border transition-all duration-300 rounded-[1.8rem] shadow-2xl ${isFocused ? "border-white/20 ring-1 ring-white/5" : "border-[#1F1F23]"}`}>
+                <div className={`relative flex items-center max-w-2xl w-full bg-secondary border transition-all duration-300 rounded-[1.8rem] shadow-xl ${isFocused ? "border-primary/50 ring-1 ring-primary/10" : "border-border"}`}>
                     <textarea 
                         rows={1}
                         placeholder="Ask me to 'build my portfolio'..."
@@ -317,13 +320,13 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
                         onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), handleSend())}
                         onFocus={() => setIsFocused(true)}
                         onBlur={() => setIsFocused(false)}
-                        className="w-full bg-transparent px-8 py-5 text-[14px] text-white placeholder:text-white/10 focus:outline-none resize-none custom-scrollbar font-medium"
+                        className="w-full bg-transparent px-8 py-5 text-[14px] text-foreground placeholder:text-foreground/20 focus:outline-none resize-none custom-scrollbar font-medium"
                     />
                     <div className="pr-5">
                          <button 
                             onClick={handleSend}
                             disabled={!input.trim() || isGenerating}
-                            className="w-9 h-9 flex items-center justify-center rounded-2xl bg-white text-black disabled:opacity-20 hover:scale-105 transition-all active:scale-95 shadow-lg"
+                            className="w-9 h-9 flex items-center justify-center rounded-2xl bg-primary text-primary-foreground disabled:opacity-20 hover:scale-105 transition-all active:scale-95 shadow-lg"
                          >
                             <Send className="w-4 h-4 translate-x-0.5" />
                          </button>

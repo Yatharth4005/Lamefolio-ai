@@ -18,7 +18,7 @@ db.init();
 export async function portfolioRoutes(fastify: FastifyInstance) {
   fastify.post('/portfolio/generate', async (request, reply) => {
     try {
-      const { github_handle: inputHandle, user_prompt } = request.body as { github_handle: string, user_prompt: string };
+      const { github_handle: inputHandle, user_prompt, sessionId } = request.body as { github_handle: string, user_prompt: string, sessionId?: number };
       
       if (!inputHandle) {
         return reply.status(400).send({ error: 'GitHub handle or local handle is required' });
@@ -28,11 +28,11 @@ export async function portfolioRoutes(fastify: FastifyInstance) {
       const user = await db.getUser(inputHandle);
       const github_handle = user?.github_handle || inputHandle;
 
-      console.log(`--- Triggering Portfolio Generation for ${github_handle} (input: ${inputHandle}) ---`);
+      console.log(`--- Triggering Portfolio Generation for ${github_handle} (input: ${inputHandle}) (Session: ${sessionId}) ---`);
 
       // Save User prompt to messages IMMEDIATELY (before long sync)
       console.log(`📝 Persistence User Build Prompt for ${inputHandle}`);
-      await db.saveMessage(inputHandle, 'user', user_prompt);
+      await db.saveMessage(inputHandle, 'user', user_prompt, sessionId);
 
       const result = await orchestrator.generatePortfolio(github_handle, user_prompt);
       
@@ -50,11 +50,10 @@ export async function portfolioRoutes(fastify: FastifyInstance) {
           await db.decrementPoints(handle);
         }
 
-
         // Save AI response to messages
         await db.saveMessage(handle, 'ai', github_handle === 'manual_entry' 
           ? `I've processed the details you provided and generated your Notion portfolio!` 
-          : `Excellent news! I've analyzed your GitHub and built your portfolio in Notion.`);
+          : `Excellent news! I've analyzed your GitHub and built your portfolio in Notion.`, sessionId, result.url);
 
       return reply.send({
         success: true,

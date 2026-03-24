@@ -78,12 +78,15 @@ export class DatabaseService {
         );
       `;
 
-      // Migration: Add session_id to messages if it doesn't exist
+      // Migration: Add session_id and action_url to messages if they don't exist
       await this.sql`
         DO $$ 
         BEGIN 
           IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='messages' AND column_name='session_id') THEN
             ALTER TABLE messages ADD COLUMN session_id INTEGER;
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='messages' AND column_name='action_url') THEN
+            ALTER TABLE messages ADD COLUMN action_url TEXT;
           END IF;
         END $$;
       `;
@@ -256,10 +259,10 @@ export class DatabaseService {
       `;
    }
 
-   async saveMessage(handle: string, role: string, content: string, sessionId?: number) {
+   async saveMessage(handle: string, role: string, content: string, sessionId?: number, actionUrl?: string) {
       return this.sql`
-        INSERT INTO messages (user_handle, role, content, session_id)
-        VALUES (LOWER(${handle}), ${role}, ${content}, ${sessionId || null})
+        INSERT INTO messages (user_handle, role, content, session_id, action_url)
+        VALUES (LOWER(${handle}), ${role}, ${content}, ${sessionId || null}, ${actionUrl || null})
         RETURNING *
       `;
    }
