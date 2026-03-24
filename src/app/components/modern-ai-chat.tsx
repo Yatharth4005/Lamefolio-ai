@@ -1,8 +1,8 @@
-import { Sparkles, Send, Zap, Loader2, User, Bot, ExternalLink, Globe, ChevronDown, CheckCircle2, Layout } from "lucide-react";
+import { Sparkles, Send, Zap, Loader2, User, Bot, ExternalLink, Globe, ChevronDown, CheckCircle2, Layout, Plus, History, MessageSquare, Search, X } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useState, useRef, useEffect } from "react";
 import { useGitHub } from "../context/GitHubContext";
-import { generatePortfolio, getChatResponse, getChatHistory } from "../lib/api";
+import { generatePortfolio, getChatResponse, getChatHistory, createChatSession, getChatSessions, getSessionMessages } from "../lib/api";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
 import { useNavigate } from "react-router";
@@ -21,105 +21,21 @@ interface ModernAIChatProps {
   immersive?: boolean;
 }
 
-function ThinkingTrace() {
-  const [isOpen, setIsOpen] = useState(false);
-  const [currentStep, setCurrentStep] = useState(0);
-  const steps = [
-    "Analyzing project requirements...",
-    "Crawling GitHub repositories...",
-    "Extracting core tech stack...",
-    "Synthesizing achievement patterns...",
-    "Generating Notion block architecture...",
-    "Pushing final assets to workspace..."
-  ];
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentStep((prev) => (prev < steps.length - 1 ? prev + 1 : prev));
-    }, 2500);
-    return () => clearInterval(timer);
-  }, []);
-
-  return (
-    <div className="space-y-3">
-      {/* Header / Trigger */}
-      <button 
-        onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-3 group transition-colors bg-secondary hover:bg-muted border border-border px-4 py-2.5 rounded-2xl"
-      >
-        <div className="flex gap-1 relative">
-           <motion.div 
-              animate={{ 
-                scale: [1, 1.3, 1],
-                opacity: [0.5, 1, 0.5]
-              }} 
-              transition={{ repeat: Infinity, duration: 2 }}
-              className="w-2.5 h-2.5 bg-purple-500 rounded-full blur-[2px]" 
-           />
-           <div className="absolute inset-0 bg-purple-500/20 blur-md animate-pulse rounded-full" />
-        </div>
-        <p className="text-[10px] text-foreground/40 font-black uppercase tracking-[0.4em] group-hover:text-foreground/60 transition-colors">
-          Thinking...
-        </p>
-        <motion.div
-          animate={{ rotate: isOpen ? 180 : 0 }}
-          className="text-foreground/20 group-hover:text-foreground/40 border-l border-border pl-3 ml-1"
-        >
-          <ChevronDown className="w-3.5 h-3.5" />
-        </motion.div>
-      </button>
-
-      {/* Collapsible Steps */}
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div 
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            className="overflow-hidden"
-          >
-            <div className="bg-muted border border-border rounded-[2rem] p-6 backdrop-blur-3xl space-y-1">
-               {steps.slice(0, currentStep + 1).map((step, idx) => (
-                  <motion.div 
-                     key={idx}
-                     initial={{ opacity: 0, x: -10 }}
-                     animate={{ opacity: 1, x: 0 }}
-                     className="flex items-center gap-4 py-1.5"
-                  >
-                     <div className="flex-shrink-0">
-                        {idx === currentStep ? (
-                           <div className="relative">
-                             <Loader2 className="w-3.5 h-3.5 text-purple-400/60 animate-spin" />
-                           </div>
-                        ) : (
-                           <CheckCircle2 className="w-3.5 h-3.5 text-purple-500/30" />
-                        )}
-                     </div>
-                     <span className={`text-[12px] tracking-tight ${idx === currentStep ? "text-foreground/60 font-medium italic" : "text-foreground/20"}`}>
-                        {step}
-                     </span>
-                  </motion.div>
-               ))}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-}
-
-
 export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
-  const navigate = useNavigate();
-  const [isFocused, setIsFocused] = useState(false);
   const [input, setInput] = useState("");
+  const [isFocused, setIsFocused] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [showPreview, setShowPreview] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [previewId, setPreviewId] = useState<string | null>(null);
+  const [showHistory, setShowHistory] = useState(true); // Open by default for better visibility
+  const [currentSessionId, setCurrentSessionId] = useState<number | null>(null);
   
-  const { githubHandle, isGenerating, setIsGenerating, addNotification, displayName, generationCount, incrementGenerationCount, plan, points, user, isNotionConnected } = useGitHub();
+  const [historyItems, setHistoryItems] = useState<any[]>([]);
+  
+  const { githubHandle, isGenerating, setIsGenerating, addNotification, displayName, incrementGenerationCount, plan, points, user, isNotionConnected } = useGitHub();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -129,40 +45,70 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
     scrollToBottom();
   }, [messages, isGenerating]);
 
-  // Load History
-  useEffect(() => {
+  // Load Sessions
+  const loadHistory = async () => {
     const handle = githubHandle || displayName;
     if (!handle) return;
+    try {
+      const sessions = await getChatSessions(handle);
+      setHistoryItems(sessions.map((s: any) => ({
+          id: s.id,
+          title: s.title,
+          date: new Date(s.created_at).toLocaleDateString()
+      })));
+    } catch (error) {
+      console.error("Failed to load sessions", error);
+    }
+  };
 
-    const loadHistory = async () => {
-      try {
-        const history = await getChatHistory(handle);
-        if (history && history.length > 0) {
-          setMessages(history.map((m: any) => ({
+  useEffect(() => {
+    loadHistory();
+  }, [githubHandle, displayName]);
+
+  const loadSession = async (session: any) => {
+    try {
+        const sessionMessages = await getSessionMessages(session.id);
+        setCurrentSessionId(session.id);
+        setMessages(sessionMessages.map((m: any) => ({
             id: m.id.toString(),
             role: m.role,
             content: m.content,
             timestamp: new Date(m.created_at)
-          })));
-        } else {
-          setMessages([
-            {
-              id: "initial",
-              role: "ai",
-              content: "Hi there! I'm your AI Portfolio assistant. Just describe your work, or type 'build my portfolio' and I'll create a stunning Notion page for you!",
-              timestamp: new Date(),
-            }
-          ]);
-        }
-      } catch (error) {
-        console.error("Failed to load history:", error);
-      }
-    };
-    loadHistory();
-  }, [githubHandle, displayName]);
+        })));
+        setShowHistory(false);
+        toast.info(`Loaded: ${session.title}`);
+    } catch (error) {
+        toast.error("Failed to load session content");
+    }
+  };
+
+  const handleNewChat = () => {
+    setMessages([]);
+    setCurrentSessionId(null);
+    setPreviewUrl(null);
+    setPreviewId(null);
+    setShowPreview(false);
+    toast.success("New chat started");
+  };
 
   const handleSend = async () => {
+    const handle = githubHandle || displayName || "manual_entry";
     if (!input.trim() || isGenerating) return;
+
+    let sessionId = currentSessionId;
+
+    // Create session if it's a new chat
+    if (!sessionId) {
+        try {
+            const title = input.length > 25 ? input.substring(0, 25) + "..." : input;
+            const newSession = await createChatSession(handle, title);
+            sessionId = newSession.id;
+            setCurrentSessionId(sessionId);
+            loadHistory(); // Refresh sidebar list
+        } catch (error) {
+            console.error("Failed to create session", error);
+        }
+    }
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -174,63 +120,14 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
     setMessages((prev) => [...prev, userMessage]);
     const currentInput = input;
     setInput("");
+    setIsGenerating(true);
 
-    // Identify intent (simple logic)
-    const lowerInput = currentInput.toLowerCase();
-    const isBuildIntent = lowerInput.includes("build") || lowerInput.includes("portfolio") || lowerInput.includes("create") || lowerInput.includes("make");
-    const isGithubIntent = lowerInput.includes("github") || lowerInput.includes("analyze") || lowerInput.includes("sync");
-
-    // Case 1: Github intent but no handle
-    if (isGithubIntent && !githubHandle) {
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: (Date.now() + 1).toString(),
-          role: "ai",
-          content: "I'd love to analyze your GitHub, but you haven't connected your account yet! Please head over to the **Integrations** page to set your handle, and then we can build something amazing together.",
-          timestamp: new Date(),
-        },
-      ]);
-      return;
-    }
-
-    // Case 2: Build intent
-    if (isBuildIntent) {
-      if (plan === "Free" && points <= 0) {
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: (Date.now() + 1).toString(),
-            role: "ai",
-            content: "You've reached your limit of 3 portfolio generations on the **Free Plan**! Upgrading to **Pro** gives you unlimited generations, custom domains, and more. Would you like to check out our plans?",
-            actionUrl: "/settings/billing",
-            timestamp: new Date(),
-          },
-        ]);
-        return;
-      }
+    try {
+      const isBuildIntent = /portfolio|build|create|generate/i.test(currentInput);
       
-      // Case 2b: Build intent but Notion not connected — nudge to connect
-      if (!isNotionConnected) {
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: (Date.now() + 1).toString(),
-            role: "ai",
-            content: "Before I can build your portfolio into Notion, you'll need to connect your Notion workspace! It only takes a few seconds — just click the button below to authorize access, and I'll take care of the rest. ✨",
-            actionUrl: "/integrations",
-            timestamp: new Date(),
-          },
-        ]);
-        return;
-      }
-
-      // If we have a handle OR if the prompt is very long (assumed to contain details)
-      if (githubHandle || currentInput.length > 50) {
-        try {
-          setIsGenerating(true);
+      if (isBuildIntent) {
           setShowPreview(true);
-          const result = await generatePortfolio(githubHandle || displayName || "manual_entry", currentInput);
+          const result = await generatePortfolio(handle, currentInput);
           incrementGenerationCount();
           setPreviewUrl(result.url);
           setPreviewId(result.id);
@@ -240,267 +137,215 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
             {
               id: (Date.now() + 1).toString(),
               role: "ai",
-              content: githubHandle 
-                ? "Excellent news! I've analyzed your GitHub and built your portfolio in Notion. You can view it using the link below:"
-                : "I've processed the details you provided and generated your Notion portfolio! Check it out here:",
+              content: githubHandle === 'manual_entry' 
+                ? "I've structured your custom details into a Notion portfolio! You can see it manifest live in the preview window." 
+                : "Excellent! I've analyzed your GitHub data and am building your portfolio in Notion right now. Watch the live preview on the right.",
               actionUrl: result.url,
               timestamp: new Date(),
             },
           ]);
-          addNotification({
-            message: `Hey ${displayName || "Creator"}, your Notion site is ready!`,
-            type: "success",
-            actionUrl: result.url
-          });
-          toast.success("Portfolio Built!");
-        } catch (error: any) {
+          // Note: In real production, the backend /portfolio/generate would also need to save these to the session
+          // For now, /chat/history handles standard messages
+      } else {
+          const response = await getChatResponse(currentInput, handle, sessionId || undefined);
           setMessages((prev) => [
             ...prev,
             {
               id: (Date.now() + 1).toString(),
               role: "ai",
-              content: `I ran into an issue: ${error.message}. Please check your connection and try again.`,
+              content: response,
               timestamp: new Date(),
             },
           ]);
-        } finally {
-          setIsGenerating(false);
-        }
-      } else {
-        // Build intent but no data
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: (Date.now() + 1).toString(),
-            role: "ai",
-            content: "I can build your portfolio in two ways:\n\n1. **GitHub Integration**: Connect your account on the Dashboard to auto-fetch your projects.\n2. **Direct Details**: Paste your resume or bio here, and I'll structure it for you immediately!\n\nWhich one would you prefer?",
-            timestamp: new Date(),
-          },
-        ]);
       }
-      return;
-    }
-
-    // Case 3: General Chat
-    try {
-      setIsGenerating(true);
-      const responseText = await getChatResponse(currentInput, githubHandle || displayName || "manual_entry");
-      
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: Date.now().toString(),
-          role: "ai",
-          content: responseText,
-          timestamp: new Date(),
-        },
-      ]);
     } catch (error: any) {
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: Date.now().toString(),
-          role: "ai",
-          content: "I'm having trouble connecting to my brain right now. Can we try again in a moment?",
-          timestamp: new Date(),
-        },
-      ]);
+      toast.error(error.message);
     } finally {
       setIsGenerating(false);
     }
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      className={`relative flex bg-background-secondary border-x border-border overflow-hidden w-full ${
-        immersive ? "h-full" : "h-[500px] rounded-[2rem] border border-border"
-      }`}
-    >
-      <ResizablePanelGroup direction="horizontal" className="flex h-full w-full">
-        <ResizablePanel defaultSize={showPreview ? 50 : 100} minSize={30} className="flex flex-col">
-        {/* Immersive Header - Integrated Dashboard info */}
-        <div className="flex items-center justify-between px-6 py-6 border-b border-border bg-secondary/30">
-        <div className="flex items-center gap-5">
-           <div className={`flex flex-col ${immersive ? "" : "hidden"}`}>
-              <h1 className="text-xl font-bold text-foreground tracking-tight">AI Workspace</h1>
-           </div>
-           
-           {!immersive && (
-             <div className="flex items-center gap-4">
-                <div className="w-10 h-10 bg-purple-500/10 rounded-xl flex items-center justify-center">
-                  <Sparkles className="w-5 h-5 text-purple-400" />
-                </div>
-                <h3 className="text-sm font-bold text-foreground">Assistant</h3>
-             </div>
-           )}
-        </div>
-
-        <div className="flex items-center gap-6">
-           {immersive && githubHandle && (
-              <div className="hidden sm:flex items-center gap-2 px-4 py-2 bg-secondary border border-border rounded-xl">
-                 <Globe className="w-3.5 h-3.5 text-foreground/40" />
-                 <span className="text-xs text-foreground/60 font-medium">@{githubHandle}</span>
-              </div>
-           )}
-           <div className="flex items-center gap-2 px-4 py-2 bg-purple-500/10 border border-purple-500/20 rounded-xl relative group overflow-hidden">
-             <div className="absolute inset-0 bg-purple-500/10 group-hover:bg-purple-500/20 transition-colors" />
-             <Zap className="w-4 h-4 text-purple-400 font-bold relative z-10" />
-             <span className="text-xs font-black text-purple-400 uppercase tracking-widest leading-none pt-0.5 relative z-10">Powered by Gemini</span>
-           </div>
-
-           {(previewUrl || previewId) && !showPreview && (
-             <motion.button
-               initial={{ opacity: 0, x: 20 }}
-               animate={{ opacity: 1, x: 0 }}
-               onClick={() => setShowPreview(true)}
-               className="flex items-center gap-2 px-4 py-1.5 bg-foreground text-background rounded-xl text-[10px] font-black tracking-widest uppercase hover:opacity-90 transition-opacity border border-foreground/10"
-             >
-               <Layout className="w-3.5 h-3.5" />
-               <span className="hidden sm:inline">Show Preview</span>
-             </motion.button>
-           )}
-         </div>
-       </div>
-
-      {/* Messages Area - Larger padding for Full Page */}
-      <div className="flex-1 overflow-y-auto px-6 py-10 space-y-8 custom-scrollbar scroll-smooth">
-        <AnimatePresence initial={false}>
-          {messages.map((message) => (
-            <motion.div
-              key={message.id}
-              initial={{ opacity: 0, y: 30, scale: 0.98 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              transition={{ duration: 0.4, type: "spring", bounce: 0.3 }}
-              className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
-            >
-              <div className={`flex gap-5 max-w-[85%] ${message.role === "user" ? "flex-row-reverse" : ""}`}>
-                <div className={`w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-xl overflow-hidden ${
-                  message.role === "user" ? "bg-secondary border border-border" : "bg-white text-black"
-                }`}>
-                  {message.role === "user" ? (
-                    user?.avatar ? <img src={user.avatar} className="w-full h-full object-cover" alt="user" /> : <User className="w-5 h-5" />
-                  ) : (
-                    <Bot className="w-5 h-5" />
-                  )}
-                </div>
-                <div className={`p-6 rounded-[1.8rem] text-[15px] leading-[1.6] shadow-md ${
-                  message.role === "user" 
-                    ? "bg-secondary border border-border text-foreground/90 rounded-tr-none" 
-                    : "bg-background border border-border text-foreground/80 rounded-tl-none font-medium prose prose-invert max-w-none"
-                }`}>
-                  {message.role === "user" ? (
-                    message.content
-                  ) : (
-                    <ReactMarkdown 
-                      components={{
-                        p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
-                        li: ({ children }) => <li className="ml-4 list-disc">{children}</li>,
-                        ul: ({ children }) => <ul className="space-y-1 mb-2">{children}</ul>,
-                        strong: ({ children }) => <strong className="text-foreground font-bold">{children}</strong>
-                      }}
-                    >
-                      {message.content}
-                    </ReactMarkdown>
-                  )}
-                  
-                  {message.actionUrl && (
-                    <motion.button
-                      whileHover={{ scale: 1.02, y: -2 }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={() => message.actionUrl?.startsWith("/") ? navigate(message.actionUrl) : window.open(message.actionUrl, "_blank")}
-                      className="mt-8 w-full py-5 bg-white text-black rounded-2xl text-[11px] font-black uppercase tracking-[0.2em] flex items-center justify-center gap-3 shadow-2xl hover:bg-gray-100 transition-colors"
-                    >
-                      <ExternalLink className="w-4 h-4" />
-                      {message.actionUrl === "/settings/billing" ? "UPGRADE TO PRO" : message.actionUrl === "/integrations" ? "CONNECT NOTION →" : "View in Notion"}
-                    </motion.button>
-                  )}
-                </div>
-              </div>
-            </motion.div>
-          ))}
-        </AnimatePresence>
-        
-        {isGenerating && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="flex justify-start"
+    <div className={`relative flex bg-[#0A0A0B] text-[#E4E4E5] w-full h-full overflow-hidden ${!immersive ? "border border-[#1F1F23] rounded-3xl" : ""}`}>
+      
+      {/* Sidebar - Fix Size Icons */}
+      <div className="w-16 flex flex-col items-center py-6 gap-6 border-r border-[#1F1F23] bg-[#0A0A0B] z-50">
+          <button 
+            onClick={handleNewChat}
+            className="w-10 h-10 flex items-center justify-center rounded-xl bg-[#1F1F23] hover:bg-white hover:text-black transition-all group"
+            title="New Chat"
           >
-            <div className="flex gap-5 w-full max-w-[85%]">
-              <div className="w-11 h-11 rounded-2xl bg-white text-black flex items-center justify-center shadow-xl">
-                <Bot className="w-5 h-5" />
-              </div>
-              <div className="flex-1">
-                 <ThinkingTrace />
-              </div>
+            <Plus className="w-5 h-5 group-hover:scale-110 transition-transform" />
+          </button>
+          <button 
+            onClick={() => setShowHistory(!showHistory)}
+            className={`w-10 h-10 flex items-center justify-center rounded-xl transition-all group ${showHistory ? "bg-white text-black" : "bg-transparent text-foreground/40 hover:text-foreground hover:bg-[#1F1F23]"}`}
+            title="History"
+          >
+            <History className="w-5 h-5 group-hover:scale-110 transition-transform" />
+          </button>
+      </div>
+
+      <ResizablePanelGroup direction="horizontal" className="flex-1 overflow-hidden h-full">
+         
+         {/* History Panel */}
+         {showHistory && (
+             <ResizablePanel defaultSize={20} minSize={15} className="bg-[#0E0E10] border-r border-[#1F1F23] p-4 flex flex-col gap-4 relative z-40">
+                <div className="flex items-center justify-between mb-2">
+                    <span className="text-[10px] font-black uppercase tracking-widest opacity-30">Your Chats</span>
+                    <button onClick={() => setShowHistory(false)}><X className="w-3 h-3 opacity-20 hover:opacity-100" /></button>
+                </div>
+                <div className="space-y-1 overflow-y-auto custom-scrollbar pr-1">
+                    {historyItems.length > 0 ? (
+                        historyItems.map((item) => (
+                            <button 
+                                key={item.id}
+                                onClick={() => loadSession(item)}
+                                className="w-full text-left p-3 rounded-xl text-xs font-semibold hover:bg-[#1F1F23] text-foreground/60 hover:text-white flex items-center gap-3 transition-colors"
+                            >
+                                <MessageSquare className="w-3.5 h-3.5 opacity-40 shrink-0" />
+                                <div className="flex flex-col min-w-0">
+                                    <span className="truncate">{item.title}</span>
+                                    <span className="text-[9px] opacity-30 mt-0.5">{item.date}</span>
+                                </div>
+                            </button>
+                        ))
+                    ) : (
+                        <p className="text-[11px] text-center opacity-20 py-10 font-medium">No recent chats</p>
+                    )}
+                </div>
+             </ResizablePanel>
+         )}
+
+         <ResizablePanel defaultSize={showPreview ? 50 : 100} minSize={30} className="flex flex-col relative bg-[#0A0A0B]">
+            {/* Header */}
+            <div className="flex items-center justify-between px-8 py-5 border-b border-[#1F1F23]/50 bg-[#0A0A0B]/80 backdrop-blur-2xl z-20">
+                <div className="flex items-center gap-3">
+                   <div className="w-2 h-2 rounded-full bg-purple-500 shadow-[0_0_10px_rgba(168,85,247,0.5)]" />
+                   <h1 className="text-xs font-black uppercase tracking-[0.2em] opacity-40">AI Workspace v2</h1>
+                </div>
+
+                <div className="flex items-center gap-4">
+                    {(previewUrl || previewId) && !showPreview && (
+                        <motion.button
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            onClick={() => setShowPreview(true)}
+                            className="flex items-center gap-2 px-4 py-2 bg-white text-black rounded-xl text-[10px] font-black tracking-widest uppercase hover:opacity-80 transition-all shadow-xl"
+                        >
+                            <Layout className="w-3.5 h-3.5" />
+                            <span>Open Preview</span>
+                        </motion.button>
+                    )}
+                </div>
             </div>
-          </motion.div>
+
+            {/* Content Area */}
+            <div className="flex-1 overflow-y-auto px-6 py-10 space-y-8 custom-scrollbar scroll-smooth">
+                {messages.length === 0 ? (
+                    <motion.div 
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="h-full flex flex-col items-center justify-center text-center max-w-md mx-auto"
+                    >
+                        <Bot className="w-10 h-10 text-white/10 mb-6" />
+                        <h2 className="text-2xl font-bold mb-3">Hi, I'm your AI Builder.</h2>
+                        <p className="text-[14px] text-white/30 leading-relaxed font-medium">
+                            I can analyze your GitHub repositories and build a professional Notion portfolio in seconds. Describe what you need.
+                        </p>
+                    </motion.div>
+                ) : (
+                    messages.map((m) => (
+                        <motion.div 
+                            key={m.id}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}
+                        >
+                            <div className={`max-w-[80%] flex gap-4 ${m.role === "user" ? "flex-row-reverse" : "flex-row"}`}>
+                                <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${m.role === "user" ? "bg-[#1F1F23]" : "bg-white text-black"}`}>
+                                    {m.role === "user" ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
+                                </div>
+                                <div className={`p-4 rounded-2xl text-[14px] leading-relaxed font-medium ${m.role === "user" ? "bg-white text-black shadow-2xl" : "bg-[#161618] border border-[#1F1F23]"}`}>
+                                    <ReactMarkdown 
+                                        components={{
+                                            p: ({ children }) => <span className="block mb-2 last:mb-0">{children}</span>,
+                                            li: ({ children }) => <li className="ml-4 list-disc opacity-80">{children}</li>
+                                        }}
+                                    >
+                                        {m.content}
+                                    </ReactMarkdown>
+
+                                    {m.actionUrl && (
+                                        <button 
+                                            onClick={() => window.open(m.actionUrl, "_blank")}
+                                            className="mt-4 w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-black/40 hover:bg-black/60 border border-white/5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all"
+                                        >
+                                            <ExternalLink className="w-3.5 h-3.5" />
+                                            Visit Notion Site
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                        </motion.div>
+                    ))
+                )}
+                {isGenerating && (
+                    <div className="flex justify-start">
+                        <div className="flex gap-4">
+                            <div className="w-8 h-8 rounded-lg bg-white text-black flex items-center justify-center">
+                                <Bot className="w-4 h-4" />
+                            </div>
+                            <div className="flex items-center gap-2 px-4 py-2 bg-[#161618] border border-[#1F1F23] rounded-2xl">
+                                <Loader2 className="w-3 h-3 animate-spin opacity-40" />
+                                <span className="text-xs opacity-40 font-bold uppercase tracking-widest">Thinking...</span>
+                            </div>
+                        </div>
+                    </div>
+                )}
+                <div ref={messagesEndRef} />
+            </div>
+
+            {/* Slim Pill Input */}
+            <div className="pb-10 flex justify-center px-6">
+                <div className={`relative flex items-center max-w-2xl w-full bg-[#161618] border transition-all duration-300 rounded-[1.8rem] shadow-2xl ${isFocused ? "border-white/20 ring-1 ring-white/5" : "border-[#1F1F23]"}`}>
+                    <textarea 
+                        rows={1}
+                        placeholder="Ask me to 'build my portfolio'..."
+                        value={input}
+                        onChange={(e) => setInput(e.target.value)}
+                        onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), handleSend())}
+                        onFocus={() => setIsFocused(true)}
+                        onBlur={() => setIsFocused(false)}
+                        className="w-full bg-transparent px-8 py-5 text-[14px] text-white placeholder:text-white/10 focus:outline-none resize-none custom-scrollbar font-medium"
+                    />
+                    <div className="pr-5">
+                         <button 
+                            onClick={handleSend}
+                            disabled={!input.trim() || isGenerating}
+                            className="w-9 h-9 flex items-center justify-center rounded-2xl bg-white text-black disabled:opacity-20 hover:scale-105 transition-all active:scale-95 shadow-lg"
+                         >
+                            <Send className="w-4 h-4 translate-x-0.5" />
+                         </button>
+                    </div>
+                </div>
+            </div>
+         </ResizablePanel>
+
+         {showPreview && (
+          <>
+            <ResizableHandle withHandle className="bg-transparent" />
+            <ResizablePanel defaultSize={50} minSize={30}>
+              <PortfolioPreview 
+                isGenerating={isGenerating} 
+                url={previewUrl} 
+                id={previewId}
+                onClose={() => setShowPreview(false)} 
+              />
+            </ResizablePanel>
+          </>
         )}
-        <div ref={messagesEndRef} />
-      </div>
-
-      {/* Immersive Input bar */}
-      <div className="p-6 bg-secondary/30 border-t border-border mt-auto">
-        <div className="relative group w-full">
-          <div className="absolute -inset-1.5 bg-gradient-to-r from-purple-500/20 to-blue-500/20 rounded-[2.5rem] blur-2xl opacity-0 group-focus-within:opacity-100 transition-opacity duration-700" />
-          <div className="relative flex items-center gap-4">
-            <input
-              type="text"
-              placeholder="Tell me about your career or 'build me a portfolio'..."
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleSend()}
-              onFocus={() => setIsFocused(true)}
-              onBlur={() => setIsFocused(false)}
-              disabled={isGenerating}
-              className="flex-1 bg-secondary border border-border rounded-[1.8rem] px-8 py-6 text-[15px] text-foreground placeholder:text-foreground/20 focus:outline-none focus:border-foreground/30 transition-all font-medium shadow-inner"
-            />
-            <motion.button
-              whileHover={{ scale: 1.05, rotate: 5 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={handleSend}
-              disabled={isGenerating || !input.trim()}
-              className="p-6 bg-foreground text-background rounded-2xl shadow-2xl disabled:opacity-20 disabled:grayscale transition-all flex items-center justify-center group/btn"
-            >
-              <Send className="w-6 h-6 group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1 transition-transform" />
-            </motion.button>
-          </div>
-        </div>
-        <div className="flex flex-wrap items-center justify-center gap-8 md:gap-14 mt-8 w-full overflow-hidden">
-          {[ 
-            { label: "Build Portfolio", prompt: "Build my portfolio using my GitHub data" },
-            { label: "Analyze GitHub", prompt: "Analyze my GitHub repositories" },
-            { label: "Direct Build", prompt: "Build my portfolio based on these details: [Paste Details Here]" }
-          ].map((tag) => (
-             <button
-               key={tag.label}
-               onClick={() => setInput(tag.prompt)}
-               className="text-[10px] font-black uppercase tracking-[0.3em] text-foreground/20 hover:text-foreground transition-all duration-300 relative group"
-             >
-               {tag.label}
-               <span className="absolute -bottom-1 left-0 w-0 h-[1px] bg-foreground transition-all group-hover:w-full" />
-             </button>
-          ))}
-        </div>
-      </div>
-    </ResizablePanel>
-
-      {showPreview && (
-        <>
-          <ResizableHandle withHandle />
-          <ResizablePanel defaultSize={50} minSize={30}>
-            <PortfolioPreview 
-              isGenerating={isGenerating} 
-              url={previewUrl} 
-              id={previewId}
-              onClose={() => setShowPreview(false)} 
-            />
-          </ResizablePanel>
-        </>
-      )}
       </ResizablePanelGroup>
-    </motion.div>
+    </div>
   );
 }

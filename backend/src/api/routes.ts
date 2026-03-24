@@ -122,22 +122,22 @@ export async function portfolioRoutes(fastify: FastifyInstance) {
 
   fastify.post('/chat', async (request, reply) => {
     try {
-      const { message, handle } = request.body as { message: string, handle?: string };
+      const { message, handle, sessionId } = request.body as { message: string, handle?: string, sessionId?: number };
       
       if (!message) {
         return reply.status(400).send({ error: 'Message is required' });
       }
 
       if (handle) {
-        console.log(`📝 Saving user message for ${handle}`);
-        await db.saveMessage(handle, 'user', message);
+        console.log(`📝 Saving user message for ${handle} in session ${sessionId}`);
+        await db.saveMessage(handle, 'user', message, sessionId);
       }
 
       const response = await orchestrator.getChatResponse(message);
       
       if (handle) {
-        console.log(`🤖 Saving AI response for ${handle}`);
-        await db.saveMessage(handle, 'ai', response);
+        console.log(`🤖 Saving AI response for ${handle} in session ${sessionId}`);
+        await db.saveMessage(handle, 'ai', response, sessionId);
       }
 
       return reply.send({
@@ -159,6 +159,37 @@ export async function portfolioRoutes(fastify: FastifyInstance) {
       return reply.send({ success: true, history });
     } catch (error: any) {
       return reply.status(500).send({ error: error.message });
+    }
+  });
+
+  // --- SESSIONS ---
+  fastify.post('/chat/sessions', async (request, reply) => {
+    try {
+      const { handle, title } = request.body as { handle: string, title: string };
+      const session = await db.createChatSession(handle, title);
+      return reply.send({ success: true, session: session[0] });
+    } catch (error: any) {
+      return reply.status(500).send({ error: error.message });
+    }
+  });
+
+  fastify.get('/chat/sessions/:handle', async (request, reply) => {
+    try {
+       const { handle } = request.params as { handle: string };
+       const sessions = await db.getChatSessions(handle);
+       return reply.send({ success: true, sessions });
+    } catch (error: any) {
+       return reply.status(500).send({ error: error.message });
+    }
+  });
+
+  fastify.get('/chat/sessions/messages/:sessionId', async (request, reply) => {
+    try {
+       const { sessionId } = request.params as { sessionId: string };
+       const messages = await db.getMessagesBySession(parseInt(sessionId));
+       return reply.send({ success: true, messages });
+    } catch (error: any) {
+       return reply.status(500).send({ error: error.message });
     }
   });
 

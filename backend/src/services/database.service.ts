@@ -68,6 +68,26 @@ export class DatabaseService {
           created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
         );
       `;
+
+      await this.sql`
+        CREATE TABLE IF NOT EXISTS chat_sessions (
+          id SERIAL PRIMARY KEY,
+          user_handle TEXT NOT NULL,
+          title TEXT NOT NULL,
+          created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+        );
+      `;
+
+      // Migration: Add session_id to messages if it doesn't exist
+      await this.sql`
+        DO $$ 
+        BEGIN 
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='messages' AND column_name='session_id') THEN
+            ALTER TABLE messages ADD COLUMN session_id INTEGER;
+          END IF;
+        END $$;
+      `;
+
       console.log('✅ Database initialized successfully');
     } catch (error) {
       console.error('❌ Failed to initialize database:', error);
@@ -219,11 +239,27 @@ export class DatabaseService {
       return updatedUser;
    }
 
-   // Message Management
-   async saveMessage(handle: string, role: string, content: string) {
+   // Message & Session Management
+   async createChatSession(handle: string, title: string) {
       return this.sql`
-        INSERT INTO messages (user_handle, role, content)
-        VALUES (LOWER(${handle}), ${role}, ${content})
+        INSERT INTO chat_sessions (user_handle, title)
+        VALUES (LOWER(${handle}), ${title})
+        RETURNING *
+      `;
+   }
+
+   async getChatSessions(handle: string) {
+      return this.sql`
+        SELECT * FROM chat_sessions 
+        WHERE LOWER(user_handle) = LOWER(${handle})
+        ORDER BY created_at DESC
+      `;
+   }
+
+   async saveMessage(handle: string, role: string, content: string, sessionId?: number) {
+      return this.sql`
+        INSERT INTO messages (user_handle, role, content, session_id)
+        VALUES (LOWER(${handle}), ${role}, ${content}, ${sessionId || null})
         RETURNING *
       `;
    }
@@ -231,7 +267,15 @@ export class DatabaseService {
    async getMessages(handle: string) {
       return this.sql`
         SELECT * FROM messages 
-        WHERE LOWER(user_handle) = LOWER(${handle})
+        WHERE LOWER(user_handle) = LOWER(${handle}) AND session_id IS NULL
+        ORDER BY created_at ASC
+      `;
+   }
+
+   async getMessagesBySession(sessionId: number) {
+      return this.sql`
+        SELECT * FROM messages 
+        WHERE session_id = ${sessionId}
         ORDER BY created_at ASC
       `;
    }

@@ -52,13 +52,13 @@ export async function syncKnowledge(content: string, category?: string) {
   return response.json();
 }
 
-export async function getChatResponse(message: string, handle?: string) {
+export async function getChatResponse(message: string, handle?: string, sessionId?: number) {
   const response = await fetch(`${API_BASE_URL}/chat`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ message, handle }),
+    body: JSON.stringify({ message, handle, sessionId }),
   });
 
   if (!response.ok) {
@@ -74,6 +74,31 @@ export async function getChatHistory(handle: string) {
   if (!response.ok) throw new Error("Failed to fetch chat history");
   const result = await response.json();
   return result.history;
+}
+
+export async function createChatSession(handle: string, title: string) {
+  const response = await fetch(`${API_BASE_URL}/chat/sessions`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ handle, title }),
+  });
+  if (!response.ok) throw new Error("Failed to create session");
+  const result = await response.json();
+  return result.session;
+}
+
+export async function getChatSessions(handle: string) {
+  const response = await fetch(`${API_BASE_URL}/chat/sessions/${handle}`);
+  if (!response.ok) throw new Error("Failed to fetch sessions");
+  const result = await response.json();
+  return result.sessions;
+}
+
+export async function getSessionMessages(sessionId: number) {
+  const response = await fetch(`${API_BASE_URL}/chat/sessions/messages/${sessionId}`);
+  if (!response.ok) throw new Error("Failed to fetch session messages");
+  const result = await response.json();
+  return result.messages;
 }
 
 export async function getGitHubAuthUrl() {
