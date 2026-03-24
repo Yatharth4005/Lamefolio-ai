@@ -1,4 +1,4 @@
-import { Sparkles, Send, Zap, Loader2, User, Bot, ExternalLink, Globe, ChevronDown, CheckCircle2, Layout, Plus, History, MessageSquare, Search, X, MoreHorizontal, Pin, Edit2, Trash2 } from "lucide-react";
+import { Sparkles, Send, Zap, Loader2, User, Bot, ExternalLink, Globe, ChevronDown, CheckCircle2, Layout, Plus, History, MessageSquare, Search, X, MoreHorizontal, Pin, Edit2, Trash2, Code, FileText } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useState, useRef, useEffect } from "react";
 import { useGitHub } from "../context/GitHubContext";
@@ -390,6 +390,26 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
                         <p className="text-[14px] leading-relaxed font-medium opacity-40">
                             I can analyze your GitHub repositories and build a professional Notion portfolio in seconds. Describe what you need.
                         </p>
+
+                        <div className="mt-8 flex flex-wrap justify-center gap-3">
+                            {[
+                                { label: "Build my Portfolio", icon: <Sparkles className="w-3.5 h-3.5" />, text: "Build my portfolio from my GitHub" },
+                                { label: "Analyze my Code", icon: <Code className="w-3.5 h-3.5" />, text: "Analyze my top repositories" },
+                                { label: "Generate Resume", icon: <FileText className="w-3.5 h-3.5" />, text: "Generate a resume based on my profile" },
+                                { label: "Fast Sync", icon: <Zap className="w-3.5 h-3.5" />, text: "Sync my latest GitHub changes to Notion" }
+                            ].map((action, i) => (
+                                <motion.button 
+                                    key={i}
+                                    whileHover={{ scale: 1.05, y: -2 }}
+                                    whileTap={{ scale: 0.95 }}
+                                    onClick={() => setInput(action.text)}
+                                    className="px-4 py-2.5 bg-secondary/50 border border-border/50 hover:border-primary/50 hover:bg-secondary rounded-xl text-[11px] font-black uppercase tracking-widest transition-all shadow-sm hover:shadow-xl flex items-center gap-2"
+                                >
+                                    {action.icon}
+                                    {action.label}
+                                </motion.button>
+                            ))}
+                        </div>
                     </motion.div>
                 ) : (
                     messages.map((m) => (
@@ -445,7 +465,7 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
 
             {/* Slim Pill Input - Theme Adaptive */}
             <div className="pb-10 flex justify-center px-6">
-                <div className={`relative flex items-center max-w-2xl w-full bg-secondary border transition-all duration-300 rounded-[1.8rem] shadow-xl ${isFocused ? "border-primary/50 ring-1 ring-primary/10" : "border-border"}`}>
+                <div className={`relative flex items-center max-w-2xl w-full bg-secondary/90 backdrop-blur-xl border transition-all duration-300 rounded-[1.8rem] shadow-xl hover:shadow-2xl hover:border-border/80 ${isFocused ? "border-primary shadow-[0_0_40px_rgba(139,92,246,0.2)] ring-1 ring-primary/20 scale-[1.01]" : "border-border/50"}`}>
                     <textarea 
                         rows={1}
                         placeholder="Ask me to 'build my portfolio'..."
@@ -456,13 +476,13 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
                         onBlur={() => setIsFocused(false)}
                         className="w-full bg-transparent px-8 py-5 text-[14px] text-foreground placeholder:text-foreground/20 focus:outline-none resize-none custom-scrollbar font-medium"
                     />
-                    <div className="pr-5">
+                    <div className="pr-4">
                          <button 
                             onClick={handleSend}
                             disabled={!input.trim() || isGenerating}
-                            className="w-9 h-9 flex items-center justify-center rounded-2xl bg-primary text-primary-foreground disabled:opacity-20 hover:scale-105 transition-all active:scale-95 shadow-lg"
+                            className={`w-11 h-11 flex items-center justify-center rounded-[1.2rem] transition-all dropdown-shadow ${!input.trim() || isGenerating ? "bg-white/10 text-white/20" : "bg-white text-primary hover:scale-110 active:scale-95 shadow-[0_0_20px_rgba(255,255,255,0.3)]"}`}
                          >
-                            <Send className="w-4 h-4 translate-x-0.5" />
+                            <Send className="w-5 h-5 translate-x-0.5" />
                          </button>
                     </div>
                 </div>
