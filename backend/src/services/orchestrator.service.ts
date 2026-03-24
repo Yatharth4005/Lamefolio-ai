@@ -2,6 +2,7 @@ import { GitHubService } from './github/github.service.js';
 import { GeminiService } from './ai/gemini.service.js';
 import { NotionService } from './notion/notion.service.js';
 import { TransformerService } from './transformer/transformer.service.js';
+import { DatabaseService } from './database.service.js';
 import { env } from '../config/env.js';
 
 export class OrchestratorService {
@@ -9,23 +10,28 @@ export class OrchestratorService {
   private ai = new GeminiService();
   private notion = new NotionService();
   private transformer = new TransformerService();
+  private db = new DatabaseService();
 
   async generatePortfolio(githubHandle: string, userPrompt: string) {
     console.log(`🚀 Starting portfolio generation for: ${githubHandle}`);
 
     // 1. Fetch GitHub data
-    const repos = await this.github.getRepoMetadata(githubHandle);
+    const repos = githubHandle !== 'manual_entry' ? await this.github.getRepoMetadata(githubHandle) : [];
     const repoNames = repos.map(r => r.name);
-    const deepRepoData = await this.github.fetchProjectDeepData(githubHandle, repoNames);
+    const deepRepoData = githubHandle !== 'manual_entry' ? await this.github.fetchProjectDeepData(githubHandle, repoNames) : [];
 
+    // 2. Try to fetch stored Resume/Context
+    const user = await this.db.getUser(githubHandle);
+    
     const aggregatedData = {
-      profile: { username: githubHandle },
+      profile: { username: githubHandle, displayName: user?.display_name },
       repositories: repos,
       details: deepRepoData,
+      resumeContext: user?.resume_json || null
     };
 
-    // 2. Generate Semantic Map via AI
-    console.log('🤖 Consult Gemini for architecture...');
+    // 3. Generate Semantic Map via AI
+    console.log('🤖 Consult Gemini for architecture (including resume if available)...');
     const portfolioSchema = await this.ai.generatePortfolioSchema(aggregatedData, userPrompt);
 
     // 3. Transform to Notion Blocks
@@ -74,6 +80,18 @@ export class OrchestratorService {
       url: (result as any).url,
       id: result.id,
     };
+  }
+
+  async analyzeResume(handle: string, buffer: Buffer, mimeType: string, userPrompt?: string) {
+    console.log(`🚀 Analyzing resume for: ${handle}`);
+    
+    // 1. Extract data via AI
+    const resumeData = await this.ai.analyzeResume(buffer, mimeType, userPrompt);
+    
+    // 2. Persist to User Profile
+    await this.db.updateResumeData(handle, resumeData);
+    
+    return resumeData;
   }
 
   async getChatResponse(message: string) {

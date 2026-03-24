@@ -1,8 +1,8 @@
-import { Sparkles, Send, Zap, Loader2, User, Bot, ExternalLink, Globe, ChevronDown, CheckCircle2, Layout, Plus, History, MessageSquare, Search, X, MoreHorizontal, Pin, Edit2, Trash2, Code, FileText } from "lucide-react";
+import { Sparkles, Send, Zap, Loader2, User, Bot, ExternalLink, Globe, ChevronDown, CheckCircle2, Layout, Plus, History, MessageSquare, Search, X, MoreHorizontal, Pin, Edit2, Trash2, Code, FileText, Paperclip } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useState, useRef, useEffect } from "react";
 import { useGitHub } from "../context/GitHubContext";
-import { generatePortfolio, getChatResponse, getChatHistory, createChatSession, getChatSessions, getSessionMessages, deleteChatSession, renameChatSession, togglePinSession } from "../lib/api";
+import { generatePortfolio, getChatResponse, getChatHistory, createChatSession, getChatSessions, getSessionMessages, deleteChatSession, renameChatSession, togglePinSession, uploadResume } from "../lib/api";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
 import { useNavigate } from "react-router";
@@ -41,6 +41,8 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
   
   const { githubHandle, isGenerating, setIsGenerating, addNotification, displayName, incrementGenerationCount, plan, points, user, isNotionConnected } = useGitHub();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
   const navigate = useNavigate();
 
   const scrollToBottom = () => {
@@ -116,6 +118,13 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
       }
   };
 
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      setPendingFile(file);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
   useEffect(() => {
     loadHistory();
   }, [githubHandle, displayName]);
@@ -148,74 +157,86 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
   };
 
   const handleSend = async () => {
-    const handle = githubHandle || displayName || "manual_entry";
-    if (!input.trim() || isGenerating) return;
+    if ((!input.trim() && !pendingFile) || isGenerating) return;
 
+    const handle = githubHandle || displayName || "manual_entry";
+    const userMessageContent = input.trim();
+    const fileToSend = pendingFile;
     let sessionId = currentSessionId;
 
-    // Create session if it's a new chat
-    if (!sessionId) {
-        try {
-            const title = input.length > 25 ? input.substring(0, 25) + "..." : input;
-            const newSession = await createChatSession(handle, title);
-            sessionId = newSession.id;
-            setCurrentSessionId(sessionId);
-            loadHistory(); // Refresh sidebar list
-        } catch (error) {
-            console.error("Failed to create session", error);
-        }
-    }
-
-    const userMessage: Message = {
+    // Build virtual user message optimistically
+    const userMsg: Message = {
       id: Date.now().toString(),
       role: "user",
-      content: input,
+      content: fileToSend ? `[Uploaded File: ${fileToSend.name}] ${userMessageContent}` : userMessageContent,
       timestamp: new Date(),
     };
 
-    setMessages((prev) => [...prev, userMessage]);
-    const currentInput = input;
+    setMessages((prev) => [...prev, userMsg]);
     setInput("");
+    setPendingFile(null);
     setIsGenerating(true);
 
     try {
-      const isBuildIntent = /portfolio|build|create|generate/i.test(currentInput);
-      
-      if (isBuildIntent) {
-          setShowPreview(true);
-          const result = await generatePortfolio(handle, currentInput, sessionId!);
-          incrementGenerationCount();
-          setPreviewUrl(result.url);
-          setPreviewId(result.id);
+      // 1. Create session IF NEW
+      if (!sessionId) {
+          const sessionTitle = fileToSend 
+            ? `Resume: ${fileToSend.name}` 
+            : (userMessageContent.length > 25 ? userMessageContent.substring(0, 25) + "..." : userMessageContent);
           
-          setMessages((prev) => [
-            ...prev,
-            {
-              id: (Date.now() + 1).toString(),
-              role: "ai",
-              content: githubHandle === 'manual_entry' 
-                ? "I've structured your custom details into a Notion portfolio! You can see it manifest live in the preview window." 
-                : "Excellent! I've analyzed your GitHub data and am building your portfolio in Notion right now. Watch the live preview on the right.",
-              actionUrl: result.url,
-              timestamp: new Date(),
-            },
-          ]);
-      } else {
-          const response = await getChatResponse(currentInput, handle, sessionId || undefined);
-          setMessages((prev) => [
-            ...prev,
-            {
-              id: (Date.now() + 1).toString(),
-              role: "ai",
-              content: response,
-              timestamp: new Date(),
-            },
-          ]);
+          const newSession = await createChatSession(handle, sessionTitle);
+          sessionId = newSession.id;
+          setCurrentSessionId(sessionId);
+          loadHistory(); // Refresh sidebar list
       }
+
+      const isBuildIntent = /portfolio|build|create|generate/i.test(userMessageContent);
+      let responseText = "";
+
+      if (fileToSend) {
+        // Multi-part upload (Resume/Files)
+        const res = await uploadResume(handle, fileToSend, userMessageContent, sessionId!);
+        responseText = res.message;
+        
+        // Update user message with link
+        if (res.fileUrl) {
+          setMessages(prev => prev.map(m => m.id === userMsg.id ? { 
+            ...m, 
+            content: userMessageContent 
+              ? `[Uploaded File: ${fileToSend.name}](LINK:${res.fileUrl}) ${userMessageContent}`
+              : `[Uploaded Resume: ${fileToSend.name}](LINK:${res.fileUrl})`
+          } : m));
+        }
+      } else if (isBuildIntent && !fileToSend) {
+        // Portfolio generation intent
+        setShowPreview(true);
+        const result = await generatePortfolio(handle, userMessageContent, sessionId!);
+        incrementGenerationCount();
+        setPreviewUrl(result.url);
+        setPreviewId(result.id);
+        
+        responseText = githubHandle === 'manual_entry' 
+          ? "I've structured your custom details into a Notion portfolio! You can see it manifest live in the preview window." 
+          : "Excellent! I've analyzed your GitHub data and am building your portfolio in Notion right now. Watch the live preview on the right.";
+      } else {
+        // Standard chat response
+        responseText = await getChatResponse(userMessageContent, handle, sessionId || undefined);
+      }
+
+      const aiMsg: Message = {
+        id: (Date.now() + 1).toString(),
+        role: "ai",
+        content: responseText,
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, aiMsg]);
+
     } catch (error: any) {
-      toast.error(error.message);
+      console.error("Chat Error:", error);
+      toast.error(error.message || "Something went wrong. Please try again.");
     } finally {
       setIsGenerating(false);
+      scrollToBottom();
     }
   };
 
@@ -423,14 +444,36 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
                                 <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${m.role === "user" ? "bg-secondary" : "bg-primary text-primary-foreground"}`}>
                                     {m.role === "user" ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
                                 </div>
-                                <div className={`p-4 rounded-2xl text-[14px] leading-relaxed font-medium ${m.role === "user" ? "bg-primary text-primary-foreground shadow-xl" : "bg-secondary border border-border"}`}>
+                                <div className={`p-4 rounded-2xl text-[14px] leading-relaxed font-medium ${m.role === "user" ? "bg-[#2A2A2A] text-white shadow-xl border border-white/5" : "bg-secondary border border-border"}`}>
+                                    {m.role === 'user' && m.content.includes('[Uploaded File:') && (
+                                        <button 
+                                            onClick={() => {
+                                                const match = m.content.match(/\(LINK:(.*?)\)/);
+                                                if (match) window.open(match[1], '_blank');
+                                            }}
+                                            className="mb-4 bg-black/40 border border-white/10 rounded-xl p-3 flex items-center gap-4 group transition-all hover:bg-black/60 shadow-inner w-full text-left cursor-pointer hover:border-primary/30"
+                                        >
+                                            <div className="w-10 h-10 flex items-center justify-center rounded-xl bg-red-500 text-white shadow-lg shrink-0 group-hover:scale-110 transition-transform">
+                                                <FileText className="w-5 h-5 font-bold" />
+                                            </div>
+                                            <div className="flex flex-col min-w-0 pr-4">
+                                                <span className="text-[12px] font-bold truncate text-white/90 group-hover:text-primary transition-colors">
+                                                    {m.content.match(/\[Uploaded File: (.*?)\]/)?.[1] || "Document"}
+                                                </span>
+                                                <span className="text-[9px] opacity-40 uppercase tracking-widest font-black leading-none">Click to View Original</span>
+                                            </div>
+                                            <ExternalLink className="w-3 h-3 ml-auto opacity-0 group-hover:opacity-40 transition-opacity" />
+                                        </button>
+                                    )}
+
                                     <ReactMarkdown 
                                         components={{
                                             p: ({ children }) => <span className="block mb-2 last:mb-0">{children}</span>,
                                             li: ({ children }) => <li className="ml-4 list-disc opacity-80">{children}</li>
                                         }}
                                     >
-                                        {m.content}
+                                        {/* Strip file prefix and link pattern for display */}
+                                        {m.role === 'user' ? m.content.replace(/\[Uploaded File: .*?\](\(LINK:.*?\))? /, '') : m.content}
                                     </ReactMarkdown>
 
                                     {m.actionUrl && (
@@ -465,25 +508,73 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
 
             {/* Slim Pill Input - Theme Adaptive */}
             <div className="pb-10 flex justify-center px-6">
-                <div className={`relative flex items-center max-w-2xl w-full bg-secondary/90 backdrop-blur-xl border transition-all duration-300 rounded-[1.8rem] shadow-xl hover:shadow-2xl hover:border-border/80 ${isFocused ? "border-primary shadow-[0_0_40px_rgba(139,92,246,0.2)] ring-1 ring-primary/20 scale-[1.01]" : "border-border/50"}`}>
-                    <textarea 
-                        rows={1}
-                        placeholder="Ask me to 'build my portfolio'..."
-                        value={input}
-                        onChange={(e) => setInput(e.target.value)}
-                        onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), handleSend())}
-                        onFocus={() => setIsFocused(true)}
-                        onBlur={() => setIsFocused(false)}
-                        className="w-full bg-transparent px-8 py-5 text-[14px] text-foreground placeholder:text-foreground/20 focus:outline-none resize-none custom-scrollbar font-medium"
-                    />
-                    <div className="pr-4">
-                         <button 
-                            onClick={handleSend}
-                            disabled={!input.trim() || isGenerating}
-                            className={`w-11 h-11 flex items-center justify-center rounded-[1.2rem] transition-all dropdown-shadow ${!input.trim() || isGenerating ? "bg-white/10 text-white/20" : "bg-white text-primary hover:scale-110 active:scale-95 shadow-[0_0_20px_rgba(255,255,255,0.3)]"}`}
-                         >
-                            <Send className="w-5 h-5 translate-x-0.5" />
-                         </button>
+                <div className={`relative flex flex-col max-w-2xl w-full bg-secondary/90 backdrop-blur-xl border transition-all duration-300 rounded-[1.8rem] shadow-xl hover:shadow-2xl hover:border-border/80 ${isFocused ? "border-primary shadow-[0_0_40px_rgba(139,92,246,0.2)] ring-1 ring-primary/20 scale-[1.01]" : "border-border/50"}`}>
+                    
+                    {/* Attachment Overlay if file is selected */}
+                    {pendingFile && (
+                        <div className="px-8 pt-4">
+                            <motion.div 
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                className="flex items-center gap-3 bg-foreground/5 border border-border rounded-[1.2rem] p-2 pr-4 w-fit max-w-full group relative shadow-xl backdrop-blur-sm"
+                            >
+                                <div className="w-10 h-10 flex items-center justify-center rounded-xl bg-red-500 text-white shadow-lg overflow-hidden">
+                                     <FileText className="w-5 h-5 shadow-sm" />
+                                </div>
+                                <div className="flex flex-col min-w-0 pr-4">
+                                    <span className="text-[12px] font-bold truncate max-w-[200px] text-foreground">{pendingFile.name}</span>
+                                    <span className="text-[9px] opacity-40 uppercase tracking-widest font-black leading-none">PDF Document</span>
+                                </div>
+                                <button 
+                                    onClick={() => setPendingFile(null)}
+                                    className="absolute -top-1.5 -right-1.5 w-6 h-6 bg-background-secondary border border-border rounded-full flex items-center justify-center hover:bg-secondary hover:scale-110 active:scale-95 transition-all shadow-xl z-20"
+                                >
+                                    <X className="w-3.5 h-3.5" />
+                                </button>
+                            </motion.div>
+                        </div>
+                    )}
+
+                    {/* Attachment Option */}
+                    <div className="px-8 pt-4 flex justify-between items-center">
+                        <div className="flex items-center gap-4">
+                            <input 
+                                type="file" 
+                                ref={fileInputRef} 
+                                onChange={handleFileUpload} 
+                                className="hidden" 
+                                accept=".pdf,.jpg,.jpeg,.png,.docx" 
+                            />
+                            <button 
+                                onClick={() => fileInputRef.current?.click()}
+                                className="flex items-center gap-2 text-foreground/40 hover:text-foreground transition-colors group"
+                            >
+                                <Paperclip className="w-4 h-4" />
+                                <span className="text-[11px] font-bold">Add photos & files</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center">
+                        <textarea 
+                            rows={1}
+                            placeholder="Ask me to 'build my portfolio'..."
+                            value={input}
+                            onChange={(e) => setInput(e.target.value)}
+                            onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), handleSend())}
+                            onFocus={() => setIsFocused(true)}
+                            onBlur={() => setIsFocused(false)}
+                            className="w-full bg-transparent px-8 py-5 text-[14px] text-foreground placeholder:text-foreground/20 focus:outline-none resize-none custom-scrollbar font-medium"
+                        />
+                        <div className="pr-4">
+                            <button 
+                                onClick={handleSend}
+                                disabled={(!input.trim() && !pendingFile) || isGenerating}
+                                className={`w-11 h-11 flex items-center justify-center rounded-[1.2rem] transition-all dropdown-shadow ${(!input.trim() && !pendingFile) || isGenerating ? "bg-white/10 text-white/20" : "bg-white text-primary hover:scale-110 active:scale-95 shadow-[0_0_20px_rgba(255,255,255,0.3)]"}`}
+                            >
+                                <Send className="w-5 h-5 translate-x-0.5" />
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>

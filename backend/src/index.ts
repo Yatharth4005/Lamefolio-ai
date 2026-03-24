@@ -1,13 +1,29 @@
 import fastify from 'fastify';
 import cors from '@fastify/cors';
+import multipart from '@fastify/multipart';
+import fastifyStatic from '@fastify/static';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { env } from './config/env.js';
 import { portfolioRoutes } from './api/routes.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = fastify({ logger: true });
 
 // Registering Fastify CORS
 await app.register(cors, {
   origin: true, // Allow all origins for dev
+});
+
+// Registering Fastify Multipart
+await app.register(multipart);
+
+// Registering Fastify Static for uploads
+await app.register(fastifyStatic, {
+  root: path.join(__dirname, '../uploads'),
+  prefix: '/uploads/',
 });
 
 // Registering Routes

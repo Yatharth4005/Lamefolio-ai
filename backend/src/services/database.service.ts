@@ -99,6 +99,9 @@ export class DatabaseService {
           IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='messages' AND column_name='action_url') THEN
             ALTER TABLE messages ADD COLUMN action_url TEXT;
           END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='users' AND column_name='resume_json') THEN
+            ALTER TABLE users ADD COLUMN resume_json JSONB;
+          END IF;
         END $$;
       `;
 
@@ -106,6 +109,15 @@ export class DatabaseService {
     } catch (error) {
       console.error('❌ Failed to initialize database:', error);
     }
+  }
+
+  async updateResumeData(handle: string, resumeJson: any) {
+    return this.sql`
+      UPDATE users 
+      SET resume_json = ${JSON.stringify(resumeJson)}
+      WHERE handle = ${handle}
+      RETURNING *
+    `;
   }
 
   async savePortfolio(record: PortfolioRecord) {

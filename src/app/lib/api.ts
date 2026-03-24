@@ -226,3 +226,23 @@ export async function getNotionBlocks(pageId: string) {
   if (!response.ok) throw new Error("Failed to fetch blocks");
   return response.json();
 }
+
+export async function uploadResume(handle: string, file: File, message?: string, sessionId?: number) {
+  const formData = new FormData();
+  formData.append("handle", handle);
+  if (message) formData.append("message", message);
+  if (sessionId) formData.append("sessionId", sessionId.toString());
+  formData.append("resume", file);
+
+  const response = await fetch(`${API_BASE_URL}/portfolio/upload-resume`, {
+    method: "POST",
+    body: formData,
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || "Failed to upload resume");
+  }
+
+  return response.json();
+}

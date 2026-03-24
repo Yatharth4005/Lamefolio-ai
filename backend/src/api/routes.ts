@@ -1,4 +1,6 @@
 import { FastifyInstance } from 'fastify';
+import fs from 'fs/promises';
+import path from 'path';
 import { OrchestratorService } from '../services/orchestrator.service.js';
 import { KnowledgeService } from '../services/knowledge.service.js';
 import { GitHubService } from '../services/github/github.service.js';
@@ -65,6 +67,85 @@ export async function portfolioRoutes(fastify: FastifyInstance) {
         success: false,
         error: error.message,
       });
+    }
+  });
+
+  fastify.post('/portfolio/upload-resume', async (request, reply) => {
+    try {
+      const data = await request.file();
+      if (!data) return reply.status(400).send({ error: 'No file uploaded' });
+
+      const handle = (data.fields.handle as any)?.value;
+      const userMessage = (data.fields.message as any)?.value;
+      const sessionIdStr = (data.fields.sessionId as any)?.value;
+      const sessionId = sessionIdStr ? parseInt(sessionIdStr) : undefined;
+      
+      if (!handle) return reply.status(400).send({ error: 'User handle is required' });
+
+      // Save file to disk
+      const buffer = await data.toBuffer();
+      const fileName = `${handle}_${Date.now()}_${data.filename}`;
+      const uploadsDir = path.join(process.cwd(), 'uploads');
+      await fs.writeFile(path.join(uploadsDir, fileName), buffer);
+      
+      const fileUrl = `http://localhost:5000/uploads/${fileName}`;
+
+      console.log(`📂 Processing Resume Upload for ${handle} (${data.filename}) - Message: ${userMessage} (Session: ${sessionId})`);
+
+      // 1. Save user upload message
+      const displayMessage = userMessage 
+        ? `[Uploaded File: ${data.filename}](LINK:${fileUrl}) ${userMessage}` 
+        : `[Uploaded Resume: ${data.filename}](LINK:${fileUrl})`;
+      
+      await db.saveMessage(handle, 'user', displayMessage, sessionId);
+
+      const cleanMimeType = data.mimetype.split(';')[0].trim();
+
+      console.log(`🔍 Analyzing ${data.filename} (${cleanMimeType}, ${buffer.length} bytes)`);
+
+      // 3. Analyze via orchestrator
+      const resumeData = await orchestrator.analyzeResume(handle, buffer, cleanMimeType, userMessage);
+
+      // 4. Save AI acknowledgment
+      let aiResponse = "";
+      
+      if (resumeData.is_resume === false) {
+        aiResponse = resumeData.analysis || "I've analyzed the file you uploaded. Let me know if you have any questions about it!";
+      } else {
+        const skillsDisp = Array.isArray(resumeData.skills) 
+          ? resumeData.skills.slice(0, 5).join(', ') 
+          : (typeof resumeData.skills === 'object' && resumeData.skills !== null 
+              ? Object.values(resumeData.skills).flat().slice(0, 5).join(', ') 
+              : 'various technical skills');
+        
+        const expDisp = Array.isArray(resumeData.experience)
+          ? resumeData.experience.map((e: any) => `**${e.company}** (${e.role || 'Professional'})`).join(', ')
+          : (resumeData.experience?.[0]?.company || 'various companies');
+
+        if (userMessage && /portfolio|build|create|generate/i.test(userMessage)) {
+           aiResponse = `I've analyzed your resume and understood your request to build a portfolio! I've extracted your background at ${expDisp}. I'm starting the build process now using these details...`;
+        } else {
+           aiResponse = `I've parsed your resume! 
+           
+**Overview:** ${resumeData.tagline || resumeData.analysis || 'Extracted professional profile'}
+**Skills:** ${skillsDisp}${Array.isArray(resumeData.skills) && resumeData.skills.length > 5 ? '...' : ''}
+**Experience:** ${expDisp}
+
+I've saved this data to your profile. You can now ask me to **"build my portfolio"** and I'll use these details to populate your Notion site!`;
+        }
+      }
+
+      await db.saveMessage(handle, 'ai', aiResponse, sessionId);
+
+      return reply.send({
+        success: true,
+        data: resumeData,
+        message: aiResponse,
+        fileUrl: fileUrl
+      });
+    } catch (error: any) {
+      console.error('❌ Resume Analysis Failed:', error);
+      return reply.status(500).send({ error: error.message });
     }
   });
 
