@@ -20,7 +20,7 @@ db.init();
 export async function portfolioRoutes(fastify: FastifyInstance) {
   fastify.post('/portfolio/generate', async (request, reply) => {
     try {
-      const { github_handle: inputHandle, user_prompt, sessionId } = request.body as { github_handle: string, user_prompt: string, sessionId?: number };
+      const { github_handle: inputHandle, user_prompt, sessionId, templateId } = request.body as { github_handle: string, user_prompt: string, sessionId?: number, templateId?: string };
       
       if (!inputHandle) {
         return reply.status(400).send({ error: 'GitHub handle or local handle is required' });
@@ -36,7 +36,7 @@ export async function portfolioRoutes(fastify: FastifyInstance) {
       console.log(`📝 Persistence User Build Prompt for ${inputHandle}`);
       await db.saveMessage(inputHandle, 'user', user_prompt, sessionId);
 
-      const result = await orchestrator.generatePortfolio(github_handle, user_prompt);
+      const result = await orchestrator.generatePortfolio(github_handle, user_prompt, templateId);
       
       // Track usage and save history
       const handle = inputHandle;

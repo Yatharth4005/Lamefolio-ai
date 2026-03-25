@@ -2,31 +2,45 @@ import { PortfolioTemplates } from '../../templates/notion.templates.js';
 
 export class TransformerService {
   
-  convertToPortfolioBlocks(assetMap: any) {
+  convertToPortfolioBlocks(assetMap: any, templateId?: string) {
     const blocks: any[] = [];
-
     const hero = assetMap.hero || { tagline: "Professional Portfolio", bio: "Passionate developer building great things.", social_links: [] };
-
-    // 1. Hero Section
-    blocks.push(...PortfolioTemplates.hero(
-      assetMap.title || "My Portfolio", 
-      hero.tagline || "Professional Developer", 
-      hero.bio || "Building modern web applications."
-    ));
-
-    // 2. Skills (Categorized Stack)
-    blocks.push(PortfolioTemplates.sectionHeader('My Stack', '📊'));
     const skills = assetMap.skills || {};
-    blocks.push(...PortfolioTemplates.stackColumns(
-      skills.frontend || [], 
-      skills.backend || [], 
-      skills.testing_devops || []
-    ));
+    const projects = Array.isArray(assetMap.projects) ? assetMap.projects : [];
+    const title = assetMap.title || "My Portfolio";
+
+    // --- TEMPLATE LOGIC ---
+    
+    // 1. Hero Section
+    if (templateId === 'designer-minimal') {
+      blocks.push(...PortfolioTemplates.minimalHero(title, hero.tagline));
+      blocks.push({ object: 'block', type: 'paragraph', paragraph: { rich_text: [{ type: 'text', text: { content: hero.bio } }] } });
+    } else if (templateId === 'hacker-dark') {
+      blocks.push(PortfolioTemplates.sectionHeader(`SYSTEM_READY: ${title.toUpperCase()}`, '📟'));
+      blocks.push({ object: 'block', type: 'code', code: { language: 'json', rich_text: [{ type: 'text', text: { content: JSON.stringify(hero, null, 2) } }] } });
+    } else {
+      blocks.push(...PortfolioTemplates.hero(title, hero.tagline, hero.bio));
+    }
+
+    // 2. Skills
+    if (templateId !== 'designer-minimal') {
+      blocks.push(PortfolioTemplates.sectionHeader(templateId === 'hacker-dark' ? 'COMPUTE_STACK' : 'My Stack', templateId === 'hacker-dark' ? '🛡️' : '📊'));
+      blocks.push(...PortfolioTemplates.stackColumns(
+        skills.frontend || [], 
+        skills.backend || [], 
+        skills.testing_devops || []
+      ));
+    }
 
     // 3. Projects
-    blocks.push(PortfolioTemplates.sectionHeader('Projects', '🚧'));
-    const projects = Array.isArray(assetMap.projects) ? assetMap.projects : [];
+    blocks.push(PortfolioTemplates.sectionHeader(templateId === 'dev-pro' ? 'Project Case Studies' : 'Projects', '🚧'));
     
+    if (templateId === 'dev-pro') {
+      // Pro template uses a table tracker for projects
+      blocks.push(...(PortfolioTemplates as any).projectTracker(projects));
+      blocks.push({ object: 'block', type: 'paragraph', paragraph: { rich_text: [{ type: 'text', text: { content: 'Detailed breakdown of repositories below:' } }] } });
+    }
+
     for (const project of projects) {
       blocks.push(...PortfolioTemplates.projectCard(
         project.title || "Project Title", 
@@ -36,25 +50,27 @@ export class TransformerService {
       ));
     }
 
-    // 4. Achievements (if any)
-    if (assetMap.achievements && Array.isArray(assetMap.achievements) && assetMap.achievements.length > 0) {
+    // 4. Achievements
+    if (assetMap.achievements?.length > 0) {
       blocks.push(PortfolioTemplates.sectionHeader('Achievements', '🏆'));
       blocks.push(...PortfolioTemplates.achievements(assetMap.achievements));
     }
 
-    // 5. Contact/Links
+    // 5. Connect
     blocks.push(PortfolioTemplates.sectionHeader('Connect', '🔗'));
     const socialLinks = Array.isArray(hero.social_links) ? hero.social_links : [];
-    blocks.push({
-      object: 'block',
-      type: 'paragraph',
-      paragraph: {
-        rich_text: socialLinks.map((link: string) => ({
-          type: 'text',
-          text: { content: `${link}  `, link: { url: link } }
-        }))
-      }
-    });
+    if (socialLinks.length > 0) {
+        blocks.push({
+          object: 'block',
+          type: 'paragraph',
+          paragraph: {
+            rich_text: socialLinks.map((link: string) => ({
+              type: 'text',
+              text: { content: `${link}  `, link: { url: link } }
+            }))
+          }
+        });
+    }
 
     return blocks;
   }

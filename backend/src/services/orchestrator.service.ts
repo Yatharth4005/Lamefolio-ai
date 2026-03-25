@@ -12,8 +12,8 @@ export class OrchestratorService {
   private transformer = new TransformerService();
   private db = new DatabaseService();
 
-  async generatePortfolio(githubHandle: string, userPrompt: string) {
-    console.log(`🚀 Starting portfolio generation for: ${githubHandle}`);
+  async generatePortfolio(githubHandle: string, userPrompt: string, templateId?: string) {
+    console.log(`🚀 Starting portfolio generation for: ${githubHandle} (Template: ${templateId || 'Default'})`);
 
     // 1. Fetch GitHub data
     const repos = githubHandle !== 'manual_entry' ? await this.github.getRepoMetadata(githubHandle) : [];
@@ -35,8 +35,8 @@ export class OrchestratorService {
     const portfolioSchema = await this.ai.generatePortfolioSchema(aggregatedData, userPrompt);
 
     // 3. Transform to Notion Blocks
-    console.log('💎 Converting to blocks...');
-    const blocks = this.transformer.convertToPortfolioBlocks(portfolioSchema);
+    console.log('💎 Converting to blocks using template:', templateId || 'default');
+    const blocks = this.transformer.convertToPortfolioBlocks(portfolioSchema, templateId);
 
     // 4. Create Notion Page (Initial)
     console.log('📝 Creating Notion page structure...');

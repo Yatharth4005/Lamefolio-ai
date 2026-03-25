@@ -133,6 +133,58 @@ export const PortfolioTemplates = {
       }
     }
   ],
+  minimalHero: (name: string, tagline: string) => [
+    {
+      object: 'block',
+      type: 'heading_1',
+      heading_1: {
+        rich_text: [{ type: 'text', text: { content: name } }],
+      },
+    },
+    {
+      object: 'block',
+      type: 'paragraph',
+      paragraph: {
+        rich_text: [{ type: 'text', text: { content: tagline, annotations: { italic: true } } }],
+      },
+    },
+    { object: 'block', type: 'divider', divider: {} }
+  ],
+  projectTracker: (projects: any[]) => [
+    {
+      object: 'block',
+      type: 'table',
+      table: {
+        table_width: 3,
+        has_column_header: true,
+        has_row_header: false,
+        children: [
+          {
+            object: 'block',
+            type: 'table_row',
+            table_row: {
+              cells: [
+                [{ type: 'text', text: { content: 'Project' } }],
+                [{ type: 'text', text: { content: 'Stack' } }],
+                [{ type: 'text', text: { content: 'Link' } }]
+              ]
+            }
+          },
+          ...projects.map(p => ({
+            object: 'block',
+            type: 'table_row',
+            table_row: {
+              cells: [
+                [{ type: 'text', text: { content: p.title } }],
+                [{ type: 'text', text: { content: (p.tech_stack || []).join(', ') } }],
+                [{ type: 'text', text: { content: p.url || 'N/A' } }]
+              ]
+            }
+          }))
+        ]
+      }
+    }
+  ],
   achievements: (items: any[]) => [
     ...items.map(item => {
       const title = typeof item === 'string' ? item : (item.title || 'Achievement');

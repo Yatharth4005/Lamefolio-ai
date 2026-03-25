@@ -1,12 +1,12 @@
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
-export async function generatePortfolio(github_handle: string, user_prompt: string = "", sessionId?: number) {
+export async function generatePortfolio(github_handle: string, user_prompt: string = "", sessionId?: number, templateId?: string) {
   const response = await fetch(`${API_BASE_URL}/portfolio/generate`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ github_handle, user_prompt, sessionId }),
+    body: JSON.stringify({ github_handle, user_prompt, sessionId, templateId }),
   });
 
   if (!response.ok) {

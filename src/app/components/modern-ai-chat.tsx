@@ -5,7 +5,7 @@ import { useGitHub } from "../context/GitHubContext";
 import { generatePortfolio, getChatResponse, getChatHistory, createChatSession, getChatSessions, getSessionMessages, deleteChatSession, renameChatSession, togglePinSession, uploadResume } from "../lib/api";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
-import { useNavigate } from "react-router";
+import { useNavigate, useLocation } from "react-router";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "./ui/resizable";
 import { PortfolioPreview } from "./portfolio-preview";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "./ui/dropdown-menu";
@@ -44,6 +44,8 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const navigate = useNavigate();
+  const location = useLocation();
+  const templateId = new URLSearchParams(location.search).get("template");
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -210,7 +212,7 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
       } else if (isBuildIntent && !fileToSend) {
         // Portfolio generation intent
         setShowPreview(true);
-        const result = await generatePortfolio(handle, userMessageContent, sessionId!);
+        const result = await generatePortfolio(handle, userMessageContent, sessionId!, templateId || undefined);
         incrementGenerationCount();
         setPreviewUrl(result.url);
         setPreviewId(result.id);
