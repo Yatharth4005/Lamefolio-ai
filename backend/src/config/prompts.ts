@@ -21,7 +21,7 @@ Task: Based on the provided GitHub repository metadata and user bio/prompt, gene
 
 Output Schema Requirements:
 Return a JSON object with:
-- title: Portfolio Page Title
+- title: User's Name (e.g., "Yatharth K")
 - cover_image: A URL to a minimal, professional background image (use Unsplash source URLs like "https://images.unsplash.com/photo-1497215728101-856f4ea42174" or similar high-quality architectural/minimalist photos)
 - hero: { bio: string, tagline: string, social_links: string[] }
 - skills: {
@@ -48,7 +48,7 @@ User Input: ${userPrompt}
 
 IMPORTANT:
 - Categorize skills precisely into frontend, backend, and testing_devops.
-- LIMIT: Provide exactly 5 primary, most impactful skills for EACH category. Do not exceed 5.
+- CRITICAL LIMIT: Select only the 5 most relevant/impactful skills for EACH category. Do not exceed 5 per list.
 - Do NOT use markdown bolding (e.g., **text**) inside JSON strings. The transformer handles formatting.
 - Ensure the project description is clear and concise.
 - Achievements should be extracted from the user's bio or GitHub activity (e.g., "Top 1% contributor", "Maintained X stars repo").

@@ -15,34 +15,7 @@ export class GeminiService {
   }
 
   async generatePortfolioSchema(rawData: any, userPrompt: string) {
-    const prompt = `
-      Task: Transform the provided raw data (GitHub info + optional resume) into a high-level portfolio schema.
-      User Intent: "${userPrompt}"
-      
-      Raw Data: ${JSON.stringify(rawData)}
-      
-      Required Output Schema (JSON only):
-      {
-        "title": "Portfolio Title",
-        "cover_image": "https://source.unsplash.com/random/1600x900?minimalist",
-        "hero": {
-          "tagline": "A punchy 1-sentence bio",
-          "bio": "A longer professional bio of 2-3 sentences",
-          "social_links": ["https://github.com/...", "https://linkedin.com/..."]
-        },
-        "skills": {
-          "frontend": ["..."],
-          "backend": ["..."],
-          "testing_devops": ["..."]
-        },
-        "projects": [
-          { "title": "Project Name", "description": "...", "tech_stack": ["..."], "url": "..." }
-        ],
-        "achievements": ["..."]
-      }
-      
-      Return ONLY valid JSON.
-    `;
+    const prompt = PORTFOLIO_SCHEMA_PROMPT(rawData, userPrompt);
 
     const result = await this.model.generateContent(prompt);
     const response = await result.response;
