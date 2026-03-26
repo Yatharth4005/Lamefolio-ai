@@ -60,15 +60,11 @@ User Specific Request: ${userPrompt}
 ---
 
 IMPORTANT:
-- NO REDUNDANCY: Do NOT repeat information across sections.
-- HERO SECTION: 
-    - 'tagline' MUST be a single, punchy one-liner (max 10 words). 
-    - 'bio' MUST be a brief 2-3 sentence personal statement only. 
-    - CRITICAL: Do NOT include skills, company names, or dates in 'tagline' or 'bio'.
-- SKILLS SECTION: Map resume 'skills' EXCLUSIVELY to the 'skills' object. Do NOT put them in the bio. Categorize precisely.
-- EXPERIENCE SECTION: Map resume 'experience' EXCLUSIVELY to the 'experience' array. Include specific dates and bulleted achievements.
-- PROJECTS SECTION: Use GitHub repos primarily. If missing, use high-impact projects from the resume.
-- PRIORITIZE RESUME DATA: Use the 'resumeContext' fields to fill the above arrays correctly. 100 iterations p error fixed.
+- MAXIMUM DATA DENSITY: Map EVERY work experience and EVERY project from the resume into the correct arrays. Do not be selective.
+- EXPERIENCE & SKILLS: These sections MUST be exhaustive. Aim for 5-7 entries in Experience.
+- CATEGORY NAMES: Use ONLY 'frontend', 'backend', 'testing_devops' as keys for the 'skills' object.
+- NO OVERLAP: Do NOT mention specific skills, company names, or work dates in your 'hero.bio' or 'hero.tagline'. 
+- HERO: Keep 'hero.tagline' to 1 sentence and 'hero.bio' to 1-2 sentences of personal overview ONLY. Let the specific sections do the talking. 100 iterations p error fixed.
 
 Return ONLY valid JSON.
 `;
