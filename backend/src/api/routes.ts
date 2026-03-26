@@ -88,7 +88,9 @@ export async function portfolioRoutes(fastify: FastifyInstance) {
       const uploadsDir = path.join(process.cwd(), 'uploads');
       await fs.writeFile(path.join(uploadsDir, fileName), buffer);
       
-      const fileUrl = `http://localhost:5000/uploads/${fileName}`;
+      const protocol = request.headers['x-forwarded-proto'] || 'http';
+      const host = request.headers.host;
+      const fileUrl = `${protocol}://${host}/uploads/${fileName}`;
 
       console.log(`📂 Processing Resume Upload for ${handle} (${data.filename}) - Message: ${userMessage} (Session: ${sessionId})`);
 
@@ -308,11 +310,12 @@ I've saved this data to your profile. You can now ask me to **"build my portfoli
   // Health check
   fastify.get('/health', async () => ({ status: 'ok' }));
 
-  // --- GITHUB OAUTH ---
   fastify.get('/auth/github/url', async (request, reply) => {
+    const protocol = request.headers['x-forwarded-proto'] || 'http';
+    const host = request.headers.host;
     return reply.send({
       clientId: env.GITHUB_CLIENT_ID,
-      redirectUri: 'http://localhost:5173/integrations', // Point at Frontend
+      redirectUri: `${protocol}://${host}/integrations`, // Point at Frontend
       scope: 'repo,user'
     });
   });
@@ -344,9 +347,11 @@ I've saved this data to your profile. You can now ask me to **"build my portfoli
 
   // --- NOTION OAUTH ---
   fastify.get('/auth/notion/url', async (request, reply) => {
+    const protocol = request.headers['x-forwarded-proto'] || 'http';
+    const host = request.headers.host;
     return reply.send({
       clientId: env.NOTION_CLIENT_ID,
-      redirectUri: 'http://localhost:5173/integrations' // Point at Frontend
+      redirectUri: `${protocol}://${host}/integrations` // Point at Frontend
     });
   });
 
