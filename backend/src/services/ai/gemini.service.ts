@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from '@google/generative-ai';
+import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold, SchemaType } from '@google/generative-ai';
 import { env } from '../../config/env.js';
 import { ASSISTANT_SYSTEM_INSTRUCTION, PORTFOLIO_SCHEMA_PROMPT } from '../../config/prompts.js';
 
@@ -10,7 +10,72 @@ export class GeminiService {
   constructor() {
     this.model = genAI.getGenerativeModel({
       model: 'gemini-2.5-flash',
-      systemInstruction: ASSISTANT_SYSTEM_INSTRUCTION
+      systemInstruction: ASSISTANT_SYSTEM_INSTRUCTION,
+      tools: [
+        {
+          functionDeclarations: [
+            {
+              name: "notion_search",
+              description: "Search for pages, databases or content in the connected Notion workspace.",
+              parameters: {
+                type: SchemaType.OBJECT,
+                properties: {
+                  query: { type: SchemaType.STRING, description: "The search query." }
+                },
+                required: ["query"]
+              }
+            },
+            {
+              name: "notion_update_page",
+              description: "Update a Notion page's icon, cover or properties.",
+              parameters: {
+                type: SchemaType.OBJECT,
+                properties: {
+                  page_id: { type: SchemaType.STRING, description: "The ID of the page to update." },
+                  icon: { type: SchemaType.STRING, description: "Emoji icon to set." },
+                  cover: { type: SchemaType.STRING, description: "URL of the cover image." }
+                },
+                required: ["page_id"]
+              }
+            },
+            {
+              name: "notion_fetch_content",
+              description: "Fetch the full text content and blocks from a specific Notion page ID. Use this to read the details of a page before summarizing or analyzing it.",
+              parameters: {
+                type: SchemaType.OBJECT,
+                properties: {
+                  page_id: { type: SchemaType.STRING, description: "The ID of the page to read." }
+                },
+                required: ["page_id"]
+              }
+            },
+            {
+              name: "notion_append_content",
+              description: "Append new text or content blocks to the bottom of a Notion page.",
+              parameters: {
+                type: SchemaType.OBJECT,
+                properties: {
+                  page_id: { type: SchemaType.STRING, description: "The ID of the page." },
+                  text: { type: SchemaType.STRING, description: "The text content to append." }
+                },
+                required: ["page_id", "text"]
+              }
+            },
+            {
+              name: "notion_create_comment",
+              description: "Add a comment to a Notch page.",
+              parameters: {
+                type: SchemaType.OBJECT,
+                properties: {
+                  page_id: { type: SchemaType.STRING, description: "The ID of the page." },
+                  text: { type: SchemaType.STRING, description: "The comment content." }
+                },
+                required: ["page_id", "text"]
+              }
+            }
+          ]
+        }
+      ]
     }, { apiVersion: 'v1beta' });
   }
 
@@ -36,8 +101,7 @@ export class GeminiService {
     });
 
     const result = await chatSession.sendMessage(message);
-    const response = await result.response;
-    return response.text();
+    return result.response;
   }
 
   async generateDevDocs(repoFiles: any[], repoName: string) {

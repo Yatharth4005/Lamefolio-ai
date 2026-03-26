@@ -192,7 +192,8 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
           loadHistory(); // Refresh sidebar list
       }
 
-      const isBuildIntent = /portfolio|build|create|generate/i.test(userMessageContent);
+      const isSearchIntent = /search|query|find|look for|fetch/i.test(userMessageContent);
+      const isBuildIntent = /portfolio|build|create|generate/i.test(userMessageContent) && !isSearchIntent;
       let responseText = "";
 
       if (fileToSend) {
@@ -222,7 +223,7 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
           : "Excellent! I've analyzed your GitHub data and am building your portfolio in Notion right now. Watch the live preview on the right.";
       } else {
         // Standard chat response
-        responseText = await getChatResponse(userMessageContent, handle, sessionId || undefined);
+        responseText = await getChatResponse(userMessageContent, handle, sessionId || undefined, previewId || undefined);
       }
 
       const aiMsg: Message = {

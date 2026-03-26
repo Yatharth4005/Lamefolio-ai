@@ -94,12 +94,126 @@ export class OrchestratorService {
     return resumeData;
   }
 
-  async getChatResponse(message: string) {
-    const history = [
-      { role: 'user', parts: [{ text: "Hello" }] },
-      { role: 'model', parts: [{ text: "Hi! I am Lamefolio AI. I help you build stunning portfolios and documentation." }] }
-    ] as any;
+  async getChatResponse(message: string, history: any[] = [], context?: { notionPageId?: string }) {
+    try {
+      let enrichedMessage = message;
+      if (context?.notionPageId) {
+        enrichedMessage = `[CONTEXT: The current active Notion Page ID is ${context.notionPageId}. Use this ID if the user asks to update or read "this page" or "my portfolio" without providing an ID.]\n\n${message}`;
+      }
 
-    return this.ai.chat(message, history);
+      console.log("💬 Fetching AI response for:", message);
+      let response = await this.ai.chat(enrichedMessage, history);
+      
+      // Check for function calls
+      const functionCalls = response.candidates?.[0]?.content?.parts?.filter(p => p.functionCall);
+
+      if (functionCalls && functionCalls.length > 0) {
+        const toolResults = [];
+
+        for (const fc of functionCalls) {
+          const { name, args } = fc.functionCall!;
+          console.log(`🛠️ AI is calling tool: ${name}`, args);
+
+          try {
+            let result;
+            switch (name) {
+              case 'notion_search':
+                result = await this.notion.search((args as any).query);
+                // Simplify search result to avoid token overflow
+                result = (result as any).results.map((r: any) => ({
+                  id: r.id,
+                  type: r.object,
+                  title: r.properties?.title?.title?.[0]?.plain_text || r.properties?.Name?.title?.[0]?.plain_text || "Untitled",
+                  url: r.url
+                })).slice(0, 5);
+                break;
+              case 'notion_fetch_content':
+                result = await this.notion.getBlocks((args as any).page_id);
+                // Simplify block data for the AI
+                result = (result as any).map((b: any) => ({
+                  type: b.type,
+                  content: b[b.type]?.rich_text?.[0]?.plain_text || "..."
+                })).slice(0, 20);
+                break;
+              case 'notion_append_content':
+                // AI-powered block generation - converting text to Notion blocks
+                const newBlocks = [{
+                  object: 'block',
+                  type: 'callout',
+                  callout: {
+                      rich_text: [{ type: 'text', text: { content: (args as any).text }, annotations: { bold: true } }],
+                      icon: { emoji: "🛠️" },
+                      color: "default"
+                  }
+                }];
+
+                // Smart Positioning: Search for Projects heading to append after it
+                const allBlocks = await this.notion.getBlocks((args as any).page_id);
+                const projectsHeader = (allBlocks as any).find((b: any) => 
+                  b.type === 'heading_2' && 
+                  (b.heading_2?.rich_text?.[0]?.plain_text?.toLowerCase().includes('project') ||
+                   b.heading_1?.rich_text?.[0]?.plain_text?.toLowerCase().includes('project'))
+                );
+
+                if (projectsHeader) {
+                  console.log(`📍 Found Projects section at ${projectsHeader.id}, appending after.`);
+                  result = await (this.notion as any).notion.blocks.children.append({
+                    block_id: (args as any).page_id,
+                    after: projectsHeader.id,
+                    children: newBlocks
+                  });
+                } else {
+                  console.log(`📍 Projects section not found, appending to bottom.`);
+                  result = await this.notion.appendBlocks((args as any).page_id, newBlocks);
+                }
+                break;
+              case 'notion_update_page':
+                result = await this.notion.updatePage((args as any).page_id, {}, (args as any).icon, (args as any).cover);
+                break;
+              case 'notion_create_comment':
+                result = await this.notion.createComment((args as any).page_id, (args as any).text);
+                break;
+              default:
+                result = { error: "Tool not found" };
+            }
+            
+            toolResults.push({
+              functionResponse: {
+                name,
+                response: { content: result }
+              }
+            });
+          } catch (e: any) {
+            console.error(`❌ Tool execution failed (${name}):`, e.message);
+            toolResults.push({
+              functionResponse: {
+                name,
+                response: { error: e.message }
+              }
+            });
+          }
+        }
+
+        // Send results back
+        console.log("🔄 Sending tool results back to Gemini...");
+        const finalChat = (this.ai as any).model.startChat({ 
+          history: [
+            ...history, 
+            { role: 'user', parts: [{ text: message }] }, 
+            response.candidates![0].content
+          ] 
+        });
+        
+        const finalResult = await finalChat.sendMessage(toolResults);
+        const finalText = finalResult.response.text();
+        console.log("✅ AI Final Response Received.");
+        return finalText;
+      }
+
+      return response.text();
+    } catch (error: any) {
+      console.error("❌ Orchestrator Chat Error:", error);
+      return `I encountered an error while processing your request: ${error.message}. Please try again.`;
+    }
   }
 }

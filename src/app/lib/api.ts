@@ -52,13 +52,13 @@ export async function syncKnowledge(content: string, category?: string) {
   return response.json();
 }
 
-export async function getChatResponse(message: string, handle?: string, sessionId?: number) {
+export async function getChatResponse(message: string, handle?: string, sessionId?: number, notionPageId?: string) {
   const response = await fetch(`${API_BASE_URL}/chat`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ message, handle, sessionId }),
+    body: JSON.stringify({ message, handle, sessionId, notionPageId }),
   });
 
   if (!response.ok) {

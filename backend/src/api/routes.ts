@@ -17,6 +17,25 @@ const db = new DatabaseService();
 // Initialize DB schema
 db.init();
 
+function getRedirectUri(request: any) {
+  const protocol = request.headers['x-forwarded-proto'] || 'http';
+  const host = request.headers.host;
+  
+  let origin = request.headers.origin;
+  if (!origin && request.headers.referer) {
+    try {
+      origin = new URL(request.headers.referer).origin;
+    } catch (e) {
+      // Ignore invalid referers
+    }
+  }
+
+  // Fallback to construction based on host.
+  const base = (origin || `${protocol}://${host}`).replace(/\/$/, "");
+  
+  return `${base}/integrations`;
+}
+
 export async function portfolioRoutes(fastify: FastifyInstance) {
   fastify.post('/portfolio/generate', async (request, reply) => {
     try {
@@ -204,7 +223,7 @@ I've saved this data to your profile. You can now ask me to **"build my portfoli
 
   fastify.post('/chat', async (request, reply) => {
     try {
-      const { message, handle, sessionId } = request.body as { message: string, handle?: string, sessionId?: number };
+      const { message, handle, sessionId, notionPageId } = request.body as { message: string, handle?: string, sessionId?: number, notionPageId?: string };
       
       if (!message) {
         return reply.status(400).send({ error: 'Message is required' });
@@ -215,7 +234,7 @@ I've saved this data to your profile. You can now ask me to **"build my portfoli
         await db.saveMessage(handle, 'user', message, sessionId);
       }
 
-      const response = await orchestrator.getChatResponse(message);
+      const response = await orchestrator.getChatResponse(message, [], { notionPageId });
       
       if (handle) {
         console.log(`🤖 Saving AI response for ${handle} in session ${sessionId}`);
@@ -311,11 +330,9 @@ I've saved this data to your profile. You can now ask me to **"build my portfoli
   fastify.get('/health', async () => ({ status: 'ok' }));
 
   fastify.get('/auth/github/url', async (request, reply) => {
-    const protocol = request.headers['x-forwarded-proto'] || 'http';
-    const host = request.headers.host;
     return reply.send({
       clientId: env.GITHUB_CLIENT_ID,
-      redirectUri: `${protocol}://${host}/integrations`, // Point at Frontend
+      redirectUri: getRedirectUri(request), // Dynamic Frontend Detection
       scope: 'repo,user'
     });
   });
@@ -326,9 +343,7 @@ I've saved this data to your profile. You can now ask me to **"build my portfoli
       if (!code) return reply.status(400).send({ error: 'Code is required' });
 
       // Exchange for token
-      const protocol = request.headers['x-forwarded-proto'] || 'http';
-      const host = request.headers.host;
-      const redirectUri = `${protocol}://${host}/integrations`;
+      const redirectUri = getRedirectUri(request);
       const token = await github.getAccessToken(code, redirectUri);
       
       // Fetch user profile using the token
@@ -350,11 +365,9 @@ I've saved this data to your profile. You can now ask me to **"build my portfoli
 
   // --- NOTION OAUTH ---
   fastify.get('/auth/notion/url', async (request, reply) => {
-    const protocol = request.headers['x-forwarded-proto'] || 'http';
-    const host = request.headers.host;
     return reply.send({
       clientId: env.NOTION_CLIENT_ID,
-      redirectUri: `${protocol}://${host}/integrations` // Point at Frontend
+      redirectUri: getRedirectUri(request) // Dynamic Frontend Detection
     });
   });
 
@@ -363,9 +376,7 @@ I've saved this data to your profile. You can now ask me to **"build my portfoli
       const { code } = request.body as { code: string };
       if (!code) return reply.status(400).send({ error: 'Code is required' });
 
-      const protocol = request.headers['x-forwarded-proto'] || 'http';
-      const host = request.headers.host;
-      const redirectUri = `${protocol}://${host}/integrations`;
+      const redirectUri = getRedirectUri(request);
       const data = await notion.getAccessToken(code, redirectUri);
       
       return reply.send({
