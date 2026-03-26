@@ -13,12 +13,12 @@ export function PortfolioPreview({ isGenerating, url, id, onClose }: PortfolioPr
   return (
     <div className="h-full w-full bg-background flex flex-col overflow-hidden relative">
       {/* Header */}
-      <div className="px-6 py-6 border-b border-border flex items-center justify-between bg-secondary/30">
+      <div className="px-5 py-3.5 border-b border-border flex items-center justify-between bg-muted/20">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-purple-500/10 rounded-lg flex items-center justify-center">
-            <Layout className="w-4 h-4 text-purple-400" />
+          <div className="w-7 h-7 bg-purple-500/10 rounded-lg flex items-center justify-center">
+            <Layout className="w-3.5 h-3.5 text-purple-400" />
           </div>
-          <h3 className="text-sm font-bold text-foreground tracking-tight">Portfolio Preview</h3>
+          <h3 className="text-xs font-black text-foreground uppercase tracking-widest opacity-80">Portfolio Preview</h3>
         </div>
         
         <div className="flex items-center gap-3">
@@ -27,18 +27,18 @@ export function PortfolioPreview({ isGenerating, url, id, onClose }: PortfolioPr
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               onClick={() => window.open(url, "_blank")}
-              className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-foreground text-background rounded-lg text-xs font-bold hover:opacity-90 transition-opacity"
+              className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-foreground text-background rounded-lg text-[10px] font-black tracking-widest hover:opacity-90 transition-all uppercase"
             >
-              <ExternalLink className="w-3.5 h-3.5" />
+              <ExternalLink className="w-3 h-3" />
               VIEW NOTION
             </motion.button>
           )}
           
           <button 
             onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-secondary/40 transition-colors text-foreground/40 hover:text-foreground"
+            className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-secondary/40 transition-colors text-foreground/40 hover:text-foreground"
           >
-            <ChevronRight className="w-5 h-5 translate-x-0.5" />
+            <ChevronRight className="w-4 h-4 translate-x-0.5" />
           </button>
         </div>
       </div>
