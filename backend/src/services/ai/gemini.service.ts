@@ -62,6 +62,18 @@ export class GeminiService {
               }
             },
             {
+              name: "notion_delete_content",
+              description: "Delete specific text or sections from a Notion page by searching for the content to remove.",
+              parameters: {
+                type: SchemaType.OBJECT,
+                properties: {
+                  page_id: { type: SchemaType.STRING, description: "The ID of the page." },
+                  query: { type: SchemaType.STRING, description: "The text or name of the section to remove." }
+                },
+                required: ["page_id", "query"]
+              }
+            },
+            {
               name: "notion_create_comment",
               description: "Add a comment to a Notch page.",
               parameters: {

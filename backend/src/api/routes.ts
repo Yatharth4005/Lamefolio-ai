@@ -234,7 +234,16 @@ I've saved this data to your profile. You can now ask me to **"build my portfoli
         await db.saveMessage(handle, 'user', message, sessionId);
       }
 
-      const response = await orchestrator.getChatResponse(message, [], { notionPageId });
+      let history: any[] = [];
+      if (sessionId) {
+        const storedMessages = await db.getMessagesBySession(sessionId);
+        history = storedMessages.map(m => ({
+          role: m.role === 'ai' ? 'model' : 'user',
+          parts: [{ text: m.content }]
+        }));
+      }
+
+      const response = await orchestrator.getChatResponse(message, history, { notionPageId });
       
       if (handle) {
         console.log(`🤖 Saving AI response for ${handle} in session ${sessionId}`);
@@ -398,7 +407,35 @@ I've saved this data to your profile. You can now ask me to **"build my portfoli
     try {
       const { handle } = request.params as { handle: string };
       const portfolios = await db.getPortfolios(handle);
-      return reply.send({ success: true, portfolios });
+      
+      // SYNC LOGIC: Check if each Notion page still exists
+      const validatedPortfolios = await Promise.all(portfolios.map(async (p: any) => {
+        try {
+          // Extract page ID from URL if possible
+          const pageId = p.notion_url.split('-').pop();
+          if (!pageId) return p;
+
+          const page = await notion.getPage(pageId) as any;
+          if (page.archived) {
+            console.log(`🗑️ Notion page ${pageId} is archived, removing from DB.`);
+            await db.deletePortfolio(p.id, handle);
+            return null;
+          }
+          return p;
+        } catch (e: any) {
+          if (e.status === 404 || e.code === 'object_not_found') {
+             console.log(`🗑️ Notion page not found for portfolio ${p.id}, removing from DB.`);
+             await db.deletePortfolio(p.id, handle);
+             return null;
+          }
+          return p;
+        }
+      }));
+
+      return reply.send({ 
+        success: true, 
+        portfolios: validatedPortfolios.filter(Boolean) 
+      });
     } catch (error: any) {
       return reply.status(500).send({ error: error.message });
     }

@@ -167,6 +167,23 @@ export class OrchestratorService {
                   result = await this.notion.appendBlocks((args as any).page_id, newBlocks);
                 }
                 break;
+              case 'notion_delete_content':
+                // Smart Deletion: Find the block matching the query and delete it
+                const pageBlocks = await this.notion.getBlocks((args as any).page_id);
+                const blockToDelete = (pageBlocks as any).find((b: any) => {
+                  const content = JSON.stringify(b).toLowerCase();
+                  return content.includes((args as any).query.toLowerCase());
+                });
+
+                if (blockToDelete) {
+                  console.log(`🗑️ Deleting block ${blockToDelete.id} matching query: ${(args as any).query}`);
+                  result = await (this.notion as any).notion.blocks.delete({
+                    block_id: blockToDelete.id
+                  });
+                } else {
+                  result = { error: "Content not found on the page." };
+                }
+                break;
               case 'notion_update_page':
                 result = await this.notion.updatePage((args as any).page_id, {}, (args as any).icon, (args as any).cover);
                 break;
