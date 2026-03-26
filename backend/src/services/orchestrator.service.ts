@@ -102,14 +102,23 @@ export class OrchestratorService {
       }
 
       console.log("💬 Fetching AI response for:", message);
-      let response = await this.ai.chat(enrichedMessage, history);
       
-      // Check for function calls
-      const functionCalls = response.candidates?.[0]?.content?.parts?.filter(p => p.functionCall);
+      const chatSession = (this.ai as any).model.startChat({ 
+          history: history 
+      });
 
-      if (functionCalls && functionCalls.length > 0) {
+      let response = await chatSession.sendMessage(enrichedMessage);
+      let iterations = 0;
+      const MAX_ITERATIONS = 5;
+
+      while (iterations < MAX_ITERATIONS) {
+        const functionCalls = response.response.candidates?.[0]?.content?.parts?.filter((p: any) => p.functionCall);
+        
+        if (!functionCalls || functionCalls.length === 0) {
+          break;
+        }
+
         const toolResults = [];
-
         for (const fc of functionCalls) {
           const { name, args } = fc.functionCall!;
           console.log(`🛠️ AI is calling tool: ${name}`, args);
@@ -119,7 +128,6 @@ export class OrchestratorService {
             switch (name) {
               case 'notion_search':
                 result = await this.notion.search((args as any).query);
-                // Simplify search result to avoid token overflow
                 result = (result as any).results.map((r: any) => ({
                   id: r.id,
                   type: r.object,
@@ -129,14 +137,12 @@ export class OrchestratorService {
                 break;
               case 'notion_fetch_content':
                 result = await this.notion.getBlocks((args as any).page_id);
-                // Simplify block data for the AI
                 result = (result as any).map((b: any) => ({
                   type: b.type,
                   content: b[b.type]?.rich_text?.[0]?.plain_text || "..."
                 })).slice(0, 20);
                 break;
               case 'notion_append_content':
-                // AI-powered block generation - converting text to Notion blocks
                 const newBlocks = [{
                   object: 'block',
                   type: 'callout',
@@ -146,40 +152,30 @@ export class OrchestratorService {
                       color: "default"
                   }
                 }];
-
-                // Smart Positioning: Search for Projects heading to append after it
                 const allBlocks = await this.notion.getBlocks((args as any).page_id);
                 const projectsHeader = (allBlocks as any).find((b: any) => 
                   b.type === 'heading_2' && 
                   (b.heading_2?.rich_text?.[0]?.plain_text?.toLowerCase().includes('project') ||
                    b.heading_1?.rich_text?.[0]?.plain_text?.toLowerCase().includes('project'))
                 );
-
                 if (projectsHeader) {
-                  console.log(`📍 Found Projects section at ${projectsHeader.id}, appending after.`);
                   result = await (this.notion as any).notion.blocks.children.append({
                     block_id: (args as any).page_id,
                     after: projectsHeader.id,
                     children: newBlocks
                   });
                 } else {
-                  console.log(`📍 Projects section not found, appending to bottom.`);
                   result = await this.notion.appendBlocks((args as any).page_id, newBlocks);
                 }
                 break;
               case 'notion_delete_content':
-                // Smart Deletion: Find the block matching the query and delete it
                 const pageBlocks = await this.notion.getBlocks((args as any).page_id);
                 const blockToDelete = (pageBlocks as any).find((b: any) => {
                   const content = JSON.stringify(b).toLowerCase();
                   return content.includes((args as any).query.toLowerCase());
                 });
-
                 if (blockToDelete) {
-                  console.log(`🗑️ Deleting block ${blockToDelete.id} matching query: ${(args as any).query}`);
-                  result = await (this.notion as any).notion.blocks.delete({
-                    block_id: blockToDelete.id
-                  });
+                  result = await (this.notion as any).notion.blocks.delete({ block_id: blockToDelete.id });
                 } else {
                   result = { error: "Content not found on the page." };
                 }
@@ -194,40 +190,20 @@ export class OrchestratorService {
                 result = { error: "Tool not found" };
             }
             
-            toolResults.push({
-              functionResponse: {
-                name,
-                response: { content: result }
-              }
-            });
+            toolResults.push({ functionResponse: { name, response: { content: result } } });
           } catch (e: any) {
             console.error(`❌ Tool execution failed (${name}):`, e.message);
-            toolResults.push({
-              functionResponse: {
-                name,
-                response: { error: e.message }
-              }
-            });
+            toolResults.push({ functionResponse: { name, response: { error: e.message } } });
           }
         }
 
-        // Send results back
-        console.log("🔄 Sending tool results back to Gemini...");
-        const finalChat = (this.ai as any).model.startChat({ 
-          history: [
-            ...history, 
-            { role: 'user', parts: [{ text: message }] }, 
-            response.candidates![0].content
-          ] 
-        });
-        
-        const finalResult = await finalChat.sendMessage(toolResults);
-        const finalText = finalResult.response.text();
-        console.log("✅ AI Final Response Received.");
-        return finalText;
+        // Send results back to Gemini and get next response (might be more tool calls or final text)
+        console.log("🔄 Sending tool results back to Gemini (Turn " + (iterations + 1) + ")...");
+        response = await chatSession.sendMessage(toolResults);
+        iterations++;
       }
 
-      return response.text();
+      return response.response.text();
     } catch (error: any) {
       console.error("❌ Orchestrator Chat Error:", error);
       return `I encountered an error while processing your request: ${error.message}. Please try again.`;
