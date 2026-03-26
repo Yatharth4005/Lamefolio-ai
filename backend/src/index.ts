@@ -10,7 +10,7 @@ import { portfolioRoutes } from './api/routes.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const app = fastify({ logger: true });
+export const app = fastify({ logger: true });
 
 // Registering Fastify CORS
 await app.register(cors, {
@@ -20,11 +20,13 @@ await app.register(cors, {
 // Registering Fastify Multipart
 await app.register(multipart);
 
-// Registering Fastify Static for uploads
-await app.register(fastifyStatic, {
-  root: path.join(__dirname, '../uploads'),
-  prefix: '/uploads/',
-});
+// Registering Fastify Static for uploads (only if not on Vercel)
+if (!process.env.VERCEL) {
+  await app.register(fastifyStatic, {
+    root: path.join(__dirname, '../uploads'),
+    prefix: '/uploads/',
+  });
+}
 
 // Registering Routes
 await app.register(portfolioRoutes, { prefix: '/api' });
@@ -48,4 +50,8 @@ const start = async () => {
   }
 };
 
-start();
+if (!process.env.VERCEL) {
+  start();
+}
+
+export default app;
