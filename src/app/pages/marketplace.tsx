@@ -1,7 +1,9 @@
-import { Search, SlidersHorizontal, ArrowLeft, Wand2, Palette, Monitor, GraduationCap, Code, Rocket, Sparkles, Star, Zap, Layout } from "lucide-react";
+import { Search, SlidersHorizontal, ArrowLeft, Wand2, Palette, Monitor, GraduationCap, Code, Rocket, Sparkles, Star, Zap, Layout, Lock } from "lucide-react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { useNavigate } from "react-router";
+import { useGitHub } from "../context/GitHubContext";
+import { toast } from "sonner";
 
 const categories = [
   { id: "all", label: "All Blueprints", icon: Layout },
@@ -82,6 +84,7 @@ const allTemplates = [
 
 export function MarketplacePage() {
   const navigate = useNavigate();
+  const { plan } = useGitHub();
   const [activeCategory, setActiveCategory] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -155,84 +158,112 @@ export function MarketplacePage() {
       {/* Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         <AnimatePresence mode="popLayout">
-          {filteredTemplates.map((template, index) => (
-            <motion.div
-              key={template.id}
-              layout
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              transition={{ duration: 0.4, delay: index * 0.05 }}
-              whileHover={{ y: -10 }}
-              className="group relative h-full flex flex-col"
-            >
-              {/* Background Glow */}
-              <div className={`absolute -inset-[1px] bg-gradient-to-r ${template.color} rounded-[2.5rem] opacity-0 group-hover:opacity-30 blur-2xl transition-opacity duration-500`} />
-              
-              <div className="relative flex-1 backdrop-blur-xl bg-background-secondary border border-border rounded-[2.5rem] p-10 hover:bg-muted/80 hover:border-sidebar-border transition-all duration-500 flex flex-col overflow-hidden">
-                {/* Badges */}
-                <div className="absolute top-8 right-8 flex gap-2">
-                  {template.new && (
-                    <div className="px-3 py-1 bg-green-500/10 border border-green-500/20 rounded-full text-[10px] uppercase font-black text-green-400 tracking-widest animate-pulse">
-                      New
-                    </div>
-                  )}
-                  {template.premium && (
-                    <div className="px-3 py-1 bg-purple-500/10 border border-purple-500/20 rounded-full text-[10px] uppercase font-black text-purple-400 tracking-widest shadow-lg shadow-purple-500/10">
-                      Premium
-                    </div>
-                  )}
-                  {!template.premium && !template.new && (
-                    <div className="px-3 py-1 bg-white/[0.05] border border-white/[0.1] rounded-full text-[10px] uppercase font-black text-white/40 tracking-widest">
-                      Free
-                    </div>
-                  )}
-                </div>
+          {filteredTemplates.map((template, index) => {
+            const isLocked = template.premium && plan.toLowerCase() === "free";
+            
+            return (
+              <motion.div
+                key={template.id}
+                layout
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                transition={{ duration: 0.4, delay: index * 0.05 }}
+                whileHover={!isLocked ? { y: -10 } : {}}
+                whileTap={isLocked ? { x: [-3, 3, -3, 3, 0] } : {}}
+                className="group relative h-full flex flex-col"
+              >
+                {/* Background Glow */}
+                <div className={`absolute -inset-[1px] bg-gradient-to-r ${template.color} rounded-[2.5rem] opacity-0 group-hover:opacity-30 blur-2xl transition-opacity duration-500`} />
+                
+                <div className={`relative flex-1 backdrop-blur-xl ${isLocked ? "bg-muted/30 grayscale" : "bg-background-secondary"} border border-border rounded-[2.5rem] p-10 hover:bg-muted/80 hover:border-sidebar-border transition-all duration-500 flex flex-col overflow-hidden`}>
+                  {/* Badges */}
+                  <div className="absolute top-8 right-8 flex gap-2">
+                    {isLocked && <Lock className="w-3.5 h-3.5 text-purple-400 mt-0.5" />}
+                    {template.new && (
+                      <div className="px-3 py-1 bg-green-500/10 border border-green-500/20 rounded-full text-[10px] uppercase font-black text-green-400 tracking-widest animate-pulse">
+                        New
+                      </div>
+                    )}
+                    {template.premium && (
+                      <div className="px-3 py-1 bg-purple-500/10 border border-purple-500/20 rounded-full text-[10px] uppercase font-black text-purple-400 tracking-widest shadow-lg shadow-purple-500/10">
+                        Premium
+                      </div>
+                    )}
+                    {!template.premium && !template.new && (
+                      <div className="px-3 py-1 bg-white/[0.05] border border-white/[0.1] rounded-full text-[10px] uppercase font-black text-white/40 tracking-widest">
+                        Free
+                      </div>
+                    )}
+                  </div>
 
-                {/* Visual Header / Icon */}
-                <div className="mb-10 relative">
-                  <div className={`w-20 h-20 bg-gradient-to-br ${template.color} rounded-3xl flex items-center justify-center relative group-hover:scale-110 group-hover:rotate-6 transition-all duration-700`}>
-                    <div className={`absolute inset-0 bg-gradient-to-br ${template.color} rounded-3xl blur-2xl opacity-40 group-hover:opacity-100 transition-opacity`} />
-                    <template.icon className="w-10 h-10 text-white relative z-10" />
+                  {/* Visual Header / Icon */}
+                  <div className="mb-10 relative">
+                    <div className={`w-20 h-20 bg-gradient-to-br ${template.color} rounded-3xl flex items-center justify-center relative ${!isLocked && "group-hover:scale-110 group-hover:rotate-6 transition-all duration-700"}`}>
+                      <div className={`absolute inset-0 bg-gradient-to-br ${template.color} rounded-3xl blur-2xl opacity-40 group-hover:opacity-100 transition-opacity`} />
+                      {isLocked ? (
+                        <Lock className="w-10 h-10 text-white relative z-10" />
+                      ) : (
+                        <template.icon className="w-10 h-10 text-white relative z-10" />
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Content */}
+                  <div className="mb-8">
+                    <h3 className="text-3xl font-black text-foreground mb-4 tracking-tight group-hover:translate-x-1 transition-transform">
+                      {template.title}
+                    </h3>
+                    <p className="text-foreground/40 text-lg font-medium leading-relaxed">
+                      {template.description}
+                    </p>
+                  </div>
+
+                  {/* Stats */}
+                  <div className="flex items-center gap-6 mb-10 pb-8 border-b border-border/50 text-foreground/20">
+                     <div className="flex items-center gap-2">
+                        <Zap className="w-4 h-4" />
+                        <span className="text-sm font-bold">{template.stats.users} installs</span>
+                     </div>
+                     <div className="flex items-center gap-2">
+                        <Star className="w-4 h-4 fill-current" />
+                        <span className="text-sm font-bold">{template.stats.rating} rating</span>
+                     </div>
+                  </div>
+
+                  {/* Action */}
+                  <div className="mt-auto pt-4">
+                    <motion.button
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => {
+                        if (isLocked) {
+                          toast.error("Premium Blueprint Locked", {
+                            description: "Upgrade to Pro or Premium to unlock this battle-tested template.",
+                            action: {
+                                label: "Upgrade",
+                                onClick: () => navigate("/settings/billing")
+                            }
+                          });
+                          if ('vibrate' in navigator) navigator.vibrate(50);
+                          return;
+                        }
+                        navigate(`/portfolio-builder?template=${template.id}`);
+                      }}
+                      className={`w-full py-5 ${isLocked ? "bg-secondary/50 text-foreground/20 cursor-not-allowed" : "bg-white text-gray-950 hover:bg-white/90 shadow-2xl shadow-white/5"} rounded-2xl font-black text-sm uppercase tracking-widest transition-all flex items-center justify-center gap-3`}
+                    >
+                      {isLocked ? (
+                        <>
+                          <Lock className="w-4 h-4" />
+                          <span>Unlock Pro Template</span>
+                        </>
+                      ) : "Implement Blueprint"}
+                    </motion.button>
                   </div>
                 </div>
-
-                {/* Content */}
-                <div className="mb-8">
-                  <h3 className="text-3xl font-black text-foreground mb-4 tracking-tight group-hover:translate-x-1 transition-transform">
-                    {template.title}
-                  </h3>
-                  <p className="text-foreground/40 text-lg font-medium leading-relaxed">
-                    {template.description}
-                  </p>
-                </div>
-
-                {/* Stats */}
-                <div className="flex items-center gap-6 mb-10 pb-8 border-b border-border/50">
-                   <div className="flex items-center gap-2">
-                      <Zap className="w-4 h-4 text-orange-400" />
-                      <span className="text-sm font-bold text-foreground/60">{template.stats.users} installs</span>
-                   </div>
-                   <div className="flex items-center gap-2">
-                      <Star className="w-4 h-4 text-amber-400 fill-amber-400/20" />
-                      <span className="text-sm font-bold text-foreground/60">{template.stats.rating} rating</span>
-                   </div>
-                </div>
-
-                {/* Action */}
-                <div className="mt-auto pt-4">
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => navigate(`/portfolio-builder?template=${template.id}`)}
-                    className="w-full py-5 bg-white text-gray-950 rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-white/90 transition-all flex items-center justify-center gap-3 active:scale-95"
-                  >
-                    Implement Blueprint
-                  </motion.button>
-                </div>
-              </div>
-            </motion.div>
-          ))}
+              </motion.div>
+            );
+          })}
         </AnimatePresence>
       </div>
 
@@ -257,19 +288,6 @@ export function MarketplacePage() {
         </motion.div>
       )}
 
-      {/* Footer CTA */}
-      <div className="mt-20 relative rounded-[3rem] overflow-hidden group">
-         <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-blue-600 opacity-10 group-hover:opacity-20 transition-opacity" />
-         <div className="relative p-12 md:p-20 text-center border border-border rounded-[3rem]">
-            <h2 className="text-4xl font-black text-foreground mb-6 tracking-tight">Don't see what you need?</h2>
-            <p className="text-xl text-foreground/40 mb-10 max-w-2xl mx-auto font-medium">
-               Our AI Synthesizer can build custom blueprints from any reference URL or PDF.
-            </p>
-            <button className="px-10 py-5 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-2xl font-black text-sm uppercase tracking-widest hover:opacity-90 transition-all shadow-xl shadow-purple-500/20">
-               Build Custom Blueprint
-            </button>
-         </div>
-      </div>
     </div>
   );
 }
