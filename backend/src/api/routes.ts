@@ -49,6 +49,15 @@ export async function portfolioRoutes(fastify: FastifyInstance) {
       const user = await db.getUser(inputHandle);
       const github_handle = user?.github_handle || inputHandle;
 
+      // ENFORCE LIMITS: Check if user has points left (if not Pro)
+      if (user && user.plan !== 'Pro' && user.points <= 0) {
+        console.log(`⚠️ Limit Reached for ${inputHandle}: ${user.points}/3 points`);
+        return reply.status(403).send({ 
+          success: false, 
+          error: 'You have reached your portfolio generation limit (0/3). Please upgrade to Pro for unlimited builds.' 
+        });
+      }
+
       console.log(`--- Triggering Portfolio Generation for ${github_handle} (input: ${inputHandle}) (Session: ${sessionId}) ---`);
 
       // Save User prompt to messages IMMEDIATELY (before long sync)

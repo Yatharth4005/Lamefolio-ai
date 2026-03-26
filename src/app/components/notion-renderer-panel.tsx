@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { getNotionBlocks } from "../lib/api";
 import { motion, AnimatePresence } from "motion/react";
 import { Loader2, FileText, Type, List, Image as ImageIcon, Code, Hash, Minus } from "lucide-react";
@@ -11,6 +11,8 @@ interface NotionRendererPanelProps {
 export function NotionRendererPanel({ pageId, isGenerating }: NotionRendererPanelProps) {
   const [blocks, setBlocks] = useState<any[]>([]);
   const [error, setError] = useState<string | null>(null);
+
+  const prevBlockIds = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     if (!pageId) return;
@@ -39,6 +41,15 @@ export function NotionRendererPanel({ pageId, isGenerating }: NotionRendererPane
     };
   }, [pageId, isGenerating]);
 
+  // Track which blocks are newly added in this poll
+  const newBlockIds = new Set<string>();
+  blocks.forEach(b => {
+    if (b.id && !prevBlockIds.current.has(b.id)) {
+      newBlockIds.add(b.id);
+      prevBlockIds.current.add(b.id);
+    }
+  });
+
   if (!pageId && !isGenerating) {
     return (
       <div className="flex flex-col items-center justify-center h-full text-foreground/20 space-y-4">
@@ -64,7 +75,12 @@ export function NotionRendererPanel({ pageId, isGenerating }: NotionRendererPane
           )}
 
           {blocks.map((block, idx) => (
-            <NotionBlock key={block.id || idx} block={block} />
+            <NotionBlock 
+              key={block.id || idx} 
+              block={block} 
+              isGenerating={isGenerating} 
+              isNew={block.id ? newBlockIds.has(block.id) : false} 
+            />
           ))}
         </AnimatePresence>
         
@@ -80,7 +96,7 @@ export function NotionRendererPanel({ pageId, isGenerating }: NotionRendererPane
   );
 }
 
-function NotionBlock({ block }: { block: any }) {
+function NotionBlock({ block, isGenerating, isNew }: { block: any, isGenerating: boolean, isNew: boolean }) {
   const type = block.type;
   const content = block[type];
 
@@ -92,12 +108,63 @@ function NotionBlock({ block }: { block: any }) {
       if (annotations.italic) className += "italic ";
       if (annotations.underline) className += "underline ";
       if (annotations.strikethrough) className += "line-through ";
+      
       if (annotations.code) {
-        return <code key={i} className="bg-gray-100 px-1.5 py-0.5 rounded text-red-500 font-mono text-[0.9em]">{text.content}</code>;
+        return (
+          <motion.code 
+            key={i} 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="bg-gray-100 px-1.5 py-0.5 rounded text-red-500 font-mono text-[0.9em]"
+          >
+            <TypewriterText text={text.content} />
+          </motion.code>
+        );
       }
-      return <span key={i} className={className}>{text.content}</span>;
+      
+      return (
+        <motion.span 
+          key={i} 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className={className}
+        >
+          <TypewriterText text={text.content} />
+        </motion.span>
+      );
     });
   };
+
+  function TypewriterText({ text }: { text: string }) {
+    if (!isNew) return <span>{text}</span>;
+    
+    return (
+      <motion.span>
+        {text.split("").map((char, index) => (
+          <motion.span
+            key={index}
+            initial={{ opacity: 0, display: "none" }}
+            animate={{ opacity: 1, display: "inline" }}
+            transition={{
+              duration: 0.01,
+              delay: index * 0.02,
+              ease: "linear",
+            }}
+          >
+            {char}
+          </motion.span>
+        ))}
+        {/* Cursor effect at the very end of the line if it's new */}
+        {isGenerating && (
+          <motion.span
+            animate={{ opacity: [0, 1, 0] }}
+            transition={{ repeat: Infinity, duration: 0.8 }}
+            className="inline-block w-1.5 h-4 bg-purple-500 ml-0.5 align-middle"
+          />
+        )}
+      </motion.span>
+    );
+  }
 
   return (
     <motion.div

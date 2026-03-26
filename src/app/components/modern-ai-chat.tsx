@@ -17,6 +17,7 @@ interface Message {
   role: "user" | "ai";
   content: string;
   actionUrl?: string;
+  buttonText?: string;
   timestamp: Date;
 }
 
@@ -203,7 +204,20 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
       };
       setMessages((prev) => [...prev, aiMsg]);
     } catch (error: any) {
-      toast.error(error.message || "Something went wrong.");
+      if (error.message?.toLowerCase().includes("limit") || error.message?.toLowerCase().includes("0/3")) {
+          const aiMsg: Message = {
+              id: (Date.now() + 1).toString(),
+              role: "ai",
+              content: "You've reached your free portfolio generation limit (0/3). Ready to unlock unlimited AI builds and premium templates?",
+              actionUrl: "/settings/billing",
+              buttonText: "UPGRADE TO PRO",
+              timestamp: new Date(),
+          };
+          setMessages((prev) => [...prev, aiMsg]);
+          setShowPreview(false);
+      } else {
+          toast.error(error.message || "Something went wrong.");
+      }
     } finally {
       setIsGenerating(false);
       scrollToBottom();
@@ -385,8 +399,17 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
                                     )}
                                     <ReactMarkdown components={{ p: ({ children }) => <span className="block mb-2 last:mb-0">{children}</span>, li: ({ children }) => <li className="ml-4 list-disc opacity-80">{children}</li> }}>{m.role === 'user' ? m.content.replace(/\[Uploaded File: .*?\](\(LINK:.*?\))? /, '') : m.content}</ReactMarkdown>
                                     {m.actionUrl && (
-                                        <button onClick={() => window.open(m.actionUrl, "_blank")} className="mt-4 w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-background/20 hover:bg-background/40 border border-foreground/5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all">
-                                            <ExternalLink className="w-3.5 h-3.5" /> Visit Notion Site
+                                        <button 
+                                            onClick={() => {
+                                                if (m.actionUrl?.startsWith('/')) {
+                                                    navigate(m.actionUrl);
+                                                } else {
+                                                    window.open(m.actionUrl, "_blank");
+                                                }
+                                            }} 
+                                            className="mt-4 w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-primary/20 hover:bg-primary/30 border border-primary/20 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all text-primary"
+                                        >
+                                            <Sparkles className="w-3.5 h-3.5" /> {m.buttonText || "Visit Notion Site"}
                                         </button>
                                     )}
                                 </div>

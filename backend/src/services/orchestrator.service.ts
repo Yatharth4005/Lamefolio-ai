@@ -47,21 +47,29 @@ export class OrchestratorService {
     const pageId = pageresult.id;
     const url = (pageresult as any).url;
 
-    // 5. Append blocks incrementally (in background or sequentially)
-    // For now, we do it sequentially but we could return the URL early if we wanted to true async
-    // In this MVP, we'll append blocks in batches of 10
-    console.log(`💎 Appending ${blocks.length} blocks to ${pageId}...`);
-    const batchSize = 10;
-    for (let i = 0; i < blocks.length; i += batchSize) {
-      const batch = blocks.slice(i, i + batchSize);
-      await this.notion.appendBlocks(pageId, batch);
-      console.log(`✅ Appended batch ${Math.floor(i/batchSize) + 1}/${Math.ceil(blocks.length/batchSize)}`);
-    }
+    // 5. Append blocks incrementally (in background for real-time flow)
+    // We launch this as a background task and return the page ID immediately
+    (async () => {
+      try {
+        console.log(`💎 Starting background sync of ${blocks.length} blocks to ${pageId}...`);
+        const batchSize = 5; // Smaller batches for more frequent updates
+        for (let i = 0; i < blocks.length; i += batchSize) {
+          const batch = blocks.slice(i, i + batchSize);
+          await this.notion.appendBlocks(pageId, batch);
+          console.log(`✅ Appended batch ${Math.floor(i/batchSize) + 1}/${Math.ceil(blocks.length/batchSize)}`);
+          // Small artificial delay to ensure Notion processes and our frontend polling sees a smooth "flow"
+          await new Promise(r => setTimeout(r, 800));
+        }
+        console.log(`🏁 Portfolio build complete for: ${githubHandle}`);
+      } catch (error) {
+        console.error("❌ Background Portfolio Build Failed:", error);
+      }
+    })();
 
     return {
       url: url,
       id: pageId,
-      status: 'completed'
+      status: 'in_progress'
     };
   }
 
