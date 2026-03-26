@@ -104,7 +104,18 @@ export async function portfolioRoutes(fastify: FastifyInstance) {
       // Save file to disk
       const buffer = await data.toBuffer();
       const fileName = `${handle}_${Date.now()}_${data.filename}`;
-      const uploadsDir = path.join(process.cwd(), 'uploads');
+      
+      // Use /tmp on Vercel, and ensure the directory exists
+      const uploadsDir = process.env.VERCEL 
+        ? path.join('/tmp', 'uploads') 
+        : path.join(process.cwd(), 'uploads');
+        
+      try {
+        await fs.mkdir(uploadsDir, { recursive: true });
+      } catch (e) {
+        // Ignore if directory already exists
+      }
+
       await fs.writeFile(path.join(uploadsDir, fileName), buffer);
       
       const protocol = request.headers['x-forwarded-proto'] || 'http';

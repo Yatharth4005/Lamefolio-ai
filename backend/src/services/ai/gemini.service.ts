@@ -97,7 +97,7 @@ export class GeminiService {
     const result = await this.model.generateContent(prompt);
     const response = await result.response;
     const text = response.text();
-    
+
     try {
       const jsonStr = text.match(/\{[\s\S]*\}/)?.[0] || text.replace(/```json|```/g, '').trim();
       return JSON.parse(jsonStr);

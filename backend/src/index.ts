@@ -1,4 +1,5 @@
 import fastify from 'fastify';
+import fs from 'fs';
 import cors from '@fastify/cors';
 import multipart from '@fastify/multipart';
 import fastifyStatic from '@fastify/static';
@@ -20,13 +21,20 @@ await app.register(cors, {
 // Registering Fastify Multipart
 await app.register(multipart);
 
-// Registering Fastify Static for uploads (only if not on Vercel)
-if (!process.env.VERCEL) {
-  await app.register(fastifyStatic, {
-    root: path.join(__dirname, '../uploads'),
-    prefix: '/uploads/',
-  });
+// Registering Fastify Static for uploads
+const uploadsDir = process.env.VERCEL 
+  ? path.join('/tmp', 'uploads') 
+  : path.join(__dirname, '../uploads');
+
+// Ensure directory exists at startup
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
 }
+
+await app.register(fastifyStatic, {
+  root: uploadsDir,
+  prefix: '/uploads/',
+});
 
 // Registering Routes
 await app.register(portfolioRoutes, { prefix: '/api' });
