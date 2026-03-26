@@ -29,23 +29,23 @@ export function ModernHeader({ onMenuClick }: ModernHeaderProps) {
 
 
   return (
-    <header className="h-16 backdrop-blur-md border-b border-sidebar-border flex items-center justify-between px-4 md:px-6 sticky top-0 z-40 bg-sidebar"
-    >
+    <header className="h-16 backdrop-blur-md border-b border-sidebar-border flex items-center gap-4 px-4 md:px-6 sticky top-0 z-40 bg-sidebar">
       {/* Mobile Menu Toggle */}
-      <button 
-        onClick={onMenuClick}
-        className="p-2 lg:hidden text-sidebar-foreground/60 hover:text-sidebar-foreground transition-colors"
-      >
-        <Menu className="w-6 h-6" />
-      </button>
-
-      {/* Search / Command Palette - Centered */}
-      <div className="absolute left-1/2 -translate-x-1/2 w-full max-w-[240px] sm:max-w-md pointer-events-auto">
-        <CommandPalette />
+      <div className="flex-shrink-0 min-w-[40px]">
+        <button 
+          onClick={onMenuClick}
+          className="p-2 lg:hidden text-sidebar-foreground/60 hover:text-sidebar-foreground transition-colors"
+        >
+          <Menu className="w-6 h-6" />
+        </button>
       </div>
 
-      {/* Spacer to keep flex balance */}
-      <div className="hidden lg:block lg:flex-1" />
+      {/* Search / Command Palette - Centered */}
+      <div className="flex-1 flex justify-center pointer-events-auto min-w-0">
+        <div className="w-full max-w-[200px] sm:max-w-md">
+          <CommandPalette />
+        </div>
+      </div>
 
       {/* Right Section */}
       <div className="flex items-center gap-1 md:gap-3">
