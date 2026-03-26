@@ -60,12 +60,15 @@ User Specific Request: ${userPrompt}
 ---
 
 IMPORTANT:
-- PRIORITIZE RESUME DATA: If 'resumeContext' is present, use its 'experience', 'skills', and 'analysis' fields to populate the corresponding sections in the output JSON. 
-- Map resume 'experience' directly to the 'experience' array in the schema.
-- Map resume 'skills' to the 'skills' object (categorizing as best you can into frontend/backend/devops).
-- Extract GitHub repositories into 'projects'. If no repositories are available, use key projects mentioned in the resume.
-- Ensure only 5 skills per category are selected.
-- Achievements should be extracted from both sources.
+- NO REDUNDANCY: Do NOT repeat information across sections.
+- HERO SECTION: 
+    - 'tagline' MUST be a single, punchy one-liner (max 10 words). 
+    - 'bio' MUST be a brief 2-3 sentence personal statement only. 
+    - CRITICAL: Do NOT include skills, company names, or dates in 'tagline' or 'bio'.
+- SKILLS SECTION: Map resume 'skills' EXCLUSIVELY to the 'skills' object. Do NOT put them in the bio. Categorize precisely.
+- EXPERIENCE SECTION: Map resume 'experience' EXCLUSIVELY to the 'experience' array. Include specific dates and bulleted achievements.
+- PROJECTS SECTION: Use GitHub repos primarily. If missing, use high-impact projects from the resume.
+- PRIORITIZE RESUME DATA: Use the 'resumeContext' fields to fill the above arrays correctly. 100 iterations p error fixed.
 
 Return ONLY valid JSON.
 `;

@@ -178,11 +178,17 @@ I've saved this data to your profile. You can now ask me to **"build my portfoli
 
       await db.saveMessage(handle, 'ai', aiResponse, sessionId);
 
+      let autoBuild = false;
+      if (resumeData.is_resume !== false && userMessage && /portfolio|build|create|generate/i.test(userMessage)) {
+        autoBuild = true;
+      }
+
       return reply.send({
         success: true,
         data: resumeData,
         message: aiResponse,
-        fileUrl: fileUrl
+        fileUrl: fileUrl,
+        autoBuild: autoBuild
       });
     } catch (error: any) {
       console.error('❌ Resume Analysis Failed:', error);
@@ -263,7 +269,7 @@ I've saved this data to your profile. You can now ask me to **"build my portfoli
         }));
       }
 
-      const response = await orchestrator.getChatResponse(message, history, { notionPageId });
+      const response = await orchestrator.getChatResponse(message, history, { notionPageId, handle });
       
       if (handle) {
         console.log(`🤖 Saving AI response for ${handle} in session ${sessionId}`);

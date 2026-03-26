@@ -154,9 +154,16 @@ export class GeminiService {
         "is_resume": true,
         "full_name": "...",
         "tagline": "...",
+        "professional_summary": "A comprehensive 2-3 paragraph summary of the user's entire career, key strengths, and specific industry expertise based on the FULL content of the resume.",
         "contact": { "email": "...", "links": [] },
-        "skills": ["..."],
-        "experience": [{ "company": "...", "role": "...", "achievements": [] }],
+        "skills": {
+           "technical": ["..."],
+           "tools": ["..."],
+           "soft": ["..."]
+        },
+        "experience": [{ "company": "...", "role": "...", "period": "...", "achievements": ["Detailed bullet points of impact"] }],
+        "projects": [{ "title": "...", "description": "...", "technologies": ["..."], "link": "..." }],
+        "extracurriculars/awards": ["..."],
         "analysis": "A brief summary of why you identified this as a resume and the key highlights."
       }
       

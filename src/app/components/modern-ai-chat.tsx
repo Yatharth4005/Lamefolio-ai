@@ -186,6 +186,15 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
       if (fileToSend) {
         const res = await uploadResume(handle, fileToSend, userMessageContent, sessionId!);
         responseText = res.message;
+        
+        // AUTO-BUILD: If the backend identified this as a build request, trigger it!
+        if (res.autoBuild) {
+            setShowPreview(true);
+            const buildResult = await generatePortfolio(handle, userMessageContent || "Build from resume", sessionId!, templateId || undefined);
+            setPreviewUrl(buildResult.url);
+            setPreviewId(buildResult.id);
+            responseText = "Excellent! I've analyzed your resume and am now building your portfolio in Notion using these details.";
+        }
       } else if (/portfolio|build|create|generate/i.test(userMessageContent) && !/search|query|find|look for|fetch/i.test(userMessageContent)) {
         setShowPreview(true);
         const result = await generatePortfolio(handle, userMessageContent, sessionId!, templateId || undefined);

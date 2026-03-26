@@ -102,11 +102,23 @@ export class OrchestratorService {
     return resumeData;
   }
 
-  async getChatResponse(message: string, history: any[] = [], context?: { notionPageId?: string }) {
+  async getChatResponse(message: string, history: any[] = [], context?: { notionPageId?: string, handle?: string }) {
     try {
       let enrichedMessage = message;
+      let resumePrompt = "";
+
+      if (context?.handle) {
+        const user = await this.db.getUser(context.handle);
+        if (user && user.resume_json) {
+          console.log(`🧠 Injecting resume context for ${context.handle}`);
+          resumePrompt = `\n\n[CONTEXT: USER RESUME DATA:\n${JSON.stringify(user.resume_json, null, 2)}\n]\n\nIf the user asks to add projects, skills, or experience from their resume, use the details provided above. You have full access to their resume content.`;
+        }
+      }
+
       if (context?.notionPageId) {
-        enrichedMessage = `[CONTEXT: The current active Notion Page ID is ${context.notionPageId}. Use this ID if the user asks to update or read "this page" or "my portfolio" without providing an ID.]\n\n${message}`;
+        enrichedMessage = `[CONTEXT: The current active Notion Page ID is ${context.notionPageId}. Use this ID if the user asks to update or read "this page" or "my portfolio" without providing an ID. Also context is always better than assumptions.]\n${resumePrompt}\n\n${message}`;
+      } else {
+        enrichedMessage = `${resumePrompt}\n\n${message}`;
       }
 
       console.log("💬 Fetching AI response for:", message);
