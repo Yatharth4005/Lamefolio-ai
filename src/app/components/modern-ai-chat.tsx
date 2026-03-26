@@ -46,7 +46,15 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
-  const templateId = new URLSearchParams(location.search).get("template");
+  const queryParams = new URLSearchParams(location.search);
+  const templateId = queryParams.get("template");
+  const initialPrompt = queryParams.get("prompt");
+
+  useEffect(() => {
+    if (initialPrompt && !input) {
+      setInput(initialPrompt);
+    }
+  }, [initialPrompt]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -384,10 +392,10 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
                         <p className="text-[14px] leading-relaxed font-medium opacity-40">I can analyze your GitHub repositories and build a professional Notion portfolio in seconds.</p>
                         <div className="mt-8 flex flex-wrap justify-center gap-3">
                             {[
-                                { label: "Build my Portfolio", icon: <Sparkles className="w-3.5 h-3.5" />, text: "Build my portfolio from my GitHub" },
-                                { label: "Analyze my Code", icon: <Code className="w-3.5 h-3.5" />, text: "Analyze my top repositories" },
-                                { label: "Generate Resume", icon: <FileText className="w-3.5 h-3.5" />, text: "Generate a resume based on my profile" },
-                                { label: "Fast Sync", icon: <Zap className="w-3.5 h-3.5" />, text: "Sync my latest GitHub changes to Notion" }
+                                { label: "Build my Portfolio", icon: <Sparkles className="w-3.5 h-3.5" />, text: "Build my portfolio using my professional background and GitHub" },
+                                { label: "Add to section", icon: <Plus className="w-3.5 h-3.5" />, text: "Add this () to my () section" },
+                                { label: "Delete from section", icon: <Trash2 className="w-3.5 h-3.5" />, text: "Delete this () from this () section" },
+                                { label: "Summarize Portfolio", icon: <FileText className="w-3.5 h-3.5" />, text: "Summarize my portfolio and suggest improvements" }
                             ].map((action, i) => (
                                 <button key={i} onClick={() => setInput(action.text)} className="px-4 py-2.5 bg-secondary/50 border border-border/50 hover:border-primary/50 hover:bg-secondary rounded-xl text-[11px] font-black uppercase tracking-widest transition-all flex items-center gap-2">{action.icon}{action.label}</button>
                             ))}

@@ -51,16 +51,27 @@ export function ModernHeader({ onMenuClick }: ModernHeaderProps) {
       <div className="flex items-center gap-1 md:gap-3">
         {/* AI Credits Badge - Hidden if GitHub is not connected */}
         {isConnected && (
-          <motion.button 
-            onClick={() => navigate("/settings/billing")}
-            whileHover={{ scale: 1.05 }}
-            className="hidden sm:flex items-center gap-2 px-3 md:px-4 py-2 bg-gradient-to-r from-purple-500/10 to-blue-500/10 border border-purple-500/20 rounded-xl"
-          >
-            <Sparkles className="w-4 h-4 text-purple-400" />
-            <span className="text-xs md:text-sm font-medium text-sidebar-foreground/90">
-              {plan === "Free" ? `${points} / 3` : "Unlimited"}
-            </span>
-          </motion.button>
+          <div className="flex items-center gap-2">
+            {plan && plan !== "Free" && (
+              <div className={`px-2 py-1 rounded-md text-[10px] font-black uppercase tracking-tighter shadow-sm border ${
+                plan.toLowerCase() === 'premium' 
+                  ? "bg-gradient-to-r from-amber-400 to-yellow-500 text-amber-950 border-amber-500/30" 
+                  : "bg-gradient-to-r from-slate-300 to-gray-400 text-slate-900 border-slate-400/30"
+              }`}>
+                {plan}
+              </div>
+            )}
+            <motion.button 
+              onClick={() => navigate("/settings/billing")}
+              whileHover={{ scale: 1.05 }}
+              className="hidden sm:flex items-center gap-2 px-3 md:px-4 py-2 bg-gradient-to-r from-purple-500/10 to-blue-500/10 border border-purple-500/20 rounded-xl"
+            >
+              <Sparkles className="w-4 h-4 text-purple-400" />
+              <span className="text-xs md:text-sm font-medium text-sidebar-foreground/90">
+                {plan === "Free" ? `${points} / 3` : "Unlimited"}
+              </span>
+            </motion.button>
+          </div>
         )}
 
         {/* Theme Toggle */}
