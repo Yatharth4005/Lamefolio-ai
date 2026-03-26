@@ -1,4 +1,4 @@
-import { LayoutDashboard, Wand2, GitBranch, Settings, ChevronLeft, ChevronRight, Layout, User as UserIcon, LogOut } from "lucide-react";
+import { LayoutDashboard, Wand2, GitBranch, Settings, ChevronLeft, ChevronRight, Layout, User as UserIcon, LogOut, X } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router";
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
@@ -12,13 +12,29 @@ const navItems = [
   { icon: Settings, label: "Settings", path: "/settings" },
 ];
 
-export function ModernSidebar() {
+interface ModernSidebarProps {
+  onClose?: () => void;
+}
+
+export function ModernSidebar({ onClose }: ModernSidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
   const navigate = useNavigate();
   const { user, isConnected, displayName, plan, signOut } = useGitHub();
+
+  // Reset collapse on mobile
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 1024) {
+        setCollapsed(false);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    handleResize(); // Initial check
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -37,6 +53,12 @@ export function ModernSidebar() {
     window.location.reload();
   };
 
+  const handleNavItemClick = () => {
+    if (window.innerWidth < 1024 && onClose) {
+      onClose();
+    }
+  };
+
   return (
     <motion.aside
       initial={false}
@@ -44,9 +66,19 @@ export function ModernSidebar() {
       transition={{ duration: 0.3, ease: "easeInOut" }}
       className="h-screen relative backdrop-blur-md border-r border-sidebar-border flex flex-col z-50 shadow-[20px_0_50px_rgba(0,0,0,0.1)] bg-sidebar"
     >
+      {/* Search / Close Header for Mobile */}
+      <div className="lg:hidden absolute top-4 right-4 z-[60]">
+        <button 
+          onClick={onClose}
+          className="p-2 bg-sidebar-accent rounded-xl text-sidebar-foreground/60 hover:text-sidebar-foreground transition-all"
+        >
+          <X className="w-5 h-5" />
+        </button>
+      </div>
+
       {/* Logo */}
       <div className={`h-16 flex items-center border-b border-sidebar-border ${collapsed ? "justify-center" : "px-6"}`}>
-        <Link to="/" className="flex items-center gap-3">
+        <Link to="/" className="flex items-center gap-3" onClick={handleNavItemClick}>
           <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-blue-500 rounded-xl flex items-center justify-center relative group">
             <div className="absolute inset-0 bg-gradient-to-br from-purple-500 to-blue-500 rounded-xl blur-lg opacity-50 group-hover:opacity-75 transition-opacity" />
             <Wand2 className="w-5 h-5 text-white relative z-10" />
@@ -76,6 +108,7 @@ export function ModernSidebar() {
               <li key={item.label}>
                 <Link
                   to={item.path}
+                  onClick={handleNavItemClick}
                   className={`relative flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${
                     isActive
                       ? "text-sidebar-foreground"
@@ -136,7 +169,7 @@ export function ModernSidebar() {
                   
                   <div className="p-2">
                     <button 
-                      onClick={() => { setShowProfile(false); navigate("/settings/profile"); }}
+                      onClick={() => { setShowProfile(false); navigate("/settings/profile"); handleNavItemClick(); }}
                       className="w-full flex items-center gap-3 px-3 py-2 text-sm text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent rounded-xl transition-all group"
                     >
                       <UserIcon className="w-4 h-4 text-sidebar-foreground/40 group-hover:text-purple-400" />
@@ -189,7 +222,7 @@ export function ModernSidebar() {
           </>
         ) : (
           <button 
-            onClick={() => navigate("/integrations")}
+            onClick={() => { navigate("/integrations"); handleNavItemClick(); }}
             className={`flex items-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-r from-purple-500/10 to-blue-500/10 border border-purple-500/20 hover:border-purple-500/40 transition-all group w-full ${collapsed ? "justify-center" : ""}`}
           >
             <div className="w-9 h-9 bg-purple-500/20 rounded-full flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
@@ -205,17 +238,19 @@ export function ModernSidebar() {
         )}
       </div>
 
-      {/* Collapse Button */}
-      <button
-        onClick={() => setCollapsed(!collapsed)}
-        className="absolute -right-4.5 top-[18px] w-7 h-7 bg-background-secondary border border-sidebar-border rounded-full flex items-center justify-center hover:bg-purple-500/10 hover:border-purple-500/30 transition-all z-50 group/collapse shadow-xl"
-      >
-        {collapsed ? (
-          <ChevronRight className="w-3.5 h-3.5 text-sidebar-foreground/40 group-hover/collapse:text-purple-400 transition-colors" />
-        ) : (
-          <ChevronLeft className="w-3.5 h-3.5 text-sidebar-foreground/40 group-hover/collapse:text-purple-400 transition-colors" />
-        )}
-      </button>
+      {/* Collapse Button - Desktop Only */}
+      {typeof window !== 'undefined' && window.innerWidth >= 1024 && (
+        <button
+          onClick={() => setCollapsed(!collapsed)}
+          className="absolute -right-4.5 top-[18px] w-7 h-7 bg-background-secondary border border-sidebar-border rounded-full hidden lg:flex items-center justify-center hover:bg-purple-500/10 hover:border-purple-500/30 transition-all z-50 group/collapse shadow-xl"
+        >
+          {collapsed ? (
+            <ChevronRight className="w-3.5 h-3.5 text-sidebar-foreground/40 group-hover/collapse:text-purple-400 transition-colors" />
+          ) : (
+            <ChevronLeft className="w-3.5 h-3.5 text-sidebar-foreground/40 group-hover/collapse:text-purple-400 transition-colors" />
+          )}
+        </button>
+      )}
     </motion.aside>
   );
 }

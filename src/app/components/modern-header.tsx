@@ -1,11 +1,15 @@
-import { Bell, Sparkles, Check, ExternalLink, X, Settings, LogOut, User as UserIcon, Shield, Moon, Sun } from "lucide-react";
+import { Bell, Sparkles, Check, ExternalLink, X, Settings, LogOut, User as UserIcon, Shield, Moon, Sun, Menu, Search } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { CommandPalette } from "./command-palette";
 import { motion, AnimatePresence } from "motion/react";
 import { useNavigate } from "react-router";
 import { useGitHub } from "../context/GitHubContext";
 
-export function ModernHeader() {
+interface ModernHeaderProps {
+  onMenuClick?: () => void;
+}
+
+export function ModernHeader({ onMenuClick }: ModernHeaderProps) {
   const { user, isConnected, isNotionConnected, displayName, notifications, markNotificationRead, clearNotifications, setDisplayName, generationCount, points, plan, signOut, theme, setTheme } = useGitHub();
   const navigate = useNavigate();
   const [showNotifications, setShowNotifications] = useState(false);
@@ -25,29 +29,36 @@ export function ModernHeader() {
 
 
   return (
-    <header className="h-16 backdrop-blur-md border-b border-sidebar-border flex items-center justify-between px-6 sticky top-0 z-40 bg-sidebar"
+    <header className="h-16 backdrop-blur-md border-b border-sidebar-border flex items-center justify-between px-4 md:px-6 sticky top-0 z-40 bg-sidebar"
     >
+      {/* Mobile Menu Toggle */}
+      <button 
+        onClick={onMenuClick}
+        className="p-2 lg:hidden text-sidebar-foreground/60 hover:text-sidebar-foreground transition-colors"
+      >
+        <Menu className="w-6 h-6" />
+      </button>
+
       {/* Search / Command Palette - Centered */}
-      <div className="absolute left-1/2 -translate-x-1/2 w-full max-w-md hidden md:block">
+      <div className="absolute left-1/2 -translate-x-1/2 w-full max-w-[240px] sm:max-w-md pointer-events-auto">
         <CommandPalette />
       </div>
 
-      {/* Spacer for mobile or to keep flex balance */}
-      <div className="flex-1 md:hidden" />
-      <div className="hidden md:block flex-1" />
+      {/* Spacer to keep flex balance */}
+      <div className="hidden lg:block lg:flex-1" />
 
       {/* Right Section */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-1 md:gap-3">
         {/* AI Credits Badge - Hidden if GitHub is not connected */}
         {isConnected && (
           <motion.button 
             onClick={() => navigate("/settings/billing")}
             whileHover={{ scale: 1.05 }}
-            className="hidden md:flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500/10 to-blue-500/10 border border-purple-500/20 rounded-xl"
+            className="hidden sm:flex items-center gap-2 px-3 md:px-4 py-2 bg-gradient-to-r from-purple-500/10 to-blue-500/10 border border-purple-500/20 rounded-xl"
           >
             <Sparkles className="w-4 h-4 text-purple-400" />
-            <span className="text-sm font-medium text-sidebar-foreground/90">
-              {plan === "Free" ? `${points} / 3 Credits` : "Unlimited Credits"}
+            <span className="text-xs md:text-sm font-medium text-sidebar-foreground/90">
+              {plan === "Free" ? `${points} / 3` : "Unlimited"}
             </span>
           </motion.button>
         )}
@@ -57,10 +68,10 @@ export function ModernHeader() {
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-          className="p-2.5 text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent rounded-xl transition-all group"
+          className="p-2 md:p-2.5 text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent rounded-xl transition-all group"
           title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
         >
-          {theme === "dark" ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
+          {theme === "dark" ? <Moon className="w-4 h-4 md:w-5 md:h-5" /> : <Sun className="w-4 h-4 md:w-5 md:h-5" />}
         </motion.button>
 
         {/* Notifications */}
@@ -69,11 +80,11 @@ export function ModernHeader() {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => setShowNotifications(!showNotifications)}
-            className="relative p-2.5 text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent rounded-xl transition-all group"
+            className="relative p-2 md:p-2.5 text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent rounded-xl transition-all group"
           >
-            <Bell className="w-5 h-5" />
+            <Bell className="w-4 h-4 md:w-5 md:h-5" />
             {unreadCount > 0 && (
-              <span className="absolute top-2 right-2 w-2 h-2 bg-purple-500 rounded-full ring-2 ring-background">
+              <span className="absolute top-1.5 md:top-2 right-1.5 md:right-2 w-2 h-2 bg-purple-500 rounded-full ring-2 ring-background">
                 <span className="absolute inset-0 bg-purple-500 rounded-full animate-ping opacity-75" />
               </span>
             )}
