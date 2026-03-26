@@ -16,6 +16,7 @@ interface GitHubUser {
   name?: string;
   avatar: string;
   bio: string;
+  email?: string;
   repos: GitHubRepo[];
 }
 

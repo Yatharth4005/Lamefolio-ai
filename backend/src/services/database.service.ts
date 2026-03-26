@@ -175,6 +175,17 @@ export class DatabaseService {
       return results[0] || null;
    }
 
+   async updateUserPlan(handle: string, plan: string, points: number) {
+      const lowerHandle = handle.toLowerCase();
+      console.log(`🆙 Database: Updating ${lowerHandle} to ${plan} with ${points} points`);
+      return this.sql`
+        UPDATE users 
+        SET plan = ${plan}, points = ${points} 
+        WHERE LOWER(handle) = ${lowerHandle}
+        RETURNING *
+      `;
+   }
+
    async linkGithubToHandle(handle: string, githubHandle: string, displayName?: string) {
       const lowerHandle = handle.toLowerCase();
       const lowerGithubHandle = githubHandle.toLowerCase();

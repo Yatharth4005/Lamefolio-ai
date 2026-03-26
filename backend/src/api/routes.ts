@@ -6,6 +6,7 @@ import { KnowledgeService } from '../services/knowledge.service.js';
 import { GitHubService } from '../services/github/github.service.js';
 import { NotionService } from '../services/notion/notion.service.js';
 import { DatabaseService } from '../services/database.service.js';
+import { BillingService } from '../services/billing.service.js';
 import { env } from '../config/env.js';
 
 const orchestrator = new OrchestratorService();
@@ -13,6 +14,7 @@ const knowledge = new KnowledgeService();
 const github = new GitHubService();
 const notion = new NotionService();
 const db = new DatabaseService();
+const billing = new BillingService();
 
 // Initialize DB schema
 db.init();
@@ -543,6 +545,36 @@ I've saved this data to your profile. You can now ask me to **"build my portfoli
       const blocks = await notion.getBlocks(pageId);
       return reply.send({ success: true, blocks });
     } catch (error: any) {
+      return reply.status(500).send({ error: error.message });
+    }
+  });
+
+  // --- BILLING ROUTES ---
+  
+  fastify.post('/billing/create-order', async (request, reply) => {
+    try {
+      const { handle, planId } = request.body as { handle: string, planId: string };
+      const order = await billing.createOrder(handle, planId);
+      return reply.send({ success: true, order });
+    } catch (error: any) {
+      console.error('❌ Create Order Failed:', error);
+      return reply.status(500).send({ error: error.message });
+    }
+  });
+
+  fastify.post('/billing/verify-payment', async (request, reply) => {
+    try {
+      const { handle, planId, orderId, paymentId, signature } = request.body as { 
+        handle: string, 
+        planId: string, 
+        orderId: string, 
+        paymentId: string, 
+        signature: string 
+      };
+      const result = await billing.verifyPayment(handle, planId, orderId, paymentId, signature);
+      return reply.send(result);
+    } catch (error: any) {
+      console.error('❌ Verify Payment Failed:', error);
       return reply.status(500).send({ error: error.message });
     }
   });

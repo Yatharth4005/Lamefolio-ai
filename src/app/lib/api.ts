@@ -239,10 +239,29 @@ export async function uploadResume(handle: string, file: File, message?: string,
     body: formData,
   });
 
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error || "Failed to upload resume");
-  }
+  return response.json();
+}
 
+export async function createBillingOrder(handle: string, planId: string) {
+  const response = await fetch(`${API_BASE_URL}/billing/create-order`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ handle, planId }),
+  });
+  if (!response.ok) {
+    const err = await response.json();
+    throw new Error(err.error || "Failed to create payment order");
+  }
+  const result = await response.json();
+  return result.order;
+}
+
+export async function verifyBillingPayment(handle: string, planId: string, orderId: string, paymentId: string, signature: string) {
+  const response = await fetch(`${API_BASE_URL}/billing/verify-payment`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ handle, planId, orderId, paymentId, signature }),
+  });
+  if (!response.ok) throw new Error("Payment verification failed");
   return response.json();
 }

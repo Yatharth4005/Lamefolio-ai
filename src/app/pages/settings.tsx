@@ -1,9 +1,9 @@
-import { User, Bell, Palette, Globe, Lock, CreditCard, LogOut, Sparkles, Crown, Zap } from "lucide-react";
+import { User, Bell, Palette, Globe, Lock, CreditCard, LogOut, Sparkles, Crown, Zap, Loader2 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { motion } from "motion/react";
 import { useParams, useNavigate } from "react-router";
 import { useGitHub } from "../context/GitHubContext";
-import { updateUserData } from "../lib/api";
+import { updateUserData, createBillingOrder, verifyBillingPayment } from "../lib/api";
 import { toast } from "sonner";
 
 export function SettingsPage() {
@@ -343,12 +343,92 @@ function DomainSettings() {
 
 
 function BillingSettings() {
-  const { plan } = useGitHub();
+  const { plan, githubHandle, displayName, user } = useGitHub();
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  const handleUpgrade = async (planId: string) => {
+    if (planId === 'free') return;
+    setIsProcessing(true);
+    
+    try {
+      const handle = githubHandle || displayName;
+      if (!handle) {
+         toast.error("Please sign in to upgrade");
+         return;
+      }
+
+      const order = await createBillingOrder(handle, planId);
+      
+      // If we are in mock mode (no keys on backend)
+      if (order.mock) {
+         await verifyBillingPayment(handle, planId, order.id, 'mock_pay_id', 'mock_sig');
+         toast.success("Developer Mode: Mock upgrade successful!");
+         window.location.reload();
+         return;
+      }
+
+      const options = {
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID || "rzp_test_mock", // Should be provided in env
+        amount: order.amount,
+        currency: order.currency,
+        name: "Lamefolio AI",
+        description: `${planId.toUpperCase()} Plan Subscription`,
+        order_id: order.id,
+        handler: async (response: any) => {
+          try {
+            await verifyBillingPayment(
+              handle,
+              planId,
+              response.razorpay_order_id,
+              response.razorpay_payment_id,
+              response.razorpay_signature
+            );
+            toast.success(`Congratulations! You are now a ${planId.toUpperCase()} member! 🚀`, {
+              description: "Your unlimited access is now active.",
+              duration: 5000,
+            });
+            
+            // Simulate mobile notification
+            console.log(`📱 SMS SENT: Hello ${displayName}, welcome to Lamefolio ${planId.toUpperCase()}! Your unlimited AI generations are now active.`);
+            console.log(`📧 EMAIL SENT: To ${user?.email || "user@example.com"} - [Payment Successful] Welcome to Lamefolio PRO/Premium!`);
+            toast.info("Notifications sent to your mobile and email! ✉️");
+
+            setTimeout(() => window.location.reload(), 2000);
+          } catch (err: any) {
+            toast.error("Payment verification failed. Please contact support.");
+          }
+        },
+        prefill: {
+          name: displayName,
+          email: user?.email || "",
+        },
+        theme: {
+          color: "#8B5CF6",
+        },
+        modal: {
+          onclose: () => setIsProcessing(false)
+        }
+      };
+
+      const rzp1 = (window as any).Razorpay ? new (window as any).Razorpay(options) : null;
+      if (!rzp1) throw new Error("Razorpay script not loaded");
+      
+      rzp1.on('payment.failed', function (response: any){
+          toast.error("Payment failed: " + response.error.description);
+          setIsProcessing(false);
+      });
+      rzp1.open();
+    } catch (err: any) {
+      toast.error(err.message || "Failed to initialize payment");
+      setIsProcessing(false);
+    }
+  };
+
   const plans = [
     {
       id: "free",
       name: "Free Plan",
-      price: "$0",
+      price: "₹0",
       icon: Sparkles,
       features: ["3 AI Generations", "Notion Integration", "Basic Analytics", "Community Support"],
       isCurrent: plan.toLowerCase() === "free",
@@ -358,7 +438,7 @@ function BillingSettings() {
     {
       id: "pro",
       name: "Pro Plan",
-      price: "$19",
+      price: "₹1",
       icon: Zap,
       features: ["Unlimited Generations", "Custom Domain", "Advanced Analytics", "Priority Notion Sync"],
       isCurrent: plan.toLowerCase() === "pro",
@@ -369,7 +449,7 @@ function BillingSettings() {
     {
       id: "premium",
       name: "Premium",
-      price: "$49",
+      price: "₹2",
       icon: Crown,
       features: ["Teams & Collaboration", "White-label Output", "Dedicated Manager", "Beta Feature Access"],
       isCurrent: plan.toLowerCase() === "premium",
@@ -386,13 +466,13 @@ function BillingSettings() {
     >
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        {plans.map((plan) => (
+        {plans.map((p) => (
           <motion.div
-            key={plan.id}
-            whileHover={{ y: -8, scale: 1.02 }}
-            className={`relative backdrop-blur-3xl bg-gradient-to-br ${plan.gradient} border ${plan.borderColor} rounded-[2rem] p-8 flex flex-col transition-all group overflow-hidden`}
+            key={p.id}
+            whileHover={p.isCurrent ? {} : { y: -8, scale: 1.02 }}
+            className={`relative backdrop-blur-3xl bg-gradient-to-br ${p.gradient} border ${p.borderColor} rounded-[2rem] p-8 flex flex-col transition-all group overflow-hidden`}
           >
-            {plan.popular && (
+            {p.popular && (
               <div className="absolute top-4 right-4 bg-purple-500 text-white text-[10px] font-black uppercase tracking-[0.2em] px-3 py-1 rounded-full shadow-lg">
                 Most Popular
               </div>
@@ -400,25 +480,25 @@ function BillingSettings() {
 
             <div className="mb-8">
               <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-6 ${
-                plan.id === 'pro' ? 'bg-purple-500/20 text-purple-400' : 
-                plan.id === 'premium' ? 'bg-amber-500/20 text-amber-400' : 
+                p.id === 'pro' ? 'bg-purple-500/20 text-purple-400' : 
+                p.id === 'premium' ? 'bg-amber-500/20 text-amber-400' : 
                 'bg-white/10 text-white/40'
               }`}>
-                <plan.icon className="w-6 h-6" />
+                <p.icon className="w-6 h-6" />
               </div>
-              <h3 className="text-xl font-bold text-foreground mb-2">{plan.name}</h3>
+              <h3 className="text-xl font-bold text-foreground mb-2">{p.name}</h3>
               <div className="flex items-baseline gap-1">
-                <span className="text-4xl font-black text-foreground">{plan.price}</span>
+                <span className="text-4xl font-black text-foreground">{p.price}</span>
                 <span className="text-sm text-foreground/40">/month</span>
               </div>
             </div>
 
             <ul className="space-y-4 mb-10 flex-1">
-              {plan.features.map((feature) => (
+              {p.features.map((feature) => (
                 <li key={feature} className="flex items-center gap-3 text-sm text-foreground/70">
                   <div className={`w-1.5 h-1.5 rounded-full ${
-                    plan.id === 'pro' ? 'bg-purple-500' : 
-                    plan.id === 'premium' ? 'bg-amber-500' : 
+                    p.id === 'pro' ? 'bg-purple-500' : 
+                    p.id === 'premium' ? 'bg-amber-500' : 
                     'bg-foreground/40'
                   }`} />
                   {feature}
@@ -427,17 +507,20 @@ function BillingSettings() {
             </ul>
 
             <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              className={`w-full py-4 rounded-xl font-bold text-sm tracking-tight transition-all ${
-                plan.isCurrent 
+              whileHover={p.isCurrent ? {} : { scale: 1.02 }}
+              whileTap={p.isCurrent ? {} : { scale: 0.98 }}
+              disabled={p.isCurrent || isProcessing}
+              onClick={() => handleUpgrade(p.id)}
+              className={`w-full py-4 rounded-xl font-bold text-sm tracking-tight transition-all flex items-center justify-center gap-2 ${
+                p.isCurrent 
                   ? "bg-secondary text-foreground/40 border border-border cursor-default" 
-                  : plan.id === 'pro'
+                  : p.id === 'pro'
                     ? "bg-foreground text-background hover:bg-foreground/90 shadow-lg shadow-black/5"
                     : "bg-muted text-foreground hover:bg-muted/80 border border-border"
               }`}
             >
-              {plan.isCurrent ? "Current Plan" : "Upgrade Plan"}
+              {isProcessing && !p.isCurrent ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+              {p.isCurrent ? "Current Plan" : isProcessing ? "Processing..." : "Upgrade Plan"}
             </motion.button>
           </motion.div>
         ))}
