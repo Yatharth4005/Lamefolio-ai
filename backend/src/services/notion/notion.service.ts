@@ -11,7 +11,7 @@ export class NotionService {
     });
   }
 
-  async getAccessToken(code: string) {
+  async getAccessToken(code: string, redirectUri?: string) {
     const auth = Buffer.from(`${env.NOTION_CLIENT_ID}:${env.NOTION_CLIENT_SECRET}`).toString('base64');
     
     const response = await axios.post(
@@ -19,7 +19,7 @@ export class NotionService {
       {
         grant_type: 'authorization_code',
         code,
-        redirect_uri: 'http://localhost:5173/integrations',
+        redirect_uri: redirectUri || 'http://localhost:5173/integrations',
       },
       {
         headers: {

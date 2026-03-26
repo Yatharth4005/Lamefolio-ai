@@ -326,7 +326,10 @@ I've saved this data to your profile. You can now ask me to **"build my portfoli
       if (!code) return reply.status(400).send({ error: 'Code is required' });
 
       // Exchange for token
-      const token = await github.getAccessToken(code);
+      const protocol = request.headers['x-forwarded-proto'] || 'http';
+      const host = request.headers.host;
+      const redirectUri = `${protocol}://${host}/integrations`;
+      const token = await github.getAccessToken(code, redirectUri);
       
       // Fetch user profile using the token
       const userProfile = await github.getUserProfile(token);
@@ -360,7 +363,10 @@ I've saved this data to your profile. You can now ask me to **"build my portfoli
       const { code } = request.body as { code: string };
       if (!code) return reply.status(400).send({ error: 'Code is required' });
 
-      const data = await notion.getAccessToken(code);
+      const protocol = request.headers['x-forwarded-proto'] || 'http';
+      const host = request.headers.host;
+      const redirectUri = `${protocol}://${host}/integrations`;
+      const data = await notion.getAccessToken(code, redirectUri);
       
       return reply.send({
         success: true,
