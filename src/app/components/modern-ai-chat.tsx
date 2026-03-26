@@ -58,14 +58,9 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
   // Load Sessions
   const loadHistory = async () => {
     const handle = githubHandle || displayName;
-    console.log("🔍 Loading history for handle:", handle);
-    if (!handle) {
-      console.warn("⚠️ No handle available for loading history");
-      return;
-    }
+    if (!handle) return;
     try {
       const sessions = await getChatSessions(handle);
-      console.log("✅ Sessions received:", sessions);
       if (Array.isArray(sessions)) {
         setHistoryItems(sessions.map((s: any) => ({
             id: s.id,
@@ -73,9 +68,6 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
             is_pinned: s.is_pinned,
             date: new Date(s.created_at).toLocaleDateString()
         })));
-      } else {
-        console.error("❌ Sessions is not an array:", sessions);
-        setHistoryItems([]);
       }
     } catch (error) {
       console.error("❌ Failed to load sessions:", error);
@@ -143,7 +135,6 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
             timestamp: new Date(m.created_at)
         })));
         setShowHistory(false);
-        toast.info(`Loaded: ${session.title}`);
     } catch (error) {
         toast.error("Failed to load session content");
     }
@@ -166,7 +157,6 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
     const fileToSend = pendingFile;
     let sessionId = currentSessionId;
 
-    // Build virtual user message optimistically
     const userMsg: Message = {
       id: Date.now().toString(),
       role: "user",
@@ -180,7 +170,6 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
     setIsGenerating(true);
 
     try {
-      // 1. Create session IF NEW
       if (!sessionId) {
           const sessionTitle = fileToSend 
             ? `Resume: ${fileToSend.name}` 
@@ -189,40 +178,20 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
           const newSession = await createChatSession(handle, sessionTitle);
           sessionId = newSession.id;
           setCurrentSessionId(sessionId);
-          loadHistory(); // Refresh sidebar list
+          loadHistory();
       }
 
-      const isSearchIntent = /search|query|find|look for|fetch/i.test(userMessageContent);
-      const isBuildIntent = /portfolio|build|create|generate/i.test(userMessageContent) && !isSearchIntent;
       let responseText = "";
-
       if (fileToSend) {
-        // Multi-part upload (Resume/Files)
         const res = await uploadResume(handle, fileToSend, userMessageContent, sessionId!);
         responseText = res.message;
-        
-        // Update user message with link
-        if (res.fileUrl) {
-          setMessages(prev => prev.map(m => m.id === userMsg.id ? { 
-            ...m, 
-            content: userMessageContent 
-              ? `[Uploaded File: ${fileToSend.name}](LINK:${res.fileUrl}) ${userMessageContent}`
-              : `[Uploaded Resume: ${fileToSend.name}](LINK:${res.fileUrl})`
-          } : m));
-        }
-      } else if (isBuildIntent && !fileToSend) {
-        // Portfolio generation intent
+      } else if (/portfolio|build|create|generate/i.test(userMessageContent) && !/search|query|find|look for|fetch/i.test(userMessageContent)) {
         setShowPreview(true);
         const result = await generatePortfolio(handle, userMessageContent, sessionId!, templateId || undefined);
-        incrementGenerationCount();
         setPreviewUrl(result.url);
         setPreviewId(result.id);
-        
-        responseText = githubHandle === 'manual_entry' 
-          ? "I've structured your custom details into a Notion portfolio! You can see it manifest live in the preview window." 
-          : "Excellent! I've analyzed your GitHub data and am building your portfolio in Notion right now. Watch the live preview on the right.";
+        responseText = "Excellent! I've analyzed your data and am building your portfolio in Notion right now.";
       } else {
-        // Standard chat response
         responseText = await getChatResponse(userMessageContent, handle, sessionId || undefined, previewId || undefined);
       }
 
@@ -233,188 +202,163 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, aiMsg]);
-
     } catch (error: any) {
-      console.error("Chat Error:", error);
-      toast.error(error.message || "Something went wrong. Please try again.");
+      toast.error(error.message || "Something went wrong.");
     } finally {
       setIsGenerating(false);
       scrollToBottom();
     }
   };
 
+  const renderHistoryItem = (item: any) => {
+    if (renamingSessionId === item.id) {
+      return (
+        <div className="flex items-center gap-2 p-3 bg-secondary rounded-xl border border-primary/30">
+          <input 
+              autoFocus
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+              onKeyDown={(e) => {
+                  if (e.key === "Enter") handleRename(item.id);
+                  if (e.key === "Escape") setRenamingSessionId(null);
+              }}
+              className="bg-transparent text-xs font-semibold w-full outline-none"
+          />
+          <button onClick={() => handleRename(item.id)} className="text-primary"><CheckCircle2 className="w-4 h-4" /></button>
+          <button onClick={() => setRenamingSessionId(null)} className="opacity-40"><X className="w-4 h-4" /></button>
+        </div>
+      );
+    }
+
+    return (
+      <div className="flex items-center gap-1 group/item relative">
+          <button 
+              onClick={() => loadSession(item)}
+              className={`flex-1 text-left p-3 pr-8 rounded-xl text-xs font-semibold flex items-center gap-3 transition-all relative ${
+                  currentSessionId === item.id 
+                  ? "bg-secondary text-foreground border border-border shadow-md" 
+                  : "text-foreground/60 hover:bg-secondary/50 hover:text-foreground border border-transparent"
+              }`}
+          >
+              <MessageSquare className={`w-3.5 h-3.5 shrink-0 ${currentSessionId === item.id ? "text-primary" : "opacity-40"}`} />
+              <div className="flex flex-col min-w-0 flex-1">
+                  <div className="flex items-center gap-2 overflow-hidden">
+                      <span className="truncate">{item.title}</span>
+                      {item.is_pinned && <Pin className="w-2.5 h-2.5 text-primary shrink-0" />}
+                  </div>
+                  <span className="text-[9px] opacity-50 mt-0.5">{item.date}</span>
+              </div>
+          </button>
+
+          <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+              <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                      <button className="p-1 rounded-lg hover:bg-secondary opacity-0 group-hover/item:opacity-100 transition-opacity">
+                          <MoreHorizontal className="w-3.5 h-3.5 text-foreground/40" />
+                      </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-40 bg-background-secondary border border-border rounded-xl p-1 shadow-2xl">
+                      <DropdownMenuItem onClick={(e) => handleTogglePin(e, item.id, item.is_pinned)} className="flex items-center gap-2 p-2 text-xs font-medium rounded-lg cursor-pointer hover:bg-secondary transition-all">
+                          <Pin className="w-3.5 h-3.5" /> {item.is_pinned ? "Unpin chat" : "Pin chat"}
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => { setRenamingSessionId(item.id); setNewName(item.title); }} className="flex items-center gap-2 p-2 text-xs font-medium rounded-lg cursor-pointer hover:bg-secondary transition-all">
+                          <Edit2 className="w-3.5 h-3.5" /> Rename
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator className="bg-border/50 my-1" />
+                      <DropdownMenuItem onClick={() => setDeleteConfirmId(item.id)} className="flex items-center gap-2 p-2 text-xs font-medium rounded-lg cursor-pointer text-red-500 hover:bg-red-500/10 transition-all font-bold">
+                          <Trash2 className="w-3.5 h-3.5" /> Delete
+                      </DropdownMenuItem>
+                  </DropdownMenuContent>
+              </DropdownMenu>
+          </div>
+      </div>
+    );
+  };
+
   return (
     <div className={`relative flex bg-background text-foreground w-full h-full overflow-hidden ${!immersive ? "border border-border rounded-3xl" : ""}`}>
       
-      {/* Sidebar - Theme Adaptive */}
-      <div className="w-16 flex flex-col items-center py-6 gap-6 border-r border-border bg-background z-50">
+      {/* Sidebar - Hidden on Mobile */}
+      <div className="hidden sm:flex w-16 flex-col items-center py-6 gap-6 border-r border-border bg-background z-50">
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <button 
-                  onClick={handleNewChat}
-                  className="w-10 h-10 flex items-center justify-center rounded-xl bg-secondary hover:bg-primary hover:text-primary-foreground transition-all group active:scale-95"
-                >
+                <button onClick={handleNewChat} className="w-10 h-10 flex items-center justify-center rounded-xl bg-secondary hover:bg-primary hover:text-primary-foreground transition-all group active:scale-95">
                   <Plus className="w-5 h-5 group-hover:scale-110 transition-transform" />
                 </button>
               </TooltipTrigger>
-              <TooltipContent side="right" className="bg-foreground text-background font-bold text-[10px] px-3 py-1.5 rounded-lg ml-2">
-                New Chat
-              </TooltipContent>
+              <TooltipContent side="right" className="bg-foreground text-background font-bold text-[10px] px-3 py-1.5 rounded-lg ml-2">New Chat</TooltipContent>
             </Tooltip>
 
             <Tooltip>
               <TooltipTrigger asChild>
                 <button 
-                  onClick={() => {
-                    if (!showHistory) loadHistory();
-                    setShowHistory(!showHistory);
-                  }}
+                  onClick={() => { if (!showHistory) loadHistory(); setShowHistory(!showHistory); }}
                   className={`w-10 h-10 flex items-center justify-center rounded-xl transition-all group active:scale-95 ${showHistory ? "bg-primary text-primary-foreground" : "bg-transparent text-foreground/40 hover:text-foreground hover:bg-secondary"}`}
                 >
                   <History className="w-5 h-5 group-hover:scale-110 transition-transform" />
                 </button>
               </TooltipTrigger>
-              <TooltipContent side="right" className="bg-foreground text-background font-bold text-[10px] px-3 py-1.5 rounded-lg ml-2">
-                Chat History
-              </TooltipContent>
+              <TooltipContent side="right" className="bg-foreground text-background font-bold text-[10px] px-3 py-1.5 rounded-lg ml-2">Chat History</TooltipContent>
             </Tooltip>
           </TooltipProvider>
       </div>
 
       <ResizablePanelGroup direction="horizontal" className="flex-1 overflow-hidden h-full">
          
-         {/* History Panel - Theme Adaptive */}
+         {/* History Panel */}
          {showHistory && (
-             <ResizablePanel defaultSize={20} minSize={15} className="bg-background-secondary border-r border-border p-4 flex flex-col gap-4 relative z-40">
+          <div className="contents">
+            <ResizablePanel defaultSize={20} minSize={15} className="hidden sm:flex bg-background-secondary border-r border-border p-4 flex-col gap-4 relative z-40 h-full">
                 <div className="flex items-center justify-between mb-2">
                     <span className="text-[10px] font-black uppercase tracking-widest opacity-50">Your Chats</span>
                     <button onClick={() => setShowHistory(false)}><X className="w-3 h-3 opacity-20 hover:opacity-100" /></button>
                 </div>
                 <div className="space-y-1 overflow-y-auto custom-scrollbar pr-1">
-                    {historyItems.length > 0 ? (
-                        historyItems.map((item) => (
-                            <div key={item.id} className="relative group/item">
-                                {renamingSessionId === item.id ? (
-                                    <div className="flex items-center gap-2 p-3 bg-secondary rounded-xl border border-primary/30">
-                                        <input 
-                                            autoFocus
-                                            value={newName}
-                                            onChange={(e) => setNewName(e.target.value)}
-                                            onKeyDown={(e) => {
-                                                if (e.key === "Enter") handleRename(item.id);
-                                                if (e.key === "Escape") setRenamingSessionId(null);
-                                            }}
-                                            className="bg-transparent text-xs font-semibold w-full outline-none"
-                                        />
-                                        <button onClick={() => handleRename(item.id)} className="text-primary"><CheckCircle2 className="w-4 h-4" /></button>
-                                        <button onClick={() => setRenamingSessionId(null)} className="opacity-40"><X className="w-4 h-4" /></button>
-                                    </div>
-                                ) : (
-                                    <div className="flex items-center gap-1 group">
-                                        <button 
-                                            onClick={() => loadSession(item)}
-                                            className={`flex-1 text-left p-3 pr-8 rounded-xl text-xs font-semibold flex items-center gap-3 transition-all relative ${
-                                                currentSessionId === item.id 
-                                                ? "bg-secondary text-foreground border border-border shadow-md" 
-                                                : "text-foreground/60 hover:bg-secondary/50 hover:text-foreground border border-transparent"
-                                            }`}
-                                        >
-                                            <MessageSquare className={`w-3.5 h-3.5 shrink-0 ${currentSessionId === item.id ? "text-primary" : "opacity-40"}`} />
-                                            <div className="flex flex-col min-w-0 flex-1">
-                                                <div className="flex items-center gap-2 overflow-hidden">
-                                                    <span className="truncate">{item.title}</span>
-                                                    {item.is_pinned && <Pin className="w-2.5 h-2.5 text-primary shrink-0" />}
-                                                </div>
-                                                <span className="text-[9px] opacity-50 mt-0.5">{item.date}</span>
-                                            </div>
-                                        </button>
-
-                                        {/* Dropdown Menu Toggle */}
-                                        <div className="absolute right-2 top-1/2 -translate-y-1/2">
-                                            <DropdownMenu>
-                                                <DropdownMenuTrigger asChild>
-                                                    <button className="p-1 rounded-lg hover:bg-secondary opacity-0 group-hover/item:opacity-100 transition-opacity">
-                                                        <MoreHorizontal className="w-3.5 h-3.5 text-foreground/40" />
-                                                    </button>
-                                                </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="end" className="w-40 bg-background-secondary border border-border rounded-xl p-1 shadow-2xl">
-                                                    <DropdownMenuItem 
-                                                        onClick={(e) => handleTogglePin(e, item.id, item.is_pinned)}
-                                                        className="flex items-center gap-2 p-2 text-xs font-medium rounded-lg cursor-pointer hover:bg-secondary transition-all"
-                                                    >
-                                                        <Pin className="w-3.5 h-3.5" />
-                                                        {item.is_pinned ? "Unpin chat" : "Pin chat"}
-                                                    </DropdownMenuItem>
-                                                    <DropdownMenuItem 
-                                                        onClick={() => {
-                                                            setRenamingSessionId(item.id);
-                                                            setNewName(item.title);
-                                                        }}
-                                                        className="flex items-center gap-2 p-2 text-xs font-medium rounded-lg cursor-pointer hover:bg-secondary transition-all"
-                                                    >
-                                                        <Edit2 className="w-3.5 h-3.5" />
-                                                        Rename
-                                                    </DropdownMenuItem>
-                                                    <DropdownMenuSeparator className="bg-border/50 my-1" />
-                                                    <DropdownMenuItem 
-                                                        onClick={() => setDeleteConfirmId(item.id)}
-                                                        className="flex items-center gap-2 p-2 text-xs font-medium rounded-lg cursor-pointer text-red-500 hover:bg-red-500/10 transition-all font-bold"
-                                                    >
-                                                        <Trash2 className="w-3.5 h-3.5" />
-                                                        Delete
-                                                    </DropdownMenuItem>
-                                                </DropdownMenuContent>
-                                            </DropdownMenu>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        ))
-                    ) : (
-                        <p className="text-[11px] text-center opacity-20 py-10 font-medium">No recent chats</p>
-                    )}
+                    {historyItems.length > 0 ? historyItems.map((item) => <div key={item.id}>{renderHistoryItem(item)}</div>) : <p className="text-[11px] text-center opacity-20 py-10 font-medium">No recent chats</p>}
                 </div>
-             </ResizablePanel>
+            </ResizablePanel>
+
+            <AnimatePresence>
+                <motion.div initial={{ x: "-100%" }} animate={{ x: 0 }} exit={{ x: "-100%" }} className="fixed inset-0 z-[110] sm:hidden bg-background flex flex-col p-6 overflow-y-auto">
+                    <div className="flex items-center justify-between mb-8">
+                        <h2 className="text-xl font-black uppercase tracking-widest">Chat History</h2>
+                        <button onClick={() => setShowHistory(false)} className="p-2 bg-secondary rounded-full"><X className="w-6 h-6" /></button>
+                    </div>
+                    <div className="space-y-2">{historyItems.map((item) => <div key={item.id} className="w-full">{renderHistoryItem(item)}</div>)}</div>
+                </motion.div>
+            </AnimatePresence>
+          </div>
          )}
 
-         <ResizablePanel defaultSize={showPreview ? 50 : 100} minSize={30} className="flex flex-col relative bg-background">
+         <ResizablePanel defaultSize={(showPreview && typeof window !== 'undefined' && window.innerWidth > 768) ? 50 : 100} minSize={30} className="flex flex-col relative bg-background w-full">
             {/* Header */}
-            <div className="flex items-center justify-between px-8 py-5 border-b border-border bg-background/80 backdrop-blur-2xl z-20">
-                <div className="flex items-center gap-3">
-                   <div className="w-2 h-2 rounded-full bg-primary shadow-[0_0_10px_rgba(168,85,247,0.5)]" />
-                   <h1 className="text-xs font-black uppercase tracking-[0.2em] opacity-40">AI Workspace</h1>
+            <div className="flex items-center justify-between px-4 sm:px-8 py-3 sm:py-5 border-b border-border bg-background/80 backdrop-blur-2xl z-20">
+                <div className="flex items-center gap-2 sm:gap-3">
+                   <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-primary shadow-[0_0_10px_rgba(168,85,247,0.5)]" />
+                   <h1 className="text-[10px] sm:text-xs font-black uppercase tracking-[0.1em] sm:tracking-[0.2em] opacity-40">AI Workspace</h1>
                 </div>
 
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2 sm:gap-4">
+                    <div className="flex sm:hidden items-center gap-1 mr-2">
+                        <button onClick={handleNewChat} className="p-2 text-foreground/60 hover:text-foreground active:scale-90 transition-all"><Plus className="w-4.5 h-4.5" /></button>
+                        <button onClick={() => { if (!showHistory) loadHistory(); setShowHistory(!showHistory); }} className={`p-2 active:scale-90 transition-all ${showHistory ? "text-primary" : "text-foreground/60"}`}><History className="w-4.5 h-4.5" /></button>
+                    </div>
                     {(previewUrl || previewId) && !showPreview && (
-                        <motion.button
-                            initial={{ opacity: 0, scale: 0.9 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            onClick={() => setShowPreview(true)}
-                            className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-xl text-[10px] font-black tracking-widest uppercase hover:opacity-80 transition-all shadow-lg"
-                        >
-                            <Layout className="w-3.5 h-3.5" />
-                            <span>Open Preview</span>
+                        <motion.button initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} onClick={() => setShowPreview(true)} className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-primary text-primary-foreground rounded-xl text-[9px] sm:text-[10px] font-black tracking-widest uppercase hover:opacity-80 transition-all shadow-lg">
+                            <Layout className="w-3 sm:w-3.5 h-3 sm:h-3.5" /> <span className="hidden xs:inline">Open Preview</span> <span className="xs:hidden">Preview</span>
                         </motion.button>
                     )}
                 </div>
             </div>
 
-            {/* Content Area */}
+            {/* Messages */}
             <div className="flex-1 overflow-y-auto px-6 py-10 space-y-8 custom-scrollbar scroll-smooth">
                 {messages.length === 0 ? (
-                    <motion.div 
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        className="h-full flex flex-col items-center justify-center text-center max-w-md mx-auto"
-                    >
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="h-full flex flex-col items-center justify-center text-center max-w-md mx-auto">
                         <Bot className="w-10 h-10 opacity-10 mb-6" />
                         <h2 className="text-2xl font-bold mb-3">Hi, I'm your AI Builder.</h2>
-                        <p className="text-[14px] leading-relaxed font-medium opacity-40">
-                            I can analyze your GitHub repositories and build a professional Notion portfolio in seconds. Describe what you need.
-                        </p>
-
+                        <p className="text-[14px] leading-relaxed font-medium opacity-40">I can analyze your GitHub repositories and build a professional Notion portfolio in seconds.</p>
                         <div className="mt-8 flex flex-wrap justify-center gap-3">
                             {[
                                 { label: "Build my Portfolio", icon: <Sparkles className="w-3.5 h-3.5" />, text: "Build my portfolio from my GitHub" },
@@ -422,164 +366,74 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
                                 { label: "Generate Resume", icon: <FileText className="w-3.5 h-3.5" />, text: "Generate a resume based on my profile" },
                                 { label: "Fast Sync", icon: <Zap className="w-3.5 h-3.5" />, text: "Sync my latest GitHub changes to Notion" }
                             ].map((action, i) => (
-                                <motion.button 
-                                    key={i}
-                                    whileHover={{ scale: 1.05, y: -2 }}
-                                    whileTap={{ scale: 0.95 }}
-                                    onClick={() => setInput(action.text)}
-                                    className="px-4 py-2.5 bg-secondary/50 border border-border/50 hover:border-primary/50 hover:bg-secondary rounded-xl text-[11px] font-black uppercase tracking-widest transition-all shadow-sm hover:shadow-xl flex items-center gap-2"
-                                >
-                                    {action.icon}
-                                    {action.label}
-                                </motion.button>
+                                <button key={i} onClick={() => setInput(action.text)} className="px-4 py-2.5 bg-secondary/50 border border-border/50 hover:border-primary/50 hover:bg-secondary rounded-xl text-[11px] font-black uppercase tracking-widest transition-all flex items-center gap-2">{action.icon}{action.label}</button>
                             ))}
                         </div>
                     </motion.div>
                 ) : (
                     messages.map((m) => (
-                        <motion.div 
-                            key={m.id}
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}
-                        >
+                        <div key={m.id} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
                             <div className={`max-w-[80%] flex gap-4 ${m.role === "user" ? "flex-row-reverse" : "flex-row"}`}>
-                                <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${m.role === "user" ? "bg-secondary" : "bg-primary text-primary-foreground"}`}>
-                                    {m.role === "user" ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
-                                </div>
-                                <div className={`p-4 rounded-2xl text-[14px] leading-relaxed font-medium ${m.role === "user" ? "bg-[#2A2A2A] text-white shadow-xl border border-white/5" : "bg-secondary border border-border"}`}>
+                                <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${m.role === "user" ? "bg-secondary" : "bg-primary text-primary-foreground"}`}>{m.role === "user" ? <User className="w-3.5 h-3.5" /> : <Bot className="w-3.5 h-3.5" />}</div>
+                                <div className={`p-4 rounded-2xl text-[14px] leading-relaxed font-medium ${m.role === "user" ? "bg-[#2A2A2A] text-white shadow-xl" : "bg-secondary border border-border"}`}>
                                     {m.role === 'user' && m.content.includes('[Uploaded File:') && (
-                                        <button 
-                                            onClick={() => {
-                                                const match = m.content.match(/\(LINK:(.*?)\)/);
-                                                if (match) window.open(match[1], '_blank');
-                                            }}
-                                            className="mb-4 bg-black/40 border border-white/10 rounded-xl p-3 flex items-center gap-4 group transition-all hover:bg-black/60 shadow-inner w-full text-left cursor-pointer hover:border-primary/30"
-                                        >
-                                            <div className="w-10 h-10 flex items-center justify-center rounded-xl bg-red-500 text-white shadow-lg shrink-0 group-hover:scale-110 transition-transform">
-                                                <FileText className="w-5 h-5 font-bold" />
-                                            </div>
-                                            <div className="flex flex-col min-w-0 pr-4">
-                                                <span className="text-[12px] font-bold truncate text-white/90 group-hover:text-primary transition-colors">
-                                                    {m.content.match(/\[Uploaded File: (.*?)\]/)?.[1] || "Document"}
-                                                </span>
-                                                <span className="text-[9px] opacity-40 uppercase tracking-widest font-black leading-none">Click to View Original</span>
-                                            </div>
+                                        <button onClick={() => { const match = m.content.match(/\(LINK:(.*?)\)/); if (match) window.open(match[1], '_blank'); }} className="mb-4 bg-black/40 border border-white/10 rounded-xl p-3 flex items-center gap-4 group transition-all hover:bg-black/60 shadow-inner w-full text-left">
+                                            <div className="w-10 h-10 flex items-center justify-center rounded-xl bg-red-500 text-white shadow-lg shrink-0 group-hover:scale-110 transition-transform"><FileText className="w-5 h-5 font-bold" /></div>
+                                            <div className="flex flex-col min-w-0 pr-4"><span className="text-[12px] font-bold truncate text-white/90">{m.content.match(/\[Uploaded File: (.*?)\]/)?.[1] || "Document"}</span><span className="text-[9px] opacity-40 uppercase tracking-widest font-black leading-none">Click to View</span></div>
                                             <ExternalLink className="w-3 h-3 ml-auto opacity-0 group-hover:opacity-40 transition-opacity" />
                                         </button>
                                     )}
-
-                                    <ReactMarkdown 
-                                        components={{
-                                            p: ({ children }) => <span className="block mb-2 last:mb-0">{children}</span>,
-                                            li: ({ children }) => <li className="ml-4 list-disc opacity-80">{children}</li>
-                                        }}
-                                    >
-                                        {/* Strip file prefix and link pattern for display */}
-                                        {m.role === 'user' ? m.content.replace(/\[Uploaded File: .*?\](\(LINK:.*?\))? /, '') : m.content}
-                                    </ReactMarkdown>
-
+                                    <ReactMarkdown components={{ p: ({ children }) => <span className="block mb-2 last:mb-0">{children}</span>, li: ({ children }) => <li className="ml-4 list-disc opacity-80">{children}</li> }}>{m.role === 'user' ? m.content.replace(/\[Uploaded File: .*?\](\(LINK:.*?\))? /, '') : m.content}</ReactMarkdown>
                                     {m.actionUrl && (
-                                        <button 
-                                            onClick={() => window.open(m.actionUrl, "_blank")}
-                                            className="mt-4 w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-background/20 hover:bg-background/40 border border-foreground/5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all"
-                                        >
-                                            <ExternalLink className="w-3.5 h-3.5" />
-                                            Visit Notion Site
+                                        <button onClick={() => window.open(m.actionUrl, "_blank")} className="mt-4 w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-background/20 hover:bg-background/40 border border-foreground/5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all">
+                                            <ExternalLink className="w-3.5 h-3.5" /> Visit Notion Site
                                         </button>
                                     )}
                                 </div>
                             </div>
-                        </motion.div>
+                        </div>
                     ))
                 )}
                 {isGenerating && (
                     <div className="flex justify-start">
                         <div className="flex gap-4">
-                            <div className="w-8 h-8 rounded-lg bg-primary text-primary-foreground flex items-center justify-center">
-                                <Bot className="w-4 h-4" />
-                            </div>
-                            <div className="flex items-center gap-2 px-4 py-2 bg-secondary border border-border rounded-2xl">
-                                <Loader2 className="w-3 h-3 animate-spin opacity-40" />
-                                <span className="text-xs opacity-40 font-bold uppercase tracking-widest">Thinking...</span>
-                            </div>
+                            <div className="w-8 h-8 rounded-lg bg-primary text-primary-foreground flex items-center justify-center"><Bot className="w-3.5 h-3.5" /></div>
+                            <div className="flex items-center gap-2 px-4 py-2 bg-secondary border border-border rounded-2xl"><Loader2 className="w-3 h-3 animate-spin opacity-40" /><span className="text-xs opacity-40 font-bold uppercase tracking-widest">Thinking...</span></div>
                         </div>
                     </div>
                 )}
                 <div ref={messagesEndRef} />
             </div>
 
-            {/* Sleek Pill Input - Matched to Reference */}
+            {/* Input Wrapper */}
             <div className="pb-6 sm:pb-10 flex justify-center px-4 sm:px-6">
                 <div className={`relative flex items-center max-w-3xl w-full bg-[#1a1a1b] border transition-all duration-300 rounded-full shadow-2xl px-2 py-1.5 ${isFocused ? "border-white/20 shadow-[0_0_30px_rgba(255,255,255,0.05)]" : "border-white/10"}`}>
-                    
-                    {/* Plus Menu instead of direct button */}
                     <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <button 
-                            className="w-10 h-10 flex items-center justify-center rounded-full text-white/40 hover:text-white hover:bg-white/5 transition-all shrink-0"
-                        >
-                            <Plus className="w-5 h-5" />
-                        </button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent 
-                        side="top" 
-                        align="start" 
-                        className="w-56 bg-[#1a1a1b] border border-white/10 rounded-2xl p-1 mb-2 shadow-2xl animate-in fade-in slide-in-from-bottom-2 duration-200"
-                      >
-                        <DropdownMenuItem 
-                          onClick={() => fileInputRef.current?.click()}
-                          className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-white/70 hover:text-white hover:bg-white/5 rounded-xl cursor-pointer transition-all"
-                        >
-                          <Paperclip className="w-4 h-4 text-white/40" />
-                          <span>Add photos & files</span>
-                        </DropdownMenuItem>
+                      <DropdownMenuTrigger asChild><button className="w-10 h-10 flex items-center justify-center rounded-full text-white/40 hover:text-white hover:bg-white/5 transition-all shrink-0"><Plus className="w-5 h-5" /></button></DropdownMenuTrigger>
+                      <DropdownMenuContent side="top" align="start" className="w-56 bg-[#1a1a1b] border border-white/10 rounded-2xl p-1 mb-2 shadow-2xl animate-in fade-in slide-in-from-bottom-2 duration-200">
+                        <DropdownMenuItem onClick={() => fileInputRef.current?.click()} className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-white/70 hover:text-white hover:bg-white/5 rounded-xl cursor-pointer transition-all"><Paperclip className="w-4 h-4 text-white/40" /><span>Add photos & files</span></DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
 
-                    <input 
-                        type="file" 
-                        ref={fileInputRef} 
-                        onChange={handleFileUpload} 
-                        className="hidden" 
-                        accept=".pdf,.jpg,.jpeg,.png,.docx" 
-                    />
-
+                    <input type="file" ref={fileInputRef} onChange={handleFileUpload} className="hidden" accept=".pdf,.jpg,.jpeg,.png,.docx" />
                     <textarea 
-                        rows={1}
-                        placeholder="Ask anything"
-                        value={input}
+                        rows={1} placeholder="Ask anything" value={input}
                         onChange={(e) => setInput(e.target.value)}
                         onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), handleSend())}
-                        onFocus={() => setIsFocused(true)}
-                        onBlur={() => setIsFocused(false)}
+                        onFocus={() => setIsFocused(true)} onBlur={() => setIsFocused(false)}
                         className="flex-1 bg-transparent px-3 py-2.5 text-[15px] text-white placeholder:text-white/30 focus:outline-none resize-none custom-scrollbar font-normal leading-tight h-[42px] content-center"
                     />
 
                     <div className="flex items-center shrink-0">
-                        <button 
-                            onClick={isGenerating ? () => setIsGenerating(false) : handleSend}
-                            disabled={!isGenerating && !input.trim() && !pendingFile}
-                            className={`w-10 h-10 flex items-center justify-center rounded-full transition-all ${(!input.trim() && !pendingFile) && !isGenerating ? "text-white/10" : "bg-white text-black hover:scale-105 active:scale-95 shadow-lg"}`}
-                        >
-                            {isGenerating ? (
-                              <div className="w-3.5 h-3.5 bg-black rounded-sm animate-pulse" />
-                            ) : (
-                              <Send className="w-4.5 h-4.5 translate-x-0.5" />
-                            )}
+                        <button onClick={isGenerating ? () => setIsGenerating(false) : handleSend} disabled={!isGenerating && !input.trim() && !pendingFile} className={`w-10 h-10 flex items-center justify-center rounded-full transition-all ${(!input.trim() && !pendingFile) && !isGenerating ? "text-white/10" : "bg-white text-black hover:scale-105 shadow-lg"}`}>
+                            {isGenerating ? <div className="w-3.5 h-3.5 bg-black rounded-sm animate-pulse" /> : <Send className="w-4 h-4 translate-x-0.5" />}
                         </button>
                     </div>
 
-                    {/* Pending File Indicator (Small Badge) */}
                     {pendingFile && (
                         <div className="absolute -top-12 left-0 right-0 flex justify-center pointer-events-none">
-                            <motion.div 
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                className="bg-[#1a1a1b] border border-white/10 rounded-full px-4 py-1.5 flex items-center gap-2 shadow-2xl pointer-events-auto"
-                            >
-                                <FileText className="w-3.5 h-3.5 text-red-400" />
-                                <span className="text-[10px] font-bold text-white/70 truncate max-w-[120px]">{pendingFile.name}</span>
+                            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-[#1a1a1b] border border-white/10 rounded-full px-4 py-1.5 flex items-center gap-2 shadow-2xl pointer-events-auto">
+                                <FileText className="w-3.5 h-3.5 text-red-400" /><span className="text-[10px] font-bold text-white/70 truncate max-w-[120px]">{pendingFile.name}</span>
                                 <button onClick={() => setPendingFile(null)} className="p-1 hover:bg-white/10 rounded-full"><X className="w-3 h-3 text-white/40" /></button>
                             </motion.div>
                         </div>
@@ -589,41 +443,23 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
          </ResizablePanel>
 
          {showPreview && (
-          <>
-            <ResizableHandle withHandle className="bg-transparent" />
-            <ResizablePanel defaultSize={50} minSize={30}>
-              <PortfolioPreview 
-                isGenerating={isGenerating} 
-                url={previewUrl} 
-                id={previewId}
-                onClose={() => setShowPreview(false)} 
-              />
-            </ResizablePanel>
-          </>
+          <div className="contents sm:contents">
+            <div className="hidden sm:contents"><ResizableHandle withHandle className="bg-transparent" /><ResizablePanel defaultSize={50} minSize={30}><PortfolioPreview isGenerating={isGenerating} url={previewUrl} id={previewId} onClose={() => setShowPreview(false)} /></ResizablePanel></div>
+            <div className="fixed inset-0 z-[100] sm:hidden bg-background"><PortfolioPreview isGenerating={isGenerating} url={previewUrl} id={previewId} onClose={() => setShowPreview(false)} /></div>
+          </div>
         )}
-          {/* Delete Confirmation Dialog */}
-          <AlertDialog open={deleteConfirmId !== null} onOpenChange={(open) => !open && setDeleteConfirmId(null)}>
-            <AlertDialogContent className="bg-background-secondary border border-border rounded-2xl p-6 shadow-2xl max-w-sm">
-                <AlertDialogHeader>
-                    <AlertDialogTitle className="text-xl font-bold">Delete Conversation?</AlertDialogTitle>
-                    <AlertDialogDescription className="text-sm opacity-60">
-                        This action cannot be undone. This will permanently remove the conversation from your history.
-                    </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter className="mt-6 flex gap-3">
-                    <AlertDialogCancel className="flex-1 bg-secondary text-foreground hover:bg-secondary/80 border-none rounded-xl py-3 font-bold text-xs uppercase tracking-widest">
-                        Cancel
-                    </AlertDialogCancel>
-                    <AlertDialogAction 
-                        onClick={() => deleteConfirmId && handleDeleteSession(deleteConfirmId)}
-                        className="flex-1 bg-red-500 text-white hover:bg-red-600 border-none rounded-xl py-3 font-bold text-xs uppercase tracking-widest"
-                    >
-                        Delete
-                    </AlertDialogAction>
-                </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        </ResizablePanelGroup>
+      </ResizablePanelGroup>
+
+      {/* Delete Confirmation */}
+      <AlertDialog open={deleteConfirmId !== null} onOpenChange={(open) => !open && setDeleteConfirmId(null)}>
+        <AlertDialogContent className="bg-background-secondary border border-border rounded-2xl p-6 shadow-2xl max-w-sm">
+            <AlertDialogHeader><AlertDialogTitle className="text-xl font-bold">Delete Conversation?</AlertDialogTitle><AlertDialogDescription className="text-sm opacity-60">This action cannot be undone.</AlertDialogDescription></AlertDialogHeader>
+            <AlertDialogFooter className="mt-6 flex gap-3">
+                <AlertDialogCancel className="flex-1 bg-secondary text-foreground rounded-xl py-3 font-bold text-xs">Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={() => deleteConfirmId && handleDeleteSession(deleteConfirmId)} className="flex-1 bg-red-500 text-white rounded-xl py-3 font-bold text-xs">Delete</AlertDialogAction>
+            </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
