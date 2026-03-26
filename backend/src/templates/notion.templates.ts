@@ -40,7 +40,15 @@ export const PortfolioTemplates = {
             object: 'block',
             type: 'paragraph',
             paragraph: {
-              rich_text: [{ type: 'text', text: { content: `🔗 ${url}`, link: { url } } }],
+              rich_text: [
+                { 
+                  type: 'text', 
+                  text: { 
+                    content: (url && url.startsWith('http')) ? `🔗 ${url}` : 'No link available',
+                    ...(url && url.startsWith('http') ? { link: { url } } : {})
+                  } 
+                }
+              ],
             },
            },
            {
@@ -54,6 +62,25 @@ export const PortfolioTemplates = {
             },
            }
         ]
+      },
+    },
+  ],
+  experienceCard: (company: string, role: string, period: string, achievements: string[]) => [
+    {
+      object: 'block',
+      type: 'callout',
+      callout: {
+        rich_text: [
+          { type: 'text', text: { content: `${company} - ${role}` }, annotations: { bold: true } },
+          { type: 'text', text: { content: period ? `\n${period}` : '' }, annotations: { italic: true } }
+        ],
+        icon: { type: 'emoji', emoji: '💼' },
+        color: 'gray_background',
+        children: (achievements || []).filter(Boolean).map(a => ({
+          object: 'block',
+          type: 'bulleted_list_item',
+          bulleted_list_item: { rich_text: [{ type: 'text', text: { content: a } }] }
+        }))
       },
     },
   ],

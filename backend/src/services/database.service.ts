@@ -114,8 +114,8 @@ export class DatabaseService {
   async updateResumeData(handle: string, resumeJson: any) {
     return this.sql`
       UPDATE users 
-      SET resume_json = ${JSON.stringify(resumeJson)}
-      WHERE handle = ${handle}
+      SET resume_json = ${resumeJson}
+      WHERE LOWER(handle) = LOWER(${handle})
       RETURNING *
     `;
   }

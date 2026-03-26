@@ -32,7 +32,20 @@ export class TransformerService {
       ));
     }
 
-    // 3. Projects
+    // 3. Experience
+    if (assetMap.experience?.length > 0) {
+      blocks.push(PortfolioTemplates.sectionHeader('Professional Experience', '💼'));
+      for (const exp of assetMap.experience) {
+        blocks.push(...PortfolioTemplates.experienceCard(
+          exp.company || "Company",
+          exp.role || "Role",
+          exp.period || "",
+          exp.achievements || []
+        ));
+      }
+    }
+
+    // 4. Projects
     blocks.push(PortfolioTemplates.sectionHeader(templateId === 'dev-pro' ? 'Project Case Studies' : 'Projects', '🚧'));
     
     if (templateId === 'dev-pro') {
@@ -46,7 +59,7 @@ export class TransformerService {
         project.title || "Project Title", 
         project.description || "Project description.", 
         project.tech_stack || [], 
-        project.url || "#"
+        project.url || ""
       ));
     }
 
@@ -66,7 +79,10 @@ export class TransformerService {
           paragraph: {
             rich_text: socialLinks.map((link: string) => ({
               type: 'text',
-              text: { content: `${link}  `, link: { url: link } }
+              text: { 
+                content: `${link}  `, 
+                ...(link && link.startsWith('http') ? { link: { url: link } } : {})
+              }
             }))
           }
         });

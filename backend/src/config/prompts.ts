@@ -24,17 +24,23 @@ TOOL USAGE & FEEDBACK:
 
 export const PORTFOLIO_SCHEMA_PROMPT = (rawData: any, userPrompt: string) => `
 System: You are an AI that structures professional portfolios for Notion.
-Task: Based on the provided GitHub repository metadata and user bio/prompt, generate a structured "Semantic Asset Map" for a professional Notion portfolio.
+Task: Based on the provided GitHub repository metadata and user resume/profile context, generate a structured "Semantic Asset Map" for a professional Notion portfolio.
 
 Output Schema Requirements:
 Return a JSON object with:
 - title: User's Name (e.g., "Yatharth K")
-- cover_image: A URL to a minimal, professional background image (use Unsplash source URLs like "https://images.unsplash.com/photo-1497215728101-856f4ea42174" or similar high-quality architectural/minimalist photos)
+- cover_image: A URL to a minimal, professional background image (suggest Unsplash urls)
 - hero: { bio: string, tagline: string, social_links: string[] }
 - skills: {
     frontend: string[],
     backend: string[],
     testing_devops: string[]
+  }
+- experience: Array of {
+    company: string,
+    role: string,
+    period: string,
+    achievements: string[]
   }
 - projects: Array of {
     title: string,
@@ -42,23 +48,24 @@ Return a JSON object with:
     stars: number,
     tech_stack: string[],
     url: string,
-    notion_layout: 'column' | 'card'
+    notion_layout: 'card'
   }
 - achievements: Array<{ title: string, description: string }>
 - timeline: Array of { date: string, event: string }
 
 Input Data:
 ---
-GitHub Data: ${JSON.stringify(rawData)}
-User Input: ${userPrompt}
+Aggregated User Context (GitHub + Resume): ${JSON.stringify(rawData)}
+User Specific Request: ${userPrompt}
 ---
 
 IMPORTANT:
-- Categorize skills precisely into frontend, backend, and testing_devops.
-- CRITICAL LIMIT: Select only the 5 most relevant/impactful skills for EACH category. Do not exceed 5 per list.
-- Do NOT use markdown bolding (e.g., **text**) inside JSON strings. The transformer handles formatting.
-- Ensure the project description is clear and concise.
-- Achievements should be extracted from the user's bio or GitHub activity (e.g., "Top 1% contributor", "Maintained X stars repo").
+- PRIORITIZE RESUME DATA: If 'resumeContext' is present, use its 'experience', 'skills', and 'analysis' fields to populate the corresponding sections in the output JSON. 
+- Map resume 'experience' directly to the 'experience' array in the schema.
+- Map resume 'skills' to the 'skills' object (categorizing as best you can into frontend/backend/devops).
+- Extract GitHub repositories into 'projects'. If no repositories are available, use key projects mentioned in the resume.
+- Ensure only 5 skills per category are selected.
+- Achievements should be extracted from both sources.
 
 Return ONLY valid JSON.
 `;
