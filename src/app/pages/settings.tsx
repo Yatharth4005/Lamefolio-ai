@@ -401,14 +401,34 @@ function BillingSettings() {
       
       // If we are in mock mode (no keys on backend)
       if (order.mock) {
-         await verifyBillingPayment(handle, planId, order.id, 'mock_pay_id', 'mock_sig');
-         toast.success("Developer Mode: Mock upgrade successful!");
-         window.location.reload();
+         toast.info("Developer Mode: Razorpay keys not detected on backend.", {
+           description: "You can use the mock bypass to test the upgrade process.",
+           action: {
+             label: "Bypass & Upgrade",
+             onClick: async () => {
+               await verifyBillingPayment(handle, planId, order.id, 'mock_pay_id', 'mock_sig');
+               toast.success("Mock upgrade successful!");
+               setTimeout(() => window.location.reload(), 1000);
+             }
+           },
+           duration: 10000,
+         });
+         setProcessingPlanId(null);
+         return;
+      }
+
+      const rzpKey = import.meta.env.VITE_RAZORPAY_KEY_ID;
+      
+      if (!rzpKey || rzpKey === "rzp_test_mock") {
+         toast.error("VITE_RAZORPAY_KEY_ID is missing in frontend env", {
+           description: "Please add your Razorpay Live/Test Key to the Vercel Frontend project settings."
+         });
+         setProcessingPlanId(null);
          return;
       }
 
       const options = {
-        key: import.meta.env.VITE_RAZORPAY_KEY_ID || "rzp_test_mock", // Should be provided in env
+        key: rzpKey, 
         amount: order.amount,
         currency: order.currency,
         name: "Lamefolio AI",

@@ -50,6 +50,7 @@ const start = async () => {
 🛠️ Gemini API: Registered
 🛠️ GitHub Token: ${env.GITHUB_TOKEN ? 'Present' : 'Missing'}
 🛠️ Notion Token: ${env.NOTION_TOKEN ? 'Present' : 'Missing'}
+💳 Razorpay: ${env.RAZORPAY_KEY_ID ? 'Live Gateway Active' : 'Mock Mode Enabled'}
 -----------------------------------
     `);
   } catch (err) {

@@ -9,10 +9,13 @@ export class BillingService {
 
   constructor() {
     if (env.RAZORPAY_KEY_ID && env.RAZORPAY_KEY_SECRET) {
+      console.log('✅ BillingService: Razorpay initialized with keys.');
       this.razorpay = new Razorpay({
         key_id: env.RAZORPAY_KEY_ID,
         key_secret: env.RAZORPAY_KEY_SECRET,
       });
+    } else {
+      console.warn('⚠️ BillingService: Razorpay keys missing. Mock mode enabled.');
     }
   }
 
@@ -40,6 +43,7 @@ export class BillingService {
     };
 
     const order = await this.razorpay.orders.create(options);
+    console.log(`📦 Order created for ${handle}:`, order.id);
     return order;
   }
 
