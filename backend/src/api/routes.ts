@@ -578,4 +578,17 @@ I've saved this data to your profile. You can now ask me to **"build my portfoli
       return reply.status(500).send({ error: error.message });
     }
   });
+
+  fastify.get('/billing/history/:handle', async (request, reply) => {
+    try {
+      const { handle } = request.params as { handle: string };
+      console.log(`🔍 Fetching Billing History for: ${handle}`);
+      const history = await db.getBillingHistory(handle);
+      console.log(`✅ Found ${history.length} records for ${handle}`);
+      return reply.send({ success: true, history });
+    } catch (error: any) {
+      console.error('❌ Get Billing History Failed:', error);
+      return reply.status(500).send({ error: error.message });
+    }
+  });
 }

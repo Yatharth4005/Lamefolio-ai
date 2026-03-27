@@ -74,7 +74,14 @@ export class BillingService {
     // Update plan and reset points (optional, or set to high number)
     // PRO plan gets 99, PREMIUM 999
     const points = planId.toLowerCase() === 'pro' ? 99 : 999;
+    const amount = planId.toLowerCase() === 'pro' ? 1 : 2; // In Rupees
     
     await this.db.updateUserPlan(handle, planId.charAt(0).toUpperCase() + planId.slice(1), points);
+    try {
+      await this.db.saveBillingRecord(handle, planId, amount);
+      console.log(`✅ Billing record saved for ${handle}`);
+    } catch (dbErr) {
+      console.error(`❌ Failed to save billing record for ${handle}:`, dbErr);
+    }
   }
 }

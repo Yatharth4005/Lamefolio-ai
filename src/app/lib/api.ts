@@ -265,3 +265,9 @@ export async function verifyBillingPayment(handle: string, planId: string, order
   if (!response.ok) throw new Error("Payment verification failed");
   return response.json();
 }
+export async function getBillingHistory(handle: string) {
+  const response = await fetch(`${API_BASE_URL}/billing/history/${handle}`);
+  if (!response.ok) throw new Error("Failed to fetch billing history");
+  const result = await response.json();
+  return result.history;
+}

@@ -105,10 +105,57 @@ export class DatabaseService {
         END $$;
       `;
 
+      await this.sql`
+        CREATE TABLE IF NOT EXISTS billing_history (
+          id SERIAL PRIMARY KEY,
+          user_handle TEXT NOT NULL,
+          plan_id TEXT NOT NULL,
+          amount INTEGER NOT NULL,
+          status TEXT DEFAULT 'Processed',
+          created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+        );
+      `;
+
+      // Backfill Billing History - Ensure every user starts with Free Plan Enrollment
+      const allUsers = await this.sql`SELECT * FROM users`;
+      for (const u of allUsers) {
+         // 1. Check if they have the 'free' enrollment record
+         const [freeHistory] = await this.sql`SELECT 1 FROM billing_history WHERE LOWER(user_handle) = LOWER(${u.handle}) AND plan_id = 'free'`;
+         if (!freeHistory) {
+            console.log(`📦 Backfilling Free enrollment for user: ${u.handle}`);
+            await this.saveBillingRecord(u.handle, 'free', 0);
+         }
+
+         // 2. Check if they are currently Pro/Premium and missing that specific record
+         if (u.plan.toLowerCase() !== 'free') {
+            const [paidHistory] = await this.sql`SELECT 1 FROM billing_history WHERE LOWER(user_handle) = LOWER(${u.handle}) AND plan_id = LOWER(${u.plan})`;
+            if (!paidHistory) {
+               console.log(`📦 Backfilling ${u.plan} upgrade for user: ${u.handle}`);
+               await this.saveBillingRecord(u.handle, u.plan.toLowerCase(), u.plan.toLowerCase() === 'pro' ? 1 : 2);
+            }
+         }
+      }
+
       console.log('✅ Database initialized successfully');
     } catch (error) {
       console.error('❌ Failed to initialize database:', error);
     }
+  }
+
+  async saveBillingRecord(handle: string, planId: string, amount: number) {
+    return this.sql`
+      INSERT INTO billing_history (user_handle, plan_id, amount)
+      VALUES (LOWER(${handle}), ${planId}, ${amount})
+      RETURNING *
+    `;
+  }
+
+  async getBillingHistory(handle: string) {
+    return this.sql`
+      SELECT * FROM billing_history 
+      WHERE LOWER(user_handle) = LOWER(${handle}) 
+      ORDER BY created_at DESC
+    `;
   }
 
   async updateResumeData(handle: string, resumeJson: any) {

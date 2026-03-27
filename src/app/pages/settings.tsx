@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { useParams, useNavigate } from "react-router";
 import { useGitHub } from "../context/GitHubContext";
-import { updateUserData, createBillingOrder, verifyBillingPayment } from "../lib/api";
+import { updateUserData, createBillingOrder, verifyBillingPayment, getBillingHistory } from "../lib/api";
 import { toast } from "sonner";
 
 export function SettingsPage() {
@@ -385,6 +385,30 @@ function DomainSettings() {
 function BillingSettings() {
   const { plan, githubHandle, displayName, user } = useGitHub();
   const [processingPlanId, setProcessingPlanId] = useState<string | null>(null);
+  const [history, setHistory] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchHistory() {
+      const handle = githubHandle || displayName;
+      if (handle) {
+        try {
+          console.log(`📡 Frontend: Catching Billing History for: ${handle}`);
+          const data = await getBillingHistory(handle);
+          console.log(`📡 Frontend: Loaded ${data.length} records`);
+          setHistory(data);
+        } catch (err) {
+          console.error("Failed to fetch billing history:", err);
+        } finally {
+          setIsLoading(false);
+        }
+      } else {
+        console.warn("📡 Frontend: No handle available to fetch history");
+        setIsLoading(false);
+      }
+    }
+    fetchHistory();
+  }, [githubHandle, displayName]);
 
   const handleUpgrade = async (planId: string) => {
     if (planId === 'free') return;
@@ -456,6 +480,7 @@ function BillingSettings() {
             setTimeout(() => window.location.reload(), 2000);
           } catch (err: any) {
             toast.error("Payment verification failed. Please contact support.");
+            setProcessingPlanId(null);
           }
         },
         prefill: {
@@ -466,17 +491,32 @@ function BillingSettings() {
           color: "#8B5CF6",
         },
         modal: {
-          onclose: () => setProcessingPlanId(null)
+          onclose: () => {
+            console.log("💳 Razorpay Modal Closed");
+            setProcessingPlanId(null);
+          }
         }
       };
 
       const rzp1 = (window as any).Razorpay ? new (window as any).Razorpay(options) : null;
       if (!rzp1) throw new Error("Razorpay script not loaded");
       
+      // REDUNDANT RESET: Sometimes standard onclose doesn't fire reliably
+      rzp1.on('modal.closed', function() {
+          console.log("💳 Modal actually closed (via event)");
+          setProcessingPlanId(null);
+      });
+
       rzp1.on('payment.failed', function (response: any){
           toast.error("Payment failed: " + response.error.description);
           setProcessingPlanId(null);
       });
+
+      rzp1.on('payment.cancel', function (response: any){
+          console.log("💳 Payment cancelled by user");
+          setProcessingPlanId(null);
+      });
+
       rzp1.open();
     } catch (err: any) {
       toast.error(err.message || "Failed to initialize payment");
@@ -586,18 +626,36 @@ function BillingSettings() {
         ))}
       </div>
 
-      {/* Payment History Mockup */}
-      <div className="backdrop-blur-xl bg-secondary border border-border rounded-2xl p-6 md:p-8">
-        <h3 className="text-sm font-bold text-foreground mb-6 uppercase tracking-widest opacity-40">Billing History</h3>
-        <div className="space-y-4">
-          <div className="flex items-center justify-between py-4 border-b border-border/50">
-            <div>
-              <p className="text-sm font-medium text-foreground">Free Plan Enrollment</p>
-              <p className="text-xs text-foreground/30">March 22, 2026</p>
-            </div>
-            <span className="text-xs px-3 py-1 bg-green-500/10 text-green-400 rounded-lg border border-green-500/20">Processed</span>
+      {/* Payment History - Real Data */}
+      <div className="backdrop-blur-xl bg-white/[0.02] border border-black/[0.08] dark:border-white/[0.08] rounded-[2rem] p-8 md:p-10">
+        <h3 className="text-[11px] font-black text-foreground/20 mb-10 uppercase tracking-[0.2em]">Billing History</h3>
+        
+        {isLoading ? (
+          <div className="flex items-center gap-3 text-foreground/20">
+             <Loader2 className="w-4 h-4 animate-spin" />
+             <span className="text-[12px] font-bold uppercase tracking-widest">Hydrating History...</span>
           </div>
-        </div>
+        ) : history.length > 0 ? (
+          <div className="space-y-2">
+            {history.map((record) => (
+              <div key={record.id} className="flex items-center justify-between py-6 border-b border-black/[0.05] dark:border-white/[0.05] last:border-0 hover:bg-black/[0.01] dark:hover:bg-white/[0.01] transition-all px-4 -mx-4 rounded-xl">
+                <div>
+                  <p className="text-[14px] font-bold text-foreground mb-1 capitalize">{record.plan_id} Plan Subscription</p>
+                  <p className="text-[11px] text-foreground/30 font-bold uppercase tracking-widest">
+                    {new Date(record.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })} • ₹{record.amount}
+                  </p>
+                </div>
+                <div className="flex items-center gap-4">
+                   <span className="text-[9px] px-3 py-1.5 bg-green-500/10 text-green-500 rounded-lg border border-green-500/20 font-black uppercase tracking-widest">{record.status}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="py-10 text-center border-2 border-dashed border-black/[0.05] dark:border-white/[0.05] rounded-3xl">
+             <p className="text-[12px] font-black text-foreground/10 uppercase tracking-widest">No transaction history found</p>
+          </div>
+        )}
       </div>
     </motion.div>
   );
