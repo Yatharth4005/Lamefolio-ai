@@ -45,8 +45,8 @@ export function SettingsPage() {
         className="mb-16"
       >
         <div className="flex items-center gap-2 mb-4">
-           <div className="w-1.5 h-1.5 rounded-full bg-primary" />
-           <span className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground/30">Workspace Settings</span>
+          <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground/30">Workspace Settings</span>
         </div>
         <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4 tracking-[-0.03em]">
           Settings
@@ -71,11 +71,10 @@ export function SettingsPage() {
                   key={section.id}
                   onClick={() => handleSectionChange(section.id)}
                   whileHover={{ x: 4 }}
-                  className={`w-full flex items-center justify-between px-4 py-3.5 rounded-2xl transition-all group ${
-                    activeSection === section.id
+                  className={`w-full flex items-center justify-between px-4 py-3.5 rounded-2xl transition-all group ${activeSection === section.id
                       ? "bg-black/[0.03] dark:bg-white/[0.04] text-foreground border border-black/[0.08] dark:border-white/[0.08] shadow-sm"
                       : "text-foreground/40 hover:text-foreground hover:bg-black/[0.02] dark:hover:bg-white/[0.02]"
-                  }`}
+                    }`}
                 >
                   <div className="flex items-center gap-3.5">
                     <section.icon className={`w-4.5 h-4.5 ${activeSection === section.id ? "text-primary" : "text-foreground/20 group-hover:text-foreground/40"}`} />
@@ -128,7 +127,7 @@ function ProfileSettings() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [localName, setLocalName] = useState(displayName);
   const [localBio, setLocalBio] = useState(user?.bio || "");
-  
+
   const handleRemoveAvatar = () => {
     if (user) {
       setUser({ ...user, avatar: "" });
@@ -168,19 +167,19 @@ function ProfileSettings() {
       animate={{ opacity: 1 }}
       className="bg-white dark:bg-white/[0.02] border border-black/[0.08] dark:border-white/[0.08] rounded-[2.5rem] p-10 shadow-sm"
     >
-      <input 
-        type="file" 
-        ref={fileInputRef} 
-        className="hidden" 
-        accept="image/*" 
+      <input
+        type="file"
+        ref={fileInputRef}
+        className="hidden"
+        accept="image/*"
         onChange={handleFileChange}
       />
-      
+
       <div className="flex items-center gap-3 mb-12">
         <User className="w-5 h-5 text-primary" />
         <h2 className="text-2xl font-bold text-foreground tracking-tight">Profile Information</h2>
       </div>
-      
+
       <div className="space-y-10">
         {/* Avatar Section - Refined & Sleek */}
         <div className="flex flex-col sm:flex-row sm:items-center gap-8 p-6 bg-black/[0.02] dark:bg-white/[0.02] border border-black/[0.05] dark:border-white/[0.05] rounded-3xl">
@@ -193,10 +192,10 @@ function ProfileSettings() {
               </span>
             )}
             <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity z-20 flex items-center justify-center cursor-pointer" onClick={() => fileInputRef.current?.click()}>
-               <User className="w-5 h-5 text-white" />
+              <User className="w-5 h-5 text-white" />
             </div>
           </div>
-          
+
           <div className="flex-1">
             <h4 className="text-[14px] font-bold text-foreground mb-0.5">Identity Image</h4>
             <p className="text-[10px] text-foreground/30 font-bold uppercase tracking-widest mb-3.5">PNG, JPG • MAX 800KB</p>
@@ -301,7 +300,7 @@ function NotificationSettings() {
         <Bell className="w-5 h-5 text-primary" />
         <h2 className="text-2xl font-bold text-foreground tracking-tight">Notification Preferences</h2>
       </div>
-      
+
       <div className="space-y-6">
         {notifications.map((item) => (
           <div key={item.title} className="flex items-center justify-between py-6 border-b border-black/[0.05] dark:border-white/[0.05] last:border-0">
@@ -333,7 +332,7 @@ function DomainSettings() {
         <Globe className="w-5 h-5 text-primary" />
         <h2 className="text-2xl font-bold text-foreground tracking-tight">Custom Domain</h2>
       </div>
-      
+
       <div className="space-y-10">
         <div>
           <label className="block text-[10px] font-black text-foreground/20 uppercase tracking-[0.2em] mb-4">
@@ -360,7 +359,7 @@ function DomainSettings() {
           <div className="absolute inset-0 bg-primary/10 dark:bg-primary/5" />
           <div className="relative p-10 flex flex-col md:flex-row items-center gap-8">
             <div className="w-16 h-16 rounded-2xl bg-primary/20 flex items-center justify-center shrink-0">
-               <Crown className="w-8 h-8 text-primary shadow-2xl" />
+              <Crown className="w-8 h-8 text-primary shadow-2xl" />
             </div>
             <div className="flex-1 text-center md:text-left">
               <h3 className="text-[18px] font-bold text-foreground mb-1 leading-tight">Elevate to White-label</h3>
@@ -413,46 +412,46 @@ function BillingSettings() {
   const handleUpgrade = async (planId: string) => {
     if (planId === 'free') return;
     setProcessingPlanId(planId);
-    
+
     try {
       const handle = githubHandle || displayName;
       if (!handle) {
-         toast.error("Please sign in to upgrade");
-         return;
+        toast.error("Please sign in to upgrade");
+        return;
       }
 
       const order = await createBillingOrder(handle, planId);
-      
+
       // If we are in mock mode (no keys on backend)
       if (order.mock) {
-         toast.info("Developer Mode: Razorpay keys not detected on backend.", {
-           description: "You can use the mock bypass to test the upgrade process.",
-           action: {
-             label: "Bypass & Upgrade",
-             onClick: async () => {
-               await verifyBillingPayment(handle, planId, order.id, 'mock_pay_id', 'mock_sig');
-               toast.success("Mock upgrade successful!");
-               setTimeout(() => window.location.reload(), 1000);
-             }
-           },
-           duration: 10000,
-         });
-         setProcessingPlanId(null);
-         return;
+        toast.info("Developer Mode: Razorpay keys not detected on backend.", {
+          description: "You can use the mock bypass to test the upgrade process.",
+          action: {
+            label: "Bypass & Upgrade",
+            onClick: async () => {
+              await verifyBillingPayment(handle, planId, order.id, 'mock_pay_id', 'mock_sig');
+              toast.success("Mock upgrade successful!");
+              setTimeout(() => window.location.reload(), 1000);
+            }
+          },
+          duration: 10000,
+        });
+        setProcessingPlanId(null);
+        return;
       }
 
       const rzpKey = import.meta.env.VITE_RAZORPAY_KEY_ID;
-      
+
       if (!rzpKey || rzpKey === "rzp_test_mock") {
-         toast.error("VITE_RAZORPAY_KEY_ID is missing in frontend env", {
-           description: "Please add your Razorpay Live/Test Key to the Vercel Frontend project settings."
-         });
-         setProcessingPlanId(null);
-         return;
+        toast.error("VITE_RAZORPAY_KEY_ID is missing in frontend env", {
+          description: "Please add your Razorpay Live/Test Key to the Vercel Frontend project settings."
+        });
+        setProcessingPlanId(null);
+        return;
       }
 
       const options = {
-        key: rzpKey, 
+        key: rzpKey,
         amount: order.amount,
         currency: order.currency,
         name: "Lamefolio AI",
@@ -471,7 +470,7 @@ function BillingSettings() {
               description: "Your unlimited access is now active.",
               duration: 5000,
             });
-            
+
             // Simulate mobile notification
             console.log(`📱 SMS SENT: Hello ${displayName}, welcome to Lamefolio ${planId.toUpperCase()}! Your unlimited AI generations are now active.`);
             console.log(`📧 EMAIL SENT: To ${user?.email || "user@example.com"} - [Payment Successful] Welcome to Lamefolio PRO/Premium!`);
@@ -500,21 +499,21 @@ function BillingSettings() {
 
       const rzp1 = (window as any).Razorpay ? new (window as any).Razorpay(options) : null;
       if (!rzp1) throw new Error("Razorpay script not loaded");
-      
+
       // REDUNDANT RESET: Sometimes standard onclose doesn't fire reliably
-      rzp1.on('modal.closed', function() {
-          console.log("💳 Modal actually closed (via event)");
-          setProcessingPlanId(null);
+      rzp1.on('modal.closed', function () {
+        console.log("💳 Modal actually closed (via event)");
+        setProcessingPlanId(null);
       });
 
-      rzp1.on('payment.failed', function (response: any){
-          toast.error("Payment failed: " + response.error.description);
-          setProcessingPlanId(null);
+      rzp1.on('payment.failed', function (response: any) {
+        toast.error("Payment failed: " + response.error.description);
+        setProcessingPlanId(null);
       });
 
-      rzp1.on('payment.cancel', function (response: any){
-          console.log("💳 Payment cancelled by user");
-          setProcessingPlanId(null);
+      rzp1.on('payment.cancel', function (response: any) {
+        console.log("💳 Payment cancelled by user");
+        setProcessingPlanId(null);
       });
 
       rzp1.open();
@@ -538,7 +537,7 @@ function BillingSettings() {
     {
       id: "pro",
       name: "Pro Plan",
-      price: "₹1",
+      price: "$19",
       icon: Zap,
       features: ["Unlimited Generations", "Custom Domain", "Advanced Analytics", "Priority Notion Sync"],
       isCurrent: plan.toLowerCase() === "pro",
@@ -549,7 +548,7 @@ function BillingSettings() {
     {
       id: "premium",
       name: "Premium",
-      price: "₹2",
+      price: "$49",
       icon: Crown,
       features: ["Teams & Collaboration", "White-label Output", "Dedicated Manager", "Beta Feature Access"],
       isCurrent: plan.toLowerCase() === "premium",
@@ -579,11 +578,10 @@ function BillingSettings() {
             )}
 
             <div className="mb-8">
-              <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-6 ${
-                p.id === 'pro' ? 'bg-purple-500/20 text-purple-400' : 
-                p.id === 'premium' ? 'bg-amber-500/20 text-amber-400' : 
-                'bg-white/10 text-white/40'
-              }`}>
+              <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-6 ${p.id === 'pro' ? 'bg-purple-500/20 text-purple-400' :
+                  p.id === 'premium' ? 'bg-amber-500/20 text-amber-400' :
+                    'bg-white/10 text-white/40'
+                }`}>
                 <p.icon className="w-6 h-6" />
               </div>
               <h3 className="text-xl font-bold text-foreground mb-2">{p.name}</h3>
@@ -596,11 +594,10 @@ function BillingSettings() {
             <ul className="space-y-4 mb-10 flex-1">
               {p.features.map((feature) => (
                 <li key={feature} className="flex items-center gap-3 text-sm text-foreground/70">
-                  <div className={`w-1.5 h-1.5 rounded-full ${
-                    p.id === 'pro' ? 'bg-purple-500' : 
-                    p.id === 'premium' ? 'bg-amber-500' : 
-                    'bg-foreground/40'
-                  }`} />
+                  <div className={`w-1.5 h-1.5 rounded-full ${p.id === 'pro' ? 'bg-purple-500' :
+                      p.id === 'premium' ? 'bg-amber-500' :
+                        'bg-foreground/40'
+                    }`} />
                   {feature}
                 </li>
               ))}
@@ -611,13 +608,12 @@ function BillingSettings() {
               whileTap={p.isCurrent ? {} : { scale: 0.98 }}
               disabled={p.isCurrent || !!processingPlanId}
               onClick={() => handleUpgrade(p.id)}
-              className={`w-full py-4 rounded-xl font-bold text-sm tracking-tight transition-all flex items-center justify-center gap-2 ${
-                p.isCurrent 
-                  ? "bg-secondary text-foreground/40 border border-border cursor-default" 
+              className={`w-full py-4 rounded-xl font-bold text-sm tracking-tight transition-all flex items-center justify-center gap-2 ${p.isCurrent
+                  ? "bg-secondary text-foreground/40 border border-border cursor-default"
                   : p.id === 'pro'
                     ? "bg-foreground text-background hover:bg-foreground/90 shadow-lg shadow-black/5"
                     : "bg-muted text-foreground hover:bg-muted/80 border border-border"
-              }`}
+                }`}
             >
               {processingPlanId === p.id ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
               {p.isCurrent ? "Current Plan" : processingPlanId === p.id ? "Processing..." : "Upgrade Plan"}
@@ -629,11 +625,11 @@ function BillingSettings() {
       {/* Payment History - Real Data */}
       <div className="backdrop-blur-xl bg-white/[0.02] border border-black/[0.08] dark:border-white/[0.08] rounded-[2rem] p-8 md:p-10">
         <h3 className="text-[11px] font-black text-foreground/20 mb-10 uppercase tracking-[0.2em]">Billing History</h3>
-        
+
         {isLoading ? (
           <div className="flex items-center gap-3 text-foreground/20">
-             <Loader2 className="w-4 h-4 animate-spin" />
-             <span className="text-[12px] font-bold uppercase tracking-widest">Hydrating History...</span>
+            <Loader2 className="w-4 h-4 animate-spin" />
+            <span className="text-[12px] font-bold uppercase tracking-widest">Hydrating History...</span>
           </div>
         ) : history.length > 0 ? (
           <div className="space-y-2">
@@ -646,14 +642,14 @@ function BillingSettings() {
                   </p>
                 </div>
                 <div className="flex items-center gap-4">
-                   <span className="text-[9px] px-3 py-1.5 bg-green-500/10 text-green-500 rounded-lg border border-green-500/20 font-black uppercase tracking-widest">{record.status}</span>
+                  <span className="text-[9px] px-3 py-1.5 bg-green-500/10 text-green-500 rounded-lg border border-green-500/20 font-black uppercase tracking-widest">{record.status}</span>
                 </div>
               </div>
             ))}
           </div>
         ) : (
           <div className="py-10 text-center border-2 border-dashed border-black/[0.05] dark:border-white/[0.05] rounded-3xl">
-             <p className="text-[12px] font-black text-foreground/10 uppercase tracking-widest">No transaction history found</p>
+            <p className="text-[12px] font-black text-foreground/10 uppercase tracking-widest">No transaction history found</p>
           </div>
         )}
       </div>
