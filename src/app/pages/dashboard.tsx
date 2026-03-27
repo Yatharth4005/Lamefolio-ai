@@ -24,50 +24,7 @@ export function DashboardPage() {
       {/* Hero Section */}
       <ModernHero />
 
-      {/* Cinematic Expanding Video Section */}
-      <div className="relative mb-32 h-[80vh] flex items-center justify-center">
-        <motion.div 
-          style={{ 
-            scale, 
-            borderRadius,
-            opacity,
-            y
-          }}
-          className="relative w-full h-full overflow-hidden border border-white/[0.08] shadow-[0_40px_100px_-20px_rgba(0,0,0,0.5)] bg-black"
-        >
-          {/* Subtle Video Overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 z-10" />
-          
-          <video 
-            autoPlay 
-            muted 
-            loop 
-            playsInline
-            className="w-full h-full object-cover opacity-80"
-          >
-            <source src="https://assets.mixkit.co/videos/preview/mixkit-abstract-fast-and-bright-colored-shapes-28498-large.mp4" type="video/mp4" />
-          </video>
 
-          {/* Video Content Label */}
-          <div className="absolute bottom-12 left-12 z-20">
-            <div className="flex items-center gap-3 px-4 py-2 bg-white/10 backdrop-blur-md rounded-full border border-white/20">
-               <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
-               <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/90">Preview Mode</span>
-            </div>
-            <h3 className="text-3xl font-bold text-white mt-4 tracking-tight">The Future of Portfolios</h3>
-          </div>
-          
-          <motion.div 
-            initial={{ opacity: 0 }}
-            whileHover={{ opacity: 1 }}
-            className="absolute inset-0 flex items-center justify-center z-20 cursor-pointer pointer-events-none"
-          >
-             <div className="w-20 h-20 rounded-full bg-white/10 border border-white/20 backdrop-blur-xl flex items-center justify-center">
-                <Play className="w-8 h-8 text-white fill-current" />
-             </div>
-          </motion.div>
-        </motion.div>
-      </div>
 
       {/* Portfolio Templates Section */}
       <div className="mb-32">
