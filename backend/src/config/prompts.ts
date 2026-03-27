@@ -65,7 +65,9 @@ IMPORTANT:
 - CATEGORY NAMES: Use ONLY 'frontend', 'backend', 'testing_devops' as keys for the 'skills' object.
 - NO OVERLAP: Do NOT mention specific skills, company names, or work dates in your 'hero.bio' or 'hero.tagline'. 
 - HERO: Keep 'hero.tagline' to 1 sentence and 'hero.bio' to 1-2 sentences of personal overview ONLY. Let the specific sections do the talking.
-- COVER IMAGE: Choose a RANDOM, high-quality professional abstract background URL from Unsplash. Every generation MUST have a unique high-res cover image URL. 100 iterations fixed.
+- COVER IMAGE: Select a UNIQUE, high-resolution professional cover image URL from this list of verified Unsplash IDs (use the format 'https://images.unsplash.com/photo-[ID]?auto=format&fit=crop&q=80&w=2000'): 
+  IDs: 1557683316-973673baf926, 1557683311-eac9223472b4, 1557682250-33bd709cbe85, 1497215728101-856f4ea42174, 1531297484001-80022131f5a1, 1504384308090-c894fdcc538d, 1451187580459-43490279c0fa, 1550745162-3c0c1630c26b.
+- RANDOMNESS: Rotate through these IDs so every generation feels fresh. 100 iterations fixed.
 
 Return ONLY valid JSON.
 `;
