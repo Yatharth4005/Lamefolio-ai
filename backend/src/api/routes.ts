@@ -49,10 +49,18 @@ export async function portfolioRoutes(fastify: FastifyInstance) {
 
       // Check if this is a local handle linked to a GitHub account
       const user = await db.getUser(inputHandle);
-      const github_handle = user?.github_handle || inputHandle;
+      const github_handle = user?.github_handle;
+
+      if (!github_handle && inputHandle !== 'manual_entry') {
+        console.log(`⚠️ No GitHub linked for ${inputHandle}`);
+        return reply.status(400).send({ 
+          success: false, 
+          error: 'Your GitHub account is not connected. Please go to the **Integrations** tab to link your GitHub, or provide your GitHub handle directly in the chat.' 
+        });
+      }
 
       // ENFORCE LIMITS: Check if user has points left (if not Pro)
-      if (user && user.plan !== 'Pro' && user.points <= 0) {
+      if (user && user.plan.toLowerCase() !== 'pro' && user.points <= 0) {
         console.log(`⚠️ Limit Reached for ${inputHandle}: ${user.points}/3 points`);
         return reply.status(403).send({ 
           success: false, 
@@ -542,8 +550,11 @@ I've saved this data to your profile. You can now ask me to **"build my portfoli
   fastify.get('/notion/blocks/:pageId', async (request, reply) => {
     try {
       const { pageId } = request.params as { pageId: string };
-      const blocks = await notion.getBlocks(pageId);
-      return reply.send({ success: true, blocks });
+      const [blocks, page] = await Promise.all([
+        notion.getBlocks(pageId),
+        notion.getPage(pageId)
+      ]);
+      return reply.send({ success: true, blocks, page });
     } catch (error: any) {
       return reply.status(500).send({ error: error.message });
     }

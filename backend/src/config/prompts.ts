@@ -60,11 +60,12 @@ User Specific Request: ${userPrompt}
 ---
 
 IMPORTANT:
-- MAXIMUM DATA DENSITY: Map EVERY work experience and EVERY project from the resume into the correct arrays. Do not be selective.
+- SKILLS: Limit each category (frontend, backend, testing_devops) to exactly 5 high-impact skills. DO NOT EXCEED 5.
 - EXPERIENCE & SKILLS: These sections MUST be exhaustive. Aim for 5-7 entries in Experience.
 - CATEGORY NAMES: Use ONLY 'frontend', 'backend', 'testing_devops' as keys for the 'skills' object.
 - NO OVERLAP: Do NOT mention specific skills, company names, or work dates in your 'hero.bio' or 'hero.tagline'. 
-- HERO: Keep 'hero.tagline' to 1 sentence and 'hero.bio' to 1-2 sentences of personal overview ONLY. Let the specific sections do the talking. 100 iterations p error fixed.
+- HERO: Keep 'hero.tagline' to 1 sentence and 'hero.bio' to 1-2 sentences of personal overview ONLY. Let the specific sections do the talking.
+- COVER IMAGE: Choose a RANDOM, high-quality professional abstract background URL from Unsplash. Every generation MUST have a unique high-res cover image URL. 100 iterations fixed.
 
 Return ONLY valid JSON.
 `;

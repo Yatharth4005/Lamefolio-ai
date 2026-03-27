@@ -47,24 +47,22 @@ export class OrchestratorService {
     const pageId = pageresult.id;
     const url = (pageresult as any).url;
 
-    // 5. Append blocks incrementally (in background for real-time flow)
-    // We launch this as a background task and return the page ID immediately
-    (async () => {
-      try {
-        console.log(`💎 Starting background sync of ${blocks.length} blocks to ${pageId}...`);
-        const batchSize = 5; // Smaller batches for more frequent updates
-        for (let i = 0; i < blocks.length; i += batchSize) {
-          const batch = blocks.slice(i, i + batchSize);
-          await this.notion.appendBlocks(pageId, batch);
-          console.log(`✅ Appended batch ${Math.floor(i/batchSize) + 1}/${Math.ceil(blocks.length/batchSize)}`);
-          // Small artificial delay to ensure Notion processes and our frontend polling sees a smooth "flow"
-          await new Promise(r => setTimeout(r, 800));
-        }
-        console.log(`🏁 Portfolio build complete for: ${githubHandle}`);
-      } catch (error) {
-        console.error("❌ Background Portfolio Build Failed:", error);
+    // 5. Append blocks incrementally (blocking the request so frontend stays in "isGenerating" mode)
+    try {
+      console.log(`💎 Syncing ${blocks.length} blocks to ${pageId}...`);
+      const batchSize = 10; // Slightly larger batches for efficiency
+      for (let i = 0; i < blocks.length; i += batchSize) {
+        const batch = blocks.slice(i, i + batchSize);
+        await this.notion.appendBlocks(pageId, batch);
+        console.log(`✅ Appended batch ${Math.floor(i / batchSize) + 1}/${Math.ceil(blocks.length / batchSize)}`);
+        // Small artificial delay to slow down the flow so the frontend feels the AI building it.
+        await new Promise(r => setTimeout(r, 500));
       }
-    })();
+      console.log(`🏁 Portfolio build complete for: ${githubHandle}`);
+    } catch (error) {
+      console.error("❌ Portfolio Build Failed:", error);
+      throw error;
+    }
 
     return {
       url: url,

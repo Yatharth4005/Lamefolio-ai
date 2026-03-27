@@ -392,7 +392,7 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
                         <p className="text-[14px] leading-relaxed font-medium opacity-40">I can analyze your GitHub repositories and build a professional Notion portfolio in seconds.</p>
                         <div className="mt-8 flex flex-wrap justify-center gap-3">
                             {[
-                                { label: "Build my Portfolio", icon: <Sparkles className="w-3.5 h-3.5" />, text: "Build my portfolio using my professional background and GitHub" },
+                                { label: "Build my Portfolio", icon: <Sparkles className="w-3.5 h-3.5" />, text: "Build my portfolio using my GitHub" },
                                 { label: "Add to section", icon: <Plus className="w-3.5 h-3.5" />, text: "Add this () to my () section" },
                                 { label: "Delete from section", icon: <Trash2 className="w-3.5 h-3.5" />, text: "Delete this () from this () section" },
                                 { label: "Summarize Portfolio", icon: <FileText className="w-3.5 h-3.5" />, text: "Summarize my portfolio and suggest improvements" }

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Outlet } from "react-router";
+import { Outlet, useLocation } from "react-router";
 import { ModernSidebar } from "./modern-sidebar";
 import { ModernHeader } from "./modern-header";
 import { AnimatedBackground } from "./animated-background";
@@ -7,6 +7,8 @@ import { Onboarding } from "./onboarding";
 
 export function Layout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const location = useLocation();
+  const isPortfolioBuilder = location.pathname === "/portfolio-builder";
 
   return (
     <div className="flex h-screen overflow-hidden">
@@ -41,26 +43,28 @@ export function Layout() {
               <Outlet />
             </div>
             
-            {/* Global Footer */}
-            <footer className="mt-auto px-6 md:px-12 py-10 border-t border-black/[0.05] dark:border-white/[0.05]">
-              <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
-                <div className="flex items-center gap-6">
-                  <span className="text-[11px] font-black uppercase tracking-[0.2em] text-foreground/20">
-                    &copy; {new Date().getFullYear()} Lamefolio AI
-                  </span>
-                  <div className="hidden md:block w-px h-3 bg-black/[0.05] dark:bg-white/[0.05]" />
-                  <span className="hidden md:inline text-[10px] font-bold text-foreground/40 uppercase tracking-widest">
-                    All Rights Reserved
-                  </span>
+            {/* Global Footer - Hidden on high-density focus pages */}
+            {!isPortfolioBuilder && (
+              <footer className="mt-auto px-6 md:px-12 py-10 border-t border-black/[0.05] dark:border-white/[0.05]">
+                <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+                  <div className="flex items-center gap-6">
+                    <span className="text-[11px] font-black uppercase tracking-[0.2em] text-foreground/20">
+                      &copy; {new Date().getFullYear()} Lamefolio AI
+                    </span>
+                    <div className="hidden md:block w-px h-3 bg-black/[0.05] dark:bg-white/[0.05]" />
+                    <span className="hidden md:inline text-[10px] font-bold text-foreground/40 uppercase tracking-widest">
+                      All Rights Reserved
+                    </span>
+                  </div>
+                  
+                  <div className="flex items-center gap-8">
+                    <a href="#" className="text-[10px] font-bold text-foreground/30 hover:text-primary transition-colors uppercase tracking-widest">Privacy Policy</a>
+                    <a href="#" className="text-[10px] font-bold text-foreground/30 hover:text-primary transition-colors uppercase tracking-widest">Terms of Service</a>
+                    <a href="#" className="text-[10px] font-bold text-foreground/30 hover:text-primary transition-colors uppercase tracking-widest">Support</a>
+                  </div>
                 </div>
-                
-                <div className="flex items-center gap-8">
-                  <a href="#" className="text-[10px] font-bold text-foreground/30 hover:text-primary transition-colors uppercase tracking-widest">Privacy Policy</a>
-                  <a href="#" className="text-[10px] font-bold text-foreground/30 hover:text-primary transition-colors uppercase tracking-widest">Terms of Service</a>
-                  <a href="#" className="text-[10px] font-bold text-foreground/30 hover:text-primary transition-colors uppercase tracking-widest">Support</a>
-                </div>
-              </div>
-            </footer>
+              </footer>
+            )}
           </div>
         </main>
       </div>

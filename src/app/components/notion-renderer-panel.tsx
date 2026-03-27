@@ -10,6 +10,7 @@ interface NotionRendererPanelProps {
 
 export function NotionRendererPanel({ pageId, isGenerating }: NotionRendererPanelProps) {
   const [blocks, setBlocks] = useState<any[]>([]);
+  const [page, setPage] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
 
   const prevBlockIds = useRef<Set<string>>(new Set());
@@ -17,23 +18,24 @@ export function NotionRendererPanel({ pageId, isGenerating }: NotionRendererPane
   useEffect(() => {
     if (!pageId) return;
 
-    const fetchBlocks = async () => {
+    const fetchData = async () => {
       try {
         const response = await getNotionBlocks(pageId);
         if (response.success) {
           setBlocks(response.blocks);
+          if (response.page) setPage(response.page);
         }
       } catch (err: any) {
-        console.error("Failed to fetch blocks:", err);
+        console.error("Failed to fetch data:", err);
       }
     };
 
-    fetchBlocks();
+    fetchData();
     
     // Polling while generating
     let interval: any;
     if (isGenerating) {
-      interval = setInterval(fetchBlocks, 3000);
+      interval = setInterval(fetchData, 3000);
     }
     
     return () => {
@@ -59,9 +61,38 @@ export function NotionRendererPanel({ pageId, isGenerating }: NotionRendererPane
     );
   }
 
+  const coverUrl = page?.cover?.type === 'external' ? page.cover.external.url : page?.cover?.file?.url;
+  const icon = page?.icon?.type === 'emoji' ? page.icon.emoji : null;
+
   return (
-    <div className="h-full w-full bg-white text-black overflow-y-auto custom-scrollbar p-8 md:p-12 font-sans selection:bg-blue-100">
-      <div className="max-w-3xl mx-auto space-y-6 pb-20">
+    <div className="h-full w-full bg-white text-black overflow-y-auto custom-scrollbar p-0 font-sans selection:bg-blue-100">
+      {/* Cover Image */}
+      {coverUrl && (
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="h-48 w-full relative overflow-hidden bg-gray-100"
+        >
+          <img 
+            src={coverUrl} 
+            className="w-full h-full object-cover" 
+            alt="Portfolio Cover"
+          />
+        </motion.div>
+      )}
+
+      <div className="max-w-3xl mx-auto px-8 md:px-12 py-12 space-y-6 pb-20 relative">
+        {/* Icon Overlay */}
+        {icon && (
+          <motion.div 
+            initial={{ scale: 0.5, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className={`absolute -top-12 left-8 md:left-12 text-7xl bg-white rounded-2xl p-1 shadow-sm ${!coverUrl ? 'relative top-0 left-0 mb-8' : ''}`}
+          >
+            {icon}
+          </motion.div>
+        )}
+
         <AnimatePresence initial={false}>
           {blocks.length === 0 && isGenerating && (
              <motion.div 
@@ -70,7 +101,7 @@ export function NotionRendererPanel({ pageId, isGenerating }: NotionRendererPane
                className="flex items-center gap-3 text-gray-400 italic"
              >
                 <Loader2 className="w-4 h-4 animate-spin" />
-                <span>Initialing workspace...</span>
+                <span>Initializing workspace...</span>
              </motion.div>
           )}
 
