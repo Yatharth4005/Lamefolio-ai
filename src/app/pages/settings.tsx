@@ -527,7 +527,7 @@ function BillingSettings() {
     {
       id: "free",
       name: "Free Plan",
-      price: "₹0",
+      price: "$0",
       icon: Sparkles,
       features: ["3 AI Generations", "Notion Integration", "Basic Analytics", "Community Support"],
       isCurrent: plan.toLowerCase() === "free",
