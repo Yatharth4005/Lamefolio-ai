@@ -109,148 +109,130 @@ export function IntegrationsPage() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-6 py-12">
-      <header className="mb-12">
-        <h1 className="text-4xl font-bold text-foreground mb-2 tracking-tight">Integrations</h1>
-        <p className="text-muted-foreground">Connect your toolstack to empower your AI assistant.</p>
+    <div className="max-w-5xl mx-auto px-6 py-16">
+      <header className="mb-14">
+        <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4 tracking-[-0.03em]">Integrations</h1>
+        <p className="text-foreground/40 text-lg font-medium">Connect your toolstack to empower your AI assistant.</p>
       </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-16">
         {/* GitHub Card */}
         <motion.div 
-          whileHover={{ y: -5 }}
-          className={`p-8 rounded-3xl border transition-all duration-500 relative overflow-hidden group ${
-            isConnected 
-              ? "bg-gradient-to-br from-purple-500/10 to-transparent border-purple-500/20" 
-              : "bg-secondary border-border hover:border-sidebar-border"
-          }`}
+          whileHover={{ y: -2 }}
+          className="p-8 rounded-2xl bg-white/[0.02] border border-white/[0.06] hover:bg-white/[0.04] transition-all duration-300 relative overflow-hidden group"
         >
           <div className="relative z-10 flex flex-col h-full">
             <div className="flex-1">
-              <div className="flex justify-between items-start mb-8">
-                <div className="w-16 h-16 bg-muted rounded-2xl flex items-center justify-center">
-                    <Github className="w-8 h-8 text-foreground" />
+              <div className="flex justify-between items-start mb-10">
+                <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center border border-primary/20">
+                    <Github className="w-6 h-6 text-primary" />
                 </div>
                 {isConnected && (
-                  <div className="flex items-center gap-2 px-3 py-1 bg-green-500/10 border border-green-500/20 rounded-lg">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-green-400" />
-                      <span className="text-[10px] font-black uppercase text-green-400">Linked</span>
+                  <div className="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full">
+                      <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
+                      <span className="text-[9px] font-bold uppercase tracking-widest text-emerald-400">Connected</span>
                   </div>
                 )}
               </div>
               
-              <h2 className="text-2xl font-bold text-foreground mb-2">GitHub</h2>
-              <p className="text-muted-foreground text-sm mb-8 leading-relaxed">
-                Sync your repositories, contributions, and project readmes to build a data-driven portfolio.
+              <h2 className="text-xl font-bold text-foreground mb-2 tracking-tight">GitHub</h2>
+              <p className="text-foreground/40 text-sm mb-10 leading-relaxed font-medium">
+                Sync repositories, contributions, and project readmes to build your data-driven portfolio.
               </p>
 
               {isConnected && user ? (
-                <div className="flex items-center gap-4 p-4 bg-muted rounded-2xl border border-border/50 mb-6">
-                  <img src={user.avatar} className="w-12 h-12 rounded-xl" alt="avatar" />
+                <div className="flex items-center gap-4 p-4 bg-white/[0.03] rounded-xl border border-white/[0.06] mb-10">
+                  <img src={user.avatar} className="w-10 h-10 rounded-lg border border-white/[0.1]" alt="avatar" />
                   <div>
-                      <p className="text-foreground font-bold text-sm">@{user.username}</p>
-                      <p className="text-foreground/30 text-[10px] uppercase font-black tracking-widest">{user.repos.length} Repositories</p>
+                      <p className="text-foreground font-bold text-sm tracking-tight">{user.username}</p>
+                      <p className="text-foreground/20 text-[10px] uppercase font-bold tracking-widest">{user.repos.length} Repositories</p>
                   </div>
                 </div>
               ) : null}
             </div>
 
             <motion.button
-              whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={isConnected ? disconnectGitHub : initiateGitHubAuth}
               disabled={isConnecting === "github"}
-              className={`w-full py-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all ${
+              className={`w-full py-3.5 rounded-xl font-bold text-[13px] flex items-center justify-center gap-2 transition-all ${
                 isConnected 
-                  ? "bg-muted text-foreground/40 hover:bg-muted/80 hover:text-foreground border border-border/50" 
-                  : "bg-foreground text-background shadow-lg shadow-black/5"
+                  ? "bg-white/[0.03] text-foreground/40 hover:bg-white/[0.06] hover:text-foreground border border-white/[0.06]" 
+                  : "bg-primary text-white shadow-[0_10px_30px_rgba(94,106,210,0.3)] hover:shadow-[0_15px_40px_rgba(94,106,210,0.4)]"
               }`}
             >
-              {isConnecting === "github" ? <Loader2 className="w-5 h-5 animate-spin" /> : <Github className="w-5 h-5" />}
-              {isConnected ? "Disconnect GitHub" : "Connect GitHub"}
+              {isConnecting === "github" ? <Loader2 className="w-4 h-4 animate-spin" /> : <Github className="w-4 h-4" />}
+              <span className="tracking-tight">{isConnected ? "Disconnect Account" : "Connect GitHub"}</span>
             </motion.button>
           </div>
         </motion.div>
 
         {/* Notion Card */}
         <motion.div 
-          whileHover={{ y: -5 }}
-          className={`p-8 rounded-3xl border transition-all duration-500 relative overflow-hidden group ${
-            isNotionConnected 
-              ? "bg-gradient-to-br from-blue-500/10 to-transparent border-blue-500/20" 
-              : "bg-secondary border-border hover:border-sidebar-border"
-          }`}
+          whileHover={{ y: -2 }}
+          className="p-8 rounded-2xl bg-white/[0.02] border border-white/[0.06] hover:bg-white/[0.04] transition-all duration-300 relative overflow-hidden group"
         >
-          {/* Shimmer effect for unconnected state */}
-          {!isNotionConnected && (
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.015] to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 ease-in-out" />
-          )}
-
           <div className="relative z-10 flex flex-col h-full">
             <div className="flex-1">
-              <div className="flex justify-between items-start mb-8">
-                <div className="w-16 h-16 bg-muted rounded-2xl flex items-center justify-center">
-                    <Database className="w-8 h-8 text-foreground" />
+              <div className="flex justify-between items-start mb-10">
+                <div className="w-12 h-12 bg-white/[0.05] rounded-xl flex items-center justify-center border border-white/[0.1]">
+                    <Database className="w-6 h-6 text-foreground/60" />
                 </div>
                 {isNotionConnected ? (
-                  <div className="flex items-center gap-2 px-3 py-1 bg-blue-500/10 border border-blue-500/20 rounded-lg">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-blue-400" />
-                      <span className="text-[10px] font-black uppercase text-blue-400">Linked</span>
+                  <div className="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full">
+                      <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
+                      <span className="text-[9px] font-bold uppercase tracking-widest text-emerald-400">Integrated</span>
                   </div>
                 ) : (
-                  <div className="flex items-center gap-2 px-3 py-1 bg-amber-500/10 border border-amber-500/20 rounded-lg">
-                      <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                      <span className="text-[10px] font-black uppercase text-amber-400">Required</span>
+                  <div className="flex items-center gap-2 px-2.5 py-1 bg-primary/10 border border-primary/20 rounded-full">
+                      <Sparkles className="w-3 h-3 text-primary" />
+                      <span className="text-[9px] font-bold uppercase tracking-widest text-primary">Required</span>
                   </div>
                 )}
               </div>
               
-              <h2 className="text-2xl font-bold text-foreground mb-2">Notion</h2>
-              <p className="text-muted-foreground text-sm leading-relaxed mb-6">
+              <h2 className="text-xl font-bold text-foreground mb-2 tracking-tight">Notion</h2>
+              <p className="text-foreground/40 text-sm leading-relaxed mb-10 font-medium">
                 Directly build your portfolio into your Notion workspace as beautiful, structured pages.
               </p>
 
-
-              {!isNotionConnected && (
-                <div className="flex items-center gap-2 mb-8">
-                  {["Authorize", "Pick Workspace", "Done!"].map((step, i) => (
+              {isNotionConnected && notionWorkspace ? (
+                <div className="flex items-center gap-4 p-4 bg-white/[0.03] rounded-xl border border-white/[0.06] mb-10">
+                  {notionWorkspace.avatar ? (
+                      <img src={notionWorkspace.avatar} className="w-10 h-10 rounded-lg border border-white/[0.1]" alt="notion" />
+                  ) : (
+                      <div className="w-10 h-10 bg-white/[0.05] border border-white/[0.1] rounded-lg flex items-center justify-center font-bold text-foreground/60">{notionWorkspace.name?.[0]}</div>
+                  )}
+                  <div>
+                      <p className="text-foreground font-bold text-sm tracking-tight">{notionWorkspace.name}</p>
+                      <p className="text-foreground/20 text-[10px] uppercase font-bold tracking-widest">Workspace Linked</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 mb-10">
+                   {["Auth", "Pick", "Sync"].map((step, i) => (
                     <div key={step} className="flex items-center gap-2">
-                      <div className="w-5 h-5 rounded-full bg-muted border border-border flex items-center justify-center text-[9px] font-black text-foreground/40">{i + 1}</div>
-                      <span className="text-[11px] text-foreground/40 font-medium">{step}</span>
-                      {i < 2 && <div className="w-4 h-px bg-border/50" />}
+                      <div className="w-5 h-5 rounded-full bg-white/[0.03] border border-white/[0.06] flex items-center justify-center text-[10px] font-bold text-foreground/30">{i + 1}</div>
+                      <span className="text-[11px] text-foreground/30 font-bold uppercase tracking-tight">{step}</span>
+                      {i < 2 && <div className="w-4 h-px bg-white/[0.04]" />}
                     </div>
                   ))}
                 </div>
               )}
-
-              {isNotionConnected && notionWorkspace ? (
-                <div className="flex items-center gap-4 p-4 bg-muted rounded-2xl border border-border/50 mb-6">
-                  {notionWorkspace.avatar ? (
-                      <img src={notionWorkspace.avatar} className="w-12 h-12 rounded-xl" alt="notion" />
-                  ) : (
-                      <div className="w-12 h-12 bg-muted/80 rounded-xl flex items-center justify-center font-bold text-foreground">{notionWorkspace.name?.[0]}</div>
-                  )}
-                  <div>
-                      <p className="text-foreground font-bold text-sm">{notionWorkspace.name}</p>
-                      <p className="text-foreground/30 text-[10px] uppercase font-black tracking-widest">Workspace Integrated</p>
-                  </div>
-                </div>
-              ) : null}
             </div>
 
             <motion.button
-              whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={isNotionConnected ? disconnectNotion : initiateNotionAuth}
               disabled={isConnecting === "notion"}
-              className={`w-full py-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all ${
+              className={`w-full py-3.5 rounded-xl font-bold text-[13px] flex items-center justify-center gap-2 transition-all ${
                 isNotionConnected 
-                  ? "bg-muted text-foreground/40 hover:bg-muted/80 hover:text-foreground border border-border/50" 
-                  : "bg-foreground text-background shadow-lg shadow-black/5"
+                  ? "bg-white/[0.03] text-foreground/40 hover:bg-white/[0.06] hover:text-foreground border border-white/[0.06]" 
+                  : "bg-foreground text-background shadow-[0_10px_30px_rgba(255,255,255,0.05)]"
               }`}
             >
-              {isConnecting === "notion" ? <Loader2 className="w-5 h-5 animate-spin" /> : <Database className="w-5 h-5" />}
-              {isNotionConnected ? "Disconnect Notion" : "Connect Notion — One Click"}
+              {isConnecting === "notion" ? <Loader2 className="w-4 h-4 animate-spin" /> : <Database className="w-4 h-4" />}
+              <span className="tracking-tight">{isNotionConnected ? "Disconnect Account" : "Connect — One Click"}</span>
             </motion.button>
           </div>
         </motion.div>
@@ -259,25 +241,23 @@ export function IntegrationsPage() {
       <AnimatePresence>
         {isConnected && user && (
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             className="mt-12"
           >
-             <h2 className="text-xl font-bold text-foreground mb-6 flex items-center gap-3 uppercase tracking-widest text-[12px] opacity-40">
+             <h2 className="text-[10px] font-black text-foreground/20 uppercase tracking-[0.2em] mb-8">
                 Synchronized Repositories
              </h2>
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {user.repos.map((repo, idx) => (
-                   <div key={idx} className="p-6 bg-secondary border border-border/50 rounded-2xl flex justify-between items-center group hover:bg-muted transition-all">
-                      <div>
-                         <h4 className="text-foreground font-bold text-sm group-hover:text-purple-400 transition-colors">{repo.name}</h4>
-                         <p className="text-foreground/20 text-xs mt-1">{repo.language || "Unknown"}</p>
+                   <div key={idx} className="p-5 bg-white/[0.015] border border-white/[0.04] rounded-xl flex justify-between items-center group hover:bg-white/[0.03] hover:border-white/[0.08] transition-all">
+                      <div className="min-w-0">
+                         <h4 className="text-foreground/80 font-bold text-sm truncate tracking-tight group-hover:text-primary transition-colors">{repo.name}</h4>
+                         <p className="text-foreground/20 text-[10px] font-bold mt-1 uppercase tracking-tight">{repo.language || "Unknown"}</p>
                       </div>
-                      <div className="flex gap-4">
-                         <div className="flex items-center gap-1.5 text-foreground/20 text-xs font-bold">
-                            <Star className="w-3.5 h-3.5 text-yellow-500/40" />
-                            {repo.stars}
-                         </div>
+                      <div className="flex items-center gap-1 text-foreground/20 text-xs font-bold bg-white/[0.03] px-2 py-1 rounded-md">
+                        <Star className="w-3 h-3 text-amber-500/40" />
+                        {repo.stars}
                       </div>
                    </div>
                 ))}

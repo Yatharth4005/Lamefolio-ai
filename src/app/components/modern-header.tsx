@@ -49,25 +49,25 @@ export function ModernHeader({ onMenuClick }: ModernHeaderProps) {
 
       {/* Right Section */}
       <div className="flex items-center gap-1 md:gap-3">
-        {/* AI Credits Badge - Hidden if GitHub is not connected */}
+        {/* AI Credits Badge */}
         {isConnected && (
           <div className="flex items-center gap-2">
             {plan && plan !== "Free" && (
-              <div className={`px-2 py-1 rounded-md text-[10px] font-black uppercase tracking-tighter shadow-sm border ${
+              <div className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-[0.15em] border ${
                 plan.toLowerCase() === 'premium' 
-                  ? "bg-gradient-to-r from-amber-400 to-yellow-500 text-amber-950 border-amber-500/30" 
-                  : "bg-gradient-to-r from-slate-300 to-gray-400 text-slate-900 border-slate-400/30"
+                  ? "bg-amber-500/10 text-amber-500 border-amber-500/20 shadow-[0_0_15px_-5px_rgba(245,158,11,0.3)]" 
+                  : "bg-primary/10 text-primary border-primary/20 shadow-[0_0_15px_-5px_rgba(94,106,210,0.3)]"
               }`}>
                 {plan}
               </div>
             )}
             <motion.button 
               onClick={() => navigate("/settings/billing")}
-              whileHover={{ scale: 1.05 }}
-              className="hidden sm:flex items-center gap-2 px-3 md:px-4 py-2 bg-gradient-to-r from-purple-500/10 to-blue-500/10 border border-purple-500/20 rounded-xl"
+              whileHover={{ scale: 1.02 }}
+              className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-black/[0.03] dark:bg-white/[0.03] border border-black/[0.08] dark:border-white/[0.08] rounded-lg hover:bg-black/[0.05] dark:hover:bg-white/[0.06] transition-colors shadow-sm"
             >
-              <Sparkles className="w-4 h-4 text-purple-400" />
-              <span className="text-xs md:text-sm font-medium text-sidebar-foreground/90">
+              <Sparkles className="w-3.5 h-3.5 text-primary" />
+              <span className="text-[11px] font-bold text-foreground/70 uppercase tracking-widest">
                 {plan === "Free" ? `${points} / 3` : "Unlimited"}
               </span>
             </motion.button>
@@ -79,10 +79,9 @@ export function ModernHeader({ onMenuClick }: ModernHeaderProps) {
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-          className="p-2 md:p-2.5 text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent rounded-xl transition-all group"
-          title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+          className="p-2 text-foreground/40 hover:text-foreground transition-all"
         >
-          {theme === "dark" ? <Moon className="w-4 h-4 md:w-5 md:h-5" /> : <Sun className="w-4 h-4 md:w-5 md:h-5" />}
+          {theme === "dark" ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
         </motion.button>
 
         {/* Notifications */}
@@ -91,13 +90,11 @@ export function ModernHeader({ onMenuClick }: ModernHeaderProps) {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => setShowNotifications(!showNotifications)}
-            className="relative p-2 md:p-2.5 text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent rounded-xl transition-all group"
+            className="p-2 text-foreground/40 hover:text-foreground transition-all relative"
           >
-            <Bell className="w-4 h-4 md:w-5 md:h-5" />
+            <Bell className="w-4 h-4" />
             {unreadCount > 0 && (
-              <span className="absolute top-1.5 md:top-2 right-1.5 md:right-2 w-2 h-2 bg-purple-500 rounded-full ring-2 ring-background">
-                <span className="absolute inset-0 bg-purple-500 rounded-full animate-ping opacity-75" />
-              </span>
+              <span className="absolute top-2 right-2 w-1.5 h-1.5 bg-primary rounded-full ring-2 ring-background" />
             )}
           </motion.button>
 
@@ -107,18 +104,18 @@ export function ModernHeader({ onMenuClick }: ModernHeaderProps) {
                 initial={{ opacity: 0, y: 10, scale: 0.95 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                className="absolute right-0 mt-2 w-80 bg-background-secondary border border-sidebar-border rounded-2xl shadow-2xl overflow-hidden z-[100]"
+                className="absolute right-0 mt-2 w-80 bg-white dark:bg-background-secondary border border-black/[0.1] dark:border-white/[0.08] rounded-2xl shadow-2xl overflow-hidden z-[100]"
               >
-                <div className="p-4 border-b border-sidebar-border/50 flex items-center justify-between">
-                  <h3 className="text-sidebar-foreground font-semibold">Notifications</h3>
-                  <button onClick={clearNotifications} className="text-[11px] text-purple-400 hover:text-purple-300 font-bold uppercase tracking-wider">Clear all</button>
+                <div className="p-4 border-b border-black/[0.05] dark:border-white/[0.05] flex items-center justify-between">
+                  <h3 className="text-foreground font-semibold">Notifications</h3>
+                  <button onClick={clearNotifications} className="text-[11px] text-primary hover:text-primary/80 font-bold uppercase tracking-wider">Clear all</button>
                 </div>
                 <div className="max-h-80 overflow-y-auto">
                   {notifications.length > 0 ? (
                     notifications.map(n => (
                       <div 
                         key={n.id} 
-                        className={`p-4 border-b border-sidebar-border/20 hover:bg-sidebar-accent transition-colors group ${!n.read ? "bg-purple-500/5" : ""}`}
+                        className={`p-4 border-b border-black/[0.04] dark:border-white/[0.04] hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors group ${!n.read ? "bg-primary/5" : ""}`}
                         onClick={() => markNotificationRead(n.id)}
                       >
                         <div className="flex gap-3">
@@ -126,15 +123,15 @@ export function ModernHeader({ onMenuClick }: ModernHeaderProps) {
                             {n.type === 'success' ? <Check className="w-4 h-4" /> : <Sparkles className="w-4 h-4" />}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm text-sidebar-foreground/90 leading-relaxed mb-1">{n.message}</p>
+                            <p className="text-sm text-foreground/90 leading-relaxed mb-1">{n.message}</p>
                             <div className="flex items-center gap-3">
-                              <span className="text-[10px] text-sidebar-foreground/30">{new Date(n.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                              <span className="text-[10px] text-foreground/30">{new Date(n.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                               {n.actionUrl && (
                                 <a 
                                   href={n.actionUrl} 
                                   target="_blank" 
                                   rel="noopener noreferrer"
-                                  className="text-[10px] text-purple-400 font-bold flex items-center gap-1 hover:underline"
+                                  className="text-[10px] text-primary font-bold flex items-center gap-1 hover:underline"
                                   onClick={(e) => { e.stopPropagation(); markNotificationRead(n.id); }}
                                 >
                                   Open Portfolio <ExternalLink className="w-2.5 h-2.5" />

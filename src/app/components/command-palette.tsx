@@ -124,7 +124,7 @@ export function CommandPalette() {
           Search...
         </span>
         <kbd className="hidden md:flex items-center gap-1.5 px-2 py-1 text-[10px] font-bold text-white/20 bg-white/5 border border-white/10 rounded-lg font-mono">
-          <Command className="w-3 h-3" />K
+          CTRL K
         </kbd>
       </button>
 

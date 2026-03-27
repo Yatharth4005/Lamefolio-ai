@@ -77,11 +77,10 @@ export function ModernSidebar({ onClose }: ModernSidebarProps) {
       </div>
 
       {/* Logo */}
-      <div className={`h-16 flex items-center border-b border-sidebar-border ${collapsed ? "justify-center" : "px-6"}`}>
+      <div className={`h-16 flex items-center ${collapsed ? "justify-center" : "px-6"}`}>
         <Link to="/" className="flex items-center gap-3" onClick={handleNavItemClick}>
-          <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-blue-500 rounded-xl flex items-center justify-center relative group">
-            <div className="absolute inset-0 bg-gradient-to-br from-purple-500 to-blue-500 rounded-xl blur-lg opacity-50 group-hover:opacity-75 transition-opacity" />
-            <Wand2 className="w-5 h-5 text-white relative z-10" />
+          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center relative shadow-[0_0_20px_rgba(94,106,210,0.3)]">
+            <Wand2 className="w-4 h-4 text-white" />
           </div>
           <AnimatePresence mode="wait">
             {!collapsed && (
@@ -90,7 +89,7 @@ export function ModernSidebar({ onClose }: ModernSidebarProps) {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -10 }}
                 transition={{ duration: 0.2 }}
-                className="font-semibold text-lg bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent tracking-tight"
+                className="font-bold text-sm tracking-tight text-foreground"
               >
                 lamefolio.ai
               </motion.span>
@@ -100,8 +99,8 @@ export function ModernSidebar({ onClose }: ModernSidebarProps) {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 p-4">
-        <ul className="space-y-2">
+      <nav className="flex-1 px-3 py-4">
+        <ul className="space-y-1">
           {navItems.map((item) => {
             const isActive = location.pathname === item.path;
             return (
@@ -109,21 +108,14 @@ export function ModernSidebar({ onClose }: ModernSidebarProps) {
                 <Link
                   to={item.path}
                   onClick={handleNavItemClick}
-                  className={`relative flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${
+                  className={`relative flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 group ${
                     isActive
-                      ? "text-sidebar-foreground"
-                      : "text-sidebar-foreground/60 hover:text-sidebar-foreground"
+                      ? "text-foreground bg-white/[0.03] shadow-inner"
+                      : "text-sidebar-foreground/50 hover:text-foreground hover:bg-white/[0.02]"
                   }`}
                 >
-                  {isActive && (
-                    <motion.div
-                      layoutId="sidebar-active"
-                      className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-blue-500/20 rounded-xl border border-purple-500/30"
-                      transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                    />
-                  )}
-                  <div className={`relative z-10 w-9 h-9 flex items-center justify-center ${isActive ? "text-purple-400" : ""}`}>
-                    <item.icon className="w-5 h-5" />
+                  <div className={`relative z-10 w-5 h-5 flex items-center justify-center ${isActive ? "text-primary" : ""}`}>
+                    <item.icon className="w-4 h-4 stroke-[2.5]" />
                   </div>
                   <AnimatePresence mode="wait">
                     {!collapsed && (
@@ -132,16 +124,18 @@ export function ModernSidebar({ onClose }: ModernSidebarProps) {
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: -10 }}
                         transition={{ duration: 0.2 }}
-                        className="text-sm font-medium relative z-10"
+                        className="text-[13px] font-medium tracking-tight relative z-10"
                       >
                         {item.label}
                       </motion.span>
                     )}
                   </AnimatePresence>
                   
-                  {/* Glow effect on hover */}
-                  {!isActive && (
-                    <div className="absolute inset-0 bg-sidebar-accent rounded-xl opacity-0 group-hover:opacity-100 transition-opacity" />
+                  {isActive && (
+                    <motion.div
+                      layoutId="sidebar-active-indicator"
+                      className="absolute left-0 w-0.5 h-4 bg-primary rounded-full shadow-[0_0_10px_rgba(94,106,210,1)]"
+                    />
                   )}
                 </Link>
               </li>
@@ -192,18 +186,21 @@ export function ModernSidebar({ onClose }: ModernSidebarProps) {
 
             <div 
               onClick={() => setShowProfile(!showProfile)}
-              className={`flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-sidebar-accent cursor-pointer transition-colors ${collapsed ? "justify-center" : ""}`}
+              className={`flex items-center gap-3.5 px-4 py-3.5 rounded-[1.25rem] bg-black/[0.03] dark:bg-white/[0.03] border border-black/[0.05] dark:border-white/[0.08] hover:border-primary/40 hover:bg-black/[0.05] dark:hover:bg-white/[0.05] cursor-pointer transition-all shadow-sm ${collapsed ? "justify-center" : ""}`}
             >
-              <div className="w-9 h-9 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center relative group flex-shrink-0">
+              <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center relative group flex-shrink-0">
                 {isConnected && user?.avatar ? (
-                  <img src={user.avatar} className="w-full h-full rounded-full object-cover relative z-10" alt="avatar" />
+                  <img src={user.avatar} className="w-full h-full rounded-full object-cover relative z-20" alt="avatar" />
                 ) : (
-                  <span className="text-white text-sm font-medium relative z-10">
+                  <span className="text-white text-sm font-bold relative z-20">
                     {(displayName || user?.username || "C").substring(0, 1).toUpperCase()}
                   </span>
                 )}
-                <div className="absolute inset-0 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full blur-md opacity-50 group-hover:opacity-75 transition-opacity" />
+                {/* Enhanced Bloom Effect */}
+                <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-primary/40 to-transparent blur-md z-10" />
+                <div className="absolute -inset-[3px] bg-gradient-to-r from-purple-500 via-pink-500 to-purple-500 rounded-full opacity-60 blur-md group-hover:opacity-100 transition-opacity" />
               </div>
+              
               <AnimatePresence mode="wait">
                 {!collapsed && (
                   <motion.div
@@ -213,8 +210,11 @@ export function ModernSidebar({ onClose }: ModernSidebarProps) {
                     transition={{ duration: 0.2 }}
                     className="flex-1 min-w-0"
                   >
-                    <p className="text-sm font-medium text-sidebar-foreground truncate">{displayName || user?.username}</p>
-                    <p className="text-xs text-sidebar-foreground/40 truncate">{plan} Plan</p>
+                    <p className="text-[13.5px] font-bold text-foreground leading-none mb-1.5 truncate pr-2">{displayName || user?.username}</p>
+                    <div className="flex items-center gap-1.5">
+                       <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse shadow-[0_0_8px_rgba(94,106,210,0.6)]" />
+                       <p className="text-[10px] text-foreground/40 font-black uppercase tracking-widest">{plan} Plan</p>
+                    </div>
                   </motion.div>
                 )}
               </AnimatePresence>

@@ -36,7 +36,32 @@ export function Layout() {
 
         {/* Page Content */}
         <main className="flex-1 overflow-y-auto" style={{ willChange: "transform" }}>
-          <Outlet />
+          <div className="min-h-full flex flex-col">
+            <div className="flex-1">
+              <Outlet />
+            </div>
+            
+            {/* Global Footer */}
+            <footer className="mt-auto px-6 md:px-12 py-10 border-t border-black/[0.05] dark:border-white/[0.05]">
+              <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+                <div className="flex items-center gap-6">
+                  <span className="text-[11px] font-black uppercase tracking-[0.2em] text-foreground/20">
+                    &copy; {new Date().getFullYear()} Lamefolio AI
+                  </span>
+                  <div className="hidden md:block w-px h-3 bg-black/[0.05] dark:bg-white/[0.05]" />
+                  <span className="hidden md:inline text-[10px] font-bold text-foreground/40 uppercase tracking-widest">
+                    All Rights Reserved
+                  </span>
+                </div>
+                
+                <div className="flex items-center gap-8">
+                  <a href="#" className="text-[10px] font-bold text-foreground/30 hover:text-primary transition-colors uppercase tracking-widest">Privacy Policy</a>
+                  <a href="#" className="text-[10px] font-bold text-foreground/30 hover:text-primary transition-colors uppercase tracking-widest">Terms of Service</a>
+                  <a href="#" className="text-[10px] font-bold text-foreground/30 hover:text-primary transition-colors uppercase tracking-widest">Support</a>
+                </div>
+              </div>
+            </footer>
+          </div>
         </main>
       </div>
     </div>

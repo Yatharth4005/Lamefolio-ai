@@ -59,70 +59,69 @@ export function PortfolioList() {
 
   if (!isConnected) {
     return (
-      <div className="p-12 border border-dashed border-border rounded-3xl text-center bg-secondary">
-         <Globe className="w-10 h-10 text-foreground/20 mx-auto mb-4" />
-         <h4 className="text-foreground font-bold">No Connection Found</h4>
-         <p className="text-foreground/40 text-sm mt-1">Connect your account to see your portfolios.</p>
-
+      <div className="p-16 border border-dashed border-black/[0.1] dark:border-white/[0.1] rounded-[2.5rem] text-center bg-black/[0.02] dark:bg-white/[0.02]">
+         <Globe className="w-12 h-12 text-foreground/10 mx-auto mb-6" />
+         <h4 className="text-xl font-bold text-foreground">No Connection Found</h4>
+         <p className="text-base text-foreground/40 mt-2 font-medium">Connect your account to see your portfolios.</p>
       </div>
     );
   }
 
   if (loading) {
     return (
-      <div className="flex justify-center p-12">
-         <Loader2 className="w-8 h-8 text-purple-500 animate-spin" />
+      <div className="flex justify-center p-20">
+         <Loader2 className="w-10 h-10 text-primary animate-spin" />
       </div>
     );
   }
 
   if (portfolios.length === 0) {
     return (
-      <div className="p-12 border border-dashed border-border rounded-3xl text-center bg-secondary">
-         <FolderOpen className="w-10 h-10 text-foreground/20 mx-auto mb-4" />
-         <h4 className="text-foreground font-bold">No Portfolios Yet</h4>
-         <p className="text-foreground/40 text-sm mt-1">Start a conversation to build your first portfolio.</p>
+      <div className="p-16 border border-dashed border-black/[0.1] dark:border-white/[0.1] rounded-[2.5rem] text-center bg-black/[0.02] dark:bg-white/[0.02]">
+         <FolderOpen className="w-12 h-12 text-foreground/10 mx-auto mb-6" />
+         <h4 className="text-xl font-bold text-foreground">No Portfolios Yet</h4>
+         <p className="text-base text-foreground/40 mt-2 font-medium">Start a conversation to build your first portfolio.</p>
       </div>
     );
   }
 
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {portfolios.map((item) => (
           <motion.a
             key={item.id}
             href={item.notion_url}
             target="_blank"
             rel="noreferrer"
-            whileHover={{ y: -5 }}
-            className="group relative p-6 bg-secondary border border-border rounded-3xl hover:bg-muted hover:border-sidebar-border transition-all cursor-pointer block"
+            whileHover={{ y: -6 }}
+            className="group relative p-8 bg-white dark:bg-white/[0.03] border border-black/[0.1] dark:border-white/[0.08] rounded-[2rem] hover:border-primary/30 shadow-sm hover:shadow-[0_24px_48px_-12px_rgba(0,0,0,0.12)] transition-all cursor-pointer block"
           >
-            <div className="flex justify-between items-start mb-6">
-              <div className="w-12 h-12 bg-muted rounded-2xl flex items-center justify-center">
-                 <Globe className="w-6 h-6 text-foreground/40 group-hover:text-purple-400 transition-colors" />
+            <div className="flex justify-between items-start mb-8">
+              <div className="w-14 h-14 bg-black/[0.03] dark:bg-white/[0.05] border border-black/[0.05] dark:border-white/[0.1] rounded-2xl flex items-center justify-center transition-colors group-hover:border-primary/20">
+                 <Globe className="w-7 h-7 text-foreground/40 group-hover:text-primary transition-colors" />
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-2.5">
                 <div 
                   onClick={(e) => handleDeleteClick(e, item.id)}
-                  className="p-2 bg-muted rounded-lg hover:bg-red-500/10 group/del transition-colors"
+                  className="p-2.5 bg-black/[0.03] dark:bg-white/[0.05] border border-black/[0.05] dark:border-white/[0.1] rounded-xl hover:bg-red-500/10 hover:border-red-500/20 group/del transition-all"
                   title="Delete Portfolio"
                 >
                   <Trash2 className="w-4 h-4 text-foreground/20 group-hover/del:text-red-400 transition-colors" />
                 </div>
-                <div className="p-2 bg-muted rounded-lg group-hover:bg-sidebar-accent transition-colors">
-                  <ExternalLink className="w-4 h-4 text-foreground/40 group-hover:text-foreground transition-colors" />
+                <div className="p-2.5 bg-black/[0.03] dark:bg-white/[0.05] border border-black/[0.05] dark:border-white/[0.1] rounded-xl group-hover:bg-primary/5 transition-all">
+                  <ExternalLink className="w-4 h-4 text-foreground/40 group-hover:text-primary transition-colors" />
                 </div>
               </div>
             </div>
 
-            <h3 className="text-foreground font-bold mb-2 truncate pr-6">Notion Portfolio</h3>
-            <p className="text-foreground/40 text-xs mb-6 line-clamp-1">{item.notion_url}</p>
+            <h3 className="text-xl font-bold text-foreground mb-3 truncate pr-6 group-hover:text-primary transition-colors">Notion Portfolio</h3>
+            <p className="text-foreground/40 text-sm font-semibold mb-8 line-clamp-1">{item.notion_url}</p>
 
-            <div className="flex items-center gap-1.5 pt-4 border-t border-border">
-               <Clock className="w-3 h-3 text-foreground/20" />
-               <span className="text-[10px] uppercase font-black tracking-widest text-foreground/20">
-                  {new Date(item.created_at).toLocaleDateString()}
+            <div className="flex items-center gap-2 pt-6 border-t border-black/[0.05] dark:border-white/[0.05]">
+               <Clock className="w-3.5 h-3.5 text-foreground/20" />
+               <span className="text-[10px] uppercase font-black tracking-[0.15em] text-foreground/25">
+                  Synthesized on {new Date(item.created_at).toLocaleDateString()}
                </span>
             </div>
           </motion.a>
@@ -130,22 +129,22 @@ export function PortfolioList() {
       </div>
 
       <AlertDialog open={deleteConfirmId !== null} onOpenChange={(open) => !open && setDeleteConfirmId(null)}>
-        <AlertDialogContent className="bg-background-secondary border border-border rounded-2xl p-6 shadow-2xl max-w-sm">
+        <AlertDialogContent className="bg-white dark:bg-background-secondary border border-black/[0.1] dark:border-white/[0.1] rounded-3xl p-8 shadow-2xl max-w-md">
             <AlertDialogHeader>
-                <AlertDialogTitle className="text-xl font-bold">Delete Portfolio?</AlertDialogTitle>
-                <AlertDialogDescription className="text-sm opacity-60">
-                    Are you sure you want to remove this portfolio from your vault? This will not delete the actual Notion page.
+                <AlertDialogTitle className="text-2xl font-bold tracking-tight">Remove from Vault?</AlertDialogTitle>
+                <AlertDialogDescription className="text-base text-foreground/50 font-medium leading-relaxed pt-2">
+                    This will permanently remove the record from your dashboard. <br /><span className="text-red-400 font-bold">Important:</span> Your Notion page will NOT be deleted.
                 </AlertDialogDescription>
             </AlertDialogHeader>
-            <AlertDialogFooter className="mt-6 flex gap-3">
-                <AlertDialogCancel className="flex-1 bg-secondary text-foreground hover:bg-secondary/80 border-none rounded-xl py-3 font-bold text-xs uppercase tracking-widest">
+            <AlertDialogFooter className="mt-10 flex gap-3">
+                <AlertDialogCancel className="flex-1 bg-black/[0.03] dark:bg-white/[0.05] text-foreground border-none rounded-2xl py-4 font-bold text-[12px] uppercase tracking-widest hover:bg-black/[0.06] dark:hover:bg-white/[0.1] transition-colors">
                     Cancel
                 </AlertDialogCancel>
                 <AlertDialogAction 
                     onClick={() => deleteConfirmId && confirmDelete(deleteConfirmId)}
-                    className="flex-1 bg-red-500 text-white hover:bg-red-600 border-none rounded-xl py-3 font-bold text-xs uppercase tracking-widest"
+                    className="flex-1 bg-red-500 text-white border-none rounded-2xl py-4 font-bold text-[12px] uppercase tracking-widest hover:bg-red-600 transition-colors shadow-lg shadow-red-500/20"
                 >
-                    Delete
+                    Confirm Delete
                 </AlertDialogAction>
             </AlertDialogFooter>
         </AlertDialogContent>

@@ -9,139 +9,119 @@ export function ModernHero() {
   const { githubHandle, isGenerating, isConnected, displayName, plan } = useGitHub();
 
   const handleGenerate = () => {
-    // If handle is set, we navigate to the builder to start the process
     navigate("/portfolio-builder");
-    
     if (!githubHandle) {
-      toast.info("Welcome! Please start by connecting your GitHub in the Integrations page.", {
-        action: {
-          label: "Connect Now",
-          onClick: () => navigate("/integrations")
-        },
-      });
-    } else {
-      toast.success(`Redirecting to Builder for ${githubHandle}...`);
+      toast.info("Start by connecting your GitHub in Integrations.");
     }
   };
 
   const isPro = plan?.toLowerCase() === 'pro';
   const isPremium = plan?.toLowerCase() === 'premium';
 
-  const bannerStyles = {
-    gradient: isPremium 
-      ? "bg-gradient-to-r from-amber-600 via-yellow-200 to-amber-500" 
-      : isPro 
-        ? "bg-gradient-to-r from-slate-400 via-gray-100 to-slate-500" 
-        : "bg-gradient-to-r from-purple-600/90 via-pink-600/90 to-blue-600/90",
-    text: (isPro || isPremium) ? "text-gray-900" : "text-white",
-    subtext: (isPro || isPremium) ? "text-gray-900/70" : "text-white/80",
-    border: (isPro || isPremium) ? "border-black/10" : "border-white/20",
-    accent: (isPro || isPremium) ? "bg-black/5" : "bg-black/20"
-  };
-
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6 }}
-      className="mb-8"
+      transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+      className="relative mb-12"
     >
-      <div className="mb-4">
+      {/* Background Decor */}
+      <div className="absolute inset-x-0 -top-24 -bottom-24 bg-[radial-gradient(45%_40%_at_50%_50%,rgba(94,106,210,0.08)_0%,transparent_100%)] pointer-events-none" />
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] pointer-events-none" />
+
+      <div className="relative pt-12 pb-8">
         <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.2 }}
-          className={`inline-flex items-center gap-2 px-4 py-2 ${isPremium ? 'bg-amber-500/10 border-amber-500/20' : isPro ? 'bg-slate-500/10 border-slate-500/20' : 'bg-purple-500/10 border-purple-500/20'} border rounded-full mb-4`}
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.1 }}
+          className="inline-flex items-center gap-2 px-3 py-1 bg-black/[0.03] dark:bg-white/[0.03] border border-black/[0.08] dark:border-white/[0.08] rounded-full mb-8 shadow-sm"
         >
-          <div className="relative">
-            <Sparkles className={`w-4 h-4 ${isPremium ? 'text-amber-500' : isPro ? 'text-slate-400' : 'text-purple-400'}`} />
-            <span className="absolute inset-0 animate-ping">
-              <Sparkles className={`w-4 h-4 ${isPremium ? 'text-amber-500' : isPro ? 'text-slate-400' : 'text-purple-400'} opacity-75`} />
-            </span>
-          </div>
-          <span className={`text-sm font-medium ${isPremium ? 'text-amber-600' : isPro ? 'text-slate-500' : 'text-purple-400'} uppercase tracking-widest bg-white/5 px-2 py-0.5 rounded-lg`}>Powered by Gemini</span>
+          <Sparkles className="w-3.5 h-3.5 text-primary" />
+          <span className="text-[10px] font-bold text-foreground/40 uppercase tracking-[0.2em]">Next Gen AI Portfolio Builder</span>
         </motion.div>
         
         <motion.h1
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="text-4xl md:text-5xl font-bold text-foreground mb-3 tracking-tight"
+          transition={{ delay: 0.2 }}
+          className="text-5xl md:text-7xl font-bold text-foreground mb-6 tracking-[-0.03em] leading-[1.1]"
         >
-          {isConnected ? "Welcome back, " : "Ready to build, "}
-          <span className={`bg-gradient-to-r ${isPremium ? 'from-amber-600 to-yellow-500' : isPro ? 'from-slate-500 to-gray-400' : 'from-purple-400 via-pink-400 to-blue-400'} bg-clip-text text-transparent`}>
-            {displayName || githubHandle || "Creator"}
-          </span>{" "}
-          👋
+          Build for the <br />
+          <span className="text-foreground/40">Future of Work</span>
         </motion.h1>
         
         <motion.p
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="text-lg text-foreground/60 max-w-2xl mb-8"
+          transition={{ delay: 0.3 }}
+          className="text-lg md:text-xl text-foreground/50 max-w-xl mb-10 leading-relaxed font-medium"
         >
-          Let's build an amazing portfolio that showcases your skills and achievements.
+          Transform your GitHub presence into a premium Notion portfolio. Engineered for developers, designers, and creators.
         </motion.p>
+
+        <div className="flex flex-wrap gap-4">
+          <motion.button
+            whileHover={{ y: -2 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={handleGenerate}
+            disabled={isGenerating}
+            className="px-8 py-4 bg-primary text-white rounded-xl font-bold flex items-center gap-3 transition-all shadow-[0_20px_40px_rgba(94,106,210,0.25)] disabled:opacity-50"
+          >
+            {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+            <span className="text-sm tracking-tight">{isGenerating ? "Generating..." : "Get Started Now"}</span>
+            <ArrowRight className="w-4 h-4" />
+          </motion.button>
+          
+          <motion.button
+            whileHover={{ y: -2, backgroundColor: "rgba(0,0,0,0.05)" }}
+            whileTap={{ scale: 0.98 }}
+            className="px-8 py-4 bg-black/[0.02] dark:bg-white/[0.02] border border-black/[0.08] dark:border-white/[0.08] text-foreground/80 rounded-xl font-bold flex items-center gap-3 transition-all shadow-sm"
+          >
+            <Play className="w-4 h-4" />
+            <span className="text-sm tracking-tight">How it works</span>
+          </motion.button>
+        </div>
       </div>
 
+      {/* Plan Badge / Status Card */}
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
+        initial={{ opacity: 0, x: 20 }}
+        animate={{ opacity: 1, x: 0 }}
         transition={{ delay: 0.5 }}
-        className="relative group overflow-hidden rounded-[2.5rem] shadow-2xl"
+        className="absolute top-12 right-0 hidden xl:flex flex-col gap-4 w-64"
       >
-        <div className={`absolute inset-0 ${bannerStyles.gradient}`} />
-        {/* Animated accent line */}
-        <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-white/30 to-transparent" />
-        
-        <div className="relative p-8 md:p-12">
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-12">
-            <div className="max-w-2xl">
-              <h2 className={`text-3xl md:text-4xl font-bold ${bannerStyles.text} mb-6 tracking-tight leading-tight`}>
-                Your Professional <span className={`${bannerStyles.subtext}`}>Notion Portfolio</span> is Just One Click Away
-              </h2>
-              
-              <p className={`${bannerStyles.subtext} mb-8 leading-relaxed`}>
-                Connect your GitHub, describe your career goals, and let our AI engine build a high-quality portfolio directly in your Notion workspace.
-              </p>
-
-              <div className="flex flex-wrap gap-4">
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={handleGenerate}
-                  disabled={isGenerating}
-                  className={`px-8 py-4 ${isPro || isPremium ? 'bg-gray-900 text-white hover:bg-black' : 'bg-white text-gray-950 hover:bg-white/90'} rounded-2xl font-bold flex items-center gap-3 transition-all shadow-2xl disabled:opacity-50`}
-                >
-                  {isGenerating ? (
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                  ) : (
-                    <Sparkles className="w-5 h-5" />
-                  )}
-                  {isGenerating ? "Generating..." : (isConnected ? "Generate Portfolio" : "Connect & Generate")}
-                  <ArrowRight className="w-4 h-4 ml-1" />
-                </motion.button>
-                
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className={`px-8 py-4 ${bannerStyles.accent} backdrop-blur-md border ${bannerStyles.border} ${bannerStyles.text} rounded-2xl font-bold flex items-center gap-3 hover:opacity-80 transition-all`}
-                >
-                  <Play className="w-5 h-5" />
-                  Watch Demo
-                </motion.button>
-              </div>
-            </div>
-
-            {/* Decorative Icon */}
-            <div className="hidden lg:block">
-              <div className={`w-48 h-48 ${bannerStyles.accent} rounded-[3rem] backdrop-blur-md border ${bannerStyles.border} flex items-center justify-center rotate-6 animate-pulse`} style={{ willChange: "transform, opacity" }}>
-                <Sparkles className={`w-20 h-20 ${isPro || isPremium ? 'text-black/20' : 'text-white/40'}`} />
-              </div>
-            </div>
+        <div className="p-6 bg-white dark:bg-white/[0.02] border border-black/[0.08] dark:border-white/[0.08] rounded-2xl backdrop-blur-xl shadow-sm">
+          <p className="text-[10px] font-black text-foreground/30 uppercase tracking-[0.2em] mb-4">Subscription Status</p>
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-bold text-foreground capitalize">{plan} Plan</span>
+            <div className={`w-2 h-2 rounded-full ${isPremium ? 'bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.4)]' : isPro ? 'bg-indigo-400 shadow-[0_0_10px_rgba(129,140,248,0.4)]' : 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.4)]'} animate-pulse`} />
           </div>
+          <p className="text-xs text-foreground/40 font-medium">
+            {isPremium ? "Full portfolio suite unlocked" : isPro ? "Advanced features active" : "3 Builds remaining"}
+          </p>
         </div>
+        
+        {!isPremium && (
+          <div 
+            onClick={() => navigate("/settings/billing")}
+            className="p-4 bg-primary/[0.03] border border-primary/20 rounded-2xl flex items-center justify-between group cursor-pointer hover:bg-primary/5 transition-colors shadow-sm"
+          >
+            <span className="text-[11px] font-bold text-primary uppercase tracking-widest py-0.5">
+              {isPro ? "Go Premium" : "Upgrade to Pro"}
+            </span>
+            <ArrowRight className="w-3.5 h-3.5 text-primary group-hover:translate-x-1 transition-transform" />
+          </div>
+        )}
+        
+        {isPremium && (
+          <div 
+            onClick={() => navigate("/settings/billing")}
+            className="p-4 bg-white dark:bg-white/[0.02] border border-black/[0.08] dark:border-white/[0.08] rounded-2xl flex items-center justify-between group cursor-pointer hover:bg-black/[0.03] dark:hover:bg-white/[0.05] transition-colors shadow-sm"
+          >
+            <span className="text-[11px] font-bold text-foreground/40 uppercase tracking-widest py-0.5">Manage Billing</span>
+            <ArrowRight className="w-3.5 h-3.5 text-foreground/20 group-hover:translate-x-1 transition-transform" />
+          </div>
+        )}
       </motion.div>
     </motion.div>
   );

@@ -10,7 +10,7 @@ const templates = [
     title: "Developer Pro",
     description: "Deep integration with GitHub, featuring project trackers and technical case studies.",
     icon: Wand2,
-    color: "from-purple-500 to-blue-500",
+    color: "#5e6ad2",
     features: ["GitHub Repo Sync", "Tech Stack Badges", "Dynamic Skill Board"],
     premium: true
   },
@@ -19,7 +19,7 @@ const templates = [
     title: "Designer Minimal",
     description: "Visual-first layout with high-impact image galleries and sleek typography.",
     icon: Palette,
-    color: "from-pink-500 to-orange-500",
+    color: "#d34e9d",
     features: ["Masonry Gallery", "Custom Brand Color", "Dribbble Integration"],
     premium: false
   },
@@ -28,7 +28,7 @@ const templates = [
     title: "Marketing Master",
     description: "Data-driven structure with KPI dashboards and campaign case studies.",
     icon: Monitor,
-    color: "from-green-500 to-emerald-500",
+    color: "#10b981",
     features: ["Metric Visualizers", "Client Logos", "Lead Generation Focus"],
     premium: true
   },
@@ -37,7 +37,7 @@ const templates = [
     title: "Academic Scholar",
     description: "Highly organized structure for research papers, publications, and CV details.",
     icon: GraduationCap,
-    color: "from-blue-500 to-cyan-500",
+    color: "#3b82f6",
     features: ["Publication List", "Citation Manager", "Education History"],
     premium: false
   }
@@ -46,7 +46,6 @@ const templates = [
 export function TemplateGallery() {
   const navigate = useNavigate();
   const { plan } = useGitHub();
-  const controls = useAnimation();
 
   const handleUseTemplate = async (template: typeof templates[0]) => {
     const isLocked = template.premium && plan.toLowerCase() === "free";
@@ -59,7 +58,6 @@ export function TemplateGallery() {
           onClick: () => navigate("/settings/billing")
         }
       });
-      // Small vibration effect
       if ('vibrate' in navigator) navigator.vibrate(50);
       return;
     }
@@ -69,74 +67,71 @@ export function TemplateGallery() {
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
       {templates.map((template, index) => {
         const isLocked = template.premium && plan.toLowerCase() === "free";
         
         return (
           <motion.div
             key={template.id}
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: index * 0.1 }}
-            whileHover={!isLocked ? { y: -8 } : {}}
-            whileTap={isLocked ? { x: [-2, 2, -2, 2, 0] } : {}}
+            transition={{ duration: 0.4, delay: index * 0.05 }}
+            whileHover={!isLocked ? { y: -2 } : {}}
             className="group relative flex flex-col h-full"
           >
-            {/* Background Glow */}
-            <div className={`absolute -inset-[1px] bg-gradient-to-r ${template.color} rounded-[2rem] opacity-0 group-hover:opacity-20 blur-xl transition-opacity duration-500`} />
-            
-            <div className={`relative flex-1 backdrop-blur-md ${isLocked ? "bg-muted/30 grayscale" : "bg-muted"} border border-border rounded-[2rem] p-8 hover:bg-white/[0.06] hover:border-white/[0.12] transition-all duration-300 flex flex-col overflow-hidden`}>
-              {/* Template Type Indicator */}
-              <div className="absolute top-6 right-6 flex items-center gap-2">
-                {isLocked && <Lock className="w-3 h-3 text-purple-400" />}
-                <div className={`px-2.5 py-1 ${template.premium ? "bg-purple-500/10 text-purple-400" : "bg-secondary text-foreground/40"} border border-border/20 rounded-lg text-[10px] uppercase font-black tracking-widest`}>
+            <div className={`relative flex-1 bg-white dark:bg-white/[0.03] border ${isLocked ? "border-white/[0.04] opacity-80" : "border-black/[0.08] dark:border-white/[0.08]"} rounded-2xl p-7 hover:border-primary/30 shadow-[0_4px_24px_-12px_rgba(0,0,0,0.08)] hover:shadow-[0_24px_48px_-12px_rgba(0,0,0,0.12)] transition-all duration-300 flex flex-col overflow-hidden group/card`}>
+              {/* Top Accent Line */}
+              <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-transparent via-primary/20 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity" />
+              
+              {/* Header */}
+              <div className="flex justify-between items-start mb-10 text-foreground/90">
+                <div 
+                  className="w-11 h-11 rounded-xl flex items-center justify-center border border-black/[0.05] dark:border-white/[0.12] transition-all group-hover/card:scale-105 shadow-sm"
+                  style={{ backgroundColor: `${template.color}15`, borderColor: `${template.color}30` }}
+                >
+                  <template.icon className="w-5 h-5 transition-colors" style={{ color: template.color }} />
+                </div>
+                
+                <div className={`px-2.5 py-1 border rounded-md text-[9px] font-black uppercase tracking-[0.15em] ${template.premium ? "bg-primary text-white border-primary shadow-lg shadow-primary/10" : "bg-black/[0.03] dark:bg-white/[0.05] border-black/[0.05] dark:border-white/[0.1] text-foreground/40"}`}>
                   {template.premium ? "Premium" : "Free"}
                 </div>
               </div>
 
-              {/* Icon Container */}
-              <div className={`w-14 h-14 bg-gradient-to-br ${template.color} rounded-[1.25rem] flex items-center justify-center mb-8 relative ${!isLocked && "group-hover:scale-110 transition-transform duration-500"}`}>
-                <div className={`absolute inset-0 bg-gradient-to-br ${template.color} rounded-[1.25rem] blur-lg opacity-40 group-hover:opacity-75 transition-opacity`} />
-                {isLocked ? (
-                  <Lock className="w-7 h-7 text-white relative z-10" />
-                ) : (
-                  <template.icon className="w-7 h-7 text-white relative z-10" />
-                )}
-              </div>
-
-              <h3 className="text-2xl font-bold text-foreground mb-3 tracking-tight">
+              <h3 className="text-xl font-bold text-foreground mb-2.5 tracking-tight group-hover/card:text-primary transition-colors">
                 {template.title}
               </h3>
               
-              <p className="text-foreground/40 text-sm mb-8 leading-relaxed line-clamp-2 min-h-[2.5rem]">
+              <p className="text-foreground/50 text-[13px] mb-10 leading-relaxed font-semibold">
                 {template.description}
               </p>
 
-              <div className="space-y-3 mb-8 flex-1">
+              <div className="space-y-3 mb-10 flex-1">
                 {template.features.map((feature) => (
-                  <div key={feature} className="flex items-center gap-3 text-foreground/60 transition-colors">
-                    <div className={`w-5 h-5 rounded-full bg-gradient-to-br ${template.color} flex items-center justify-center scale-75 opacity-70`}>
-                      <Check className="w-3 h-3 text-white" />
-                    </div>
-                    <span className="text-xs font-medium text-foreground/60">{feature}</span>
+                  <div key={feature} className="flex items-center gap-3 text-foreground/60 transition-colors group-hover/card:text-foreground/80">
+                    <div className="w-1 h-1 rounded-full bg-primary/40 group-hover/card:bg-primary transition-colors" />
+                    <span className="text-[11px] font-bold tracking-tight">{feature}</span>
                   </div>
                 ))}
               </div>
 
               <button
                 onClick={() => handleUseTemplate(template)}
-                className={`w-full py-4 px-6 ${isLocked ? "bg-secondary/40 text-foreground/20 cursor-not-allowed group-hover:bg-red-500/5 transition-colors" : "bg-secondary hover:bg-foreground text-foreground hover:text-background"} border border-border rounded-2xl font-bold transition-all flex items-center justify-center gap-3 group/btn`}
+                className={`w-full py-4 px-6 rounded-xl font-bold text-[12px] transition-all flex items-center justify-center gap-2.5 ${
+                  isLocked 
+                    ? "bg-black/[0.02] dark:bg-white/[0.02] text-foreground/20 border border-black/[0.05] dark:border-white/[0.05] cursor-not-allowed" 
+                    : "bg-black/[0.04] dark:bg-white/[0.05] hover:bg-foreground hover:text-background text-foreground border border-black/[0.08] dark:border-white/[0.08] group/btn shadow-[0_4px_12px_rgba(0,0,0,0.05)]"
+                }`}
               >
                 {isLocked ? (
                   <>
-                    <Lock className="w-4 h-4" />
-                    <span className="text-sm">Unlock Premium</span>
+                    <Lock className="w-4 h-4 opacity-40" />
+                    <span>Locked Prototype</span>
                   </>
                 ) : (
                   <>
-                    <span className="text-sm">Customize Template</span>
-                    <ChevronRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
+                    <span className="tracking-tight uppercase py-0.5">Use Blueprint</span>
+                    <ChevronRight className="w-4 h-4 opacity-40 group-hover/btn:translate-x-1 transition-transform" />
                   </>
                 )}
               </button>
