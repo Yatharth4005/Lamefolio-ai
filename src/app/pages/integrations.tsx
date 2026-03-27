@@ -3,10 +3,11 @@ import { motion, AnimatePresence } from "motion/react";
 import { useGitHub } from "../context/GitHubContext";
 import { getGitHubAuthUrl, handleGitHubCallback, getNotionAuthUrl, handleNotionCallback, linkGitHubToHandle } from "../lib/api";
 import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router";
+import { useNavigate, useSearchParams } from "react-router";
 import { toast } from "sonner";
 
 export function IntegrationsPage() {
+  const navigate = useNavigate();
   const { 
     user, setUser, token, setToken, setGithubHandle, githubHandle, isConnected,
     notionToken, setNotionToken, notionWorkspace, setNotionWorkspace, isNotionConnected,
@@ -38,6 +39,20 @@ export function IntegrationsPage() {
       }
     }
   }, [searchParams]);
+
+  // AUTO-REDIRECT: If both are connected, take them to the builder!
+  useEffect(() => {
+    if (isConnected && isNotionConnected) {
+      const timer = setTimeout(() => {
+        toast.success("All systems go! Redirecting to Portfolio Builder...", {
+          description: "Both GitHub and Notion are connected.",
+          duration: 3000,
+        });
+        navigate("/portfolio-builder");
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [isConnected, isNotionConnected]);
 
   const handleAuthCallback = async (code: string, service: "github" | "notion") => {
     try {

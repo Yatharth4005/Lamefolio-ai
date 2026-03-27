@@ -1,4 +1,4 @@
-import { Sparkles, Send, Zap, Loader2, User, Bot, ExternalLink, Globe, ChevronDown, CheckCircle2, Layout, Plus, History, MessageSquare, Search, X, MoreHorizontal, Pin, Edit2, Trash2, Code, FileText, Paperclip } from "lucide-react";
+import { Sparkles, Send, Zap, Loader2, User, Bot, ExternalLink, Globe, ChevronDown, CheckCircle2, Layout, Plus, History, MessageSquare, Search, X, MoreHorizontal, Pin, Edit2, Trash2, Code, FileText, Paperclip, Github, Database } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useState, useRef, useEffect } from "react";
 import { useGitHub } from "../context/GitHubContext";
@@ -39,8 +39,10 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
   const [renamingSessionId, setRenamingSessionId] = useState<number | null>(null);
   const [newName, setNewName] = useState("");
   const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
+  const [showConnectPrompt, setShowConnectPrompt] = useState(false);
+  const [promptMessage, setPromptMessage] = useState("");
   
-  const { githubHandle, isGenerating, setIsGenerating, addNotification, displayName, incrementGenerationCount, plan, points, user, isNotionConnected } = useGitHub();
+  const { githubHandle, isGenerating, setIsGenerating, addNotification, displayName, incrementGenerationCount, plan, points, user, isNotionConnected, isConnected } = useGitHub();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
@@ -232,6 +234,9 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
           };
           setMessages((prev) => [...prev, aiMsg]);
           setShowPreview(false);
+      } else if (error.message?.toLowerCase().includes("not connected") || error.message?.toLowerCase().includes("no github linked")) {
+          setPromptMessage(error.message);
+          setShowConnectPrompt(true);
       } else {
           toast.error(error.message || "Something went wrong.");
       }
@@ -500,6 +505,58 @@ export function ModernAIChat({ immersive = false }: ModernAIChatProps) {
             </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      
+      {/* Integration Missing Prompt */}
+      <AnimatePresence>
+        {showConnectPrompt && (
+          <motion.div 
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[200] flex items-center justify-center bg-background/80 backdrop-blur-md px-6"
+          >
+            <motion.div 
+              initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
+              className="max-w-md w-full bg-secondary border border-border rounded-3xl p-8 shadow-2xl text-center relative overflow-hidden"
+            >
+              <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-primary via-purple-500 to-blue-500" />
+              
+              <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-6 border border-primary/20">
+                <Zap className="w-8 h-8 text-primary shadow-primary/50" />
+              </div>
+
+              <h2 className="text-2xl font-black mb-4 tracking-tight">Integration Required</h2>
+              <p className="text-foreground/60 text-sm leading-relaxed mb-8">
+                {promptMessage || "Connect your ecosystem to unlock AI portfolio builders, live previews, and automated repository analysis."}
+              </p>
+
+              <div className="grid grid-cols-2 gap-3 mb-6">
+                 <div className={`p-4 rounded-xl border flex flex-col items-center gap-2 transition-all ${isConnected ? "bg-emerald-500/5 border-emerald-500/20" : "bg-white/[0.02] border-white/[0.06]"}`}>
+                   <Github className={`w-5 h-5 ${isConnected ? "text-emerald-400" : "opacity-20"}`} />
+                   <span className={`text-[10px] font-bold uppercase tracking-widest ${isConnected ? "text-emerald-400" : "opacity-20"}`}>{isConnected ? "GitHub Connected" : "GitHub Pending"}</span>
+                 </div>
+                 <div className={`p-4 rounded-xl border flex flex-col items-center gap-2 transition-all ${isNotionConnected ? "bg-emerald-500/5 border-emerald-500/20" : "bg-white/[0.02] border-white/[0.06]"}`}>
+                   <Database className={`w-5 h-5 ${isNotionConnected ? "text-emerald-400" : "opacity-20"}`} />
+                   <span className={`text-[10px] font-bold uppercase tracking-widest ${isNotionConnected ? "text-emerald-400" : "opacity-20"}`}>{isNotionConnected ? "Notion Connected" : "Notion Pending"}</span>
+                 </div>
+              </div>
+
+              <div className="flex flex-col gap-3">
+                <button 
+                  onClick={() => navigate("/integrations")}
+                  className="w-full py-4 bg-primary text-white rounded-xl font-bold text-sm tracking-tight hover:opacity-90 transition-all flex items-center justify-center gap-2 shadow-xl"
+                >
+                  <Sparkles className="w-4 h-4" /> Go to Integrations
+                </button>
+                <button 
+                  onClick={() => setShowConnectPrompt(false)}
+                  className="w-full py-3 text-foreground/40 hover:text-foreground text-xs font-bold transition-all"
+                >
+                  NOT NOW
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
