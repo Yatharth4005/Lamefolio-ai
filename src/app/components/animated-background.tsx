@@ -66,16 +66,7 @@ export function AnimatedBackground() {
           <CursorTrail color={planColors.primary} />
       )}
 
-      {/* Rhythmic Scanning Beam (Very Subtle) */}
-      <motion.div
-        className="absolute inset-x-0 h-[1px] pointer-events-none opacity-[0.2]"
-        style={{
-          background: `linear-gradient(to right, transparent, ${planColors.primary}, transparent)`,
-          top: "-1px",
-        }}
-        animate={{ top: ["-1px", "110%"] }}
-        transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
-      />
+
 
       {/* Animated gradient blobs */}
       <motion.div
