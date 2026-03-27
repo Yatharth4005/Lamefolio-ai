@@ -99,8 +99,8 @@ export function ModernSidebar({ onClose }: ModernSidebarProps) {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 px-3 py-4">
-        <ul className="space-y-1">
+      <nav className="flex-1 px-4 py-6">
+        <ul className="space-y-1.5">
           {navItems.map((item) => {
             const isActive = location.pathname === item.path;
             return (
@@ -108,14 +108,14 @@ export function ModernSidebar({ onClose }: ModernSidebarProps) {
                 <Link
                   to={item.path}
                   onClick={handleNavItemClick}
-                  className={`relative flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 group ${
+                  className={`relative flex items-center gap-3.5 px-4 py-2.5 rounded-xl transition-all duration-300 group ${
                     isActive
-                      ? "text-foreground bg-white/[0.03] shadow-inner"
-                      : "text-sidebar-foreground/50 hover:text-foreground hover:bg-white/[0.02]"
+                      ? "text-foreground bg-black/[0.04] dark:bg-white/[0.05] border border-black/[0.05] dark:border-white/[0.08]"
+                      : "text-foreground/40 hover:text-foreground hover:bg-black/[0.02] dark:hover:bg-white/[0.02]"
                   }`}
                 >
-                  <div className={`relative z-10 w-5 h-5 flex items-center justify-center ${isActive ? "text-primary" : ""}`}>
-                    <item.icon className="w-4 h-4 stroke-[2.5]" />
+                  <div className={`relative z-10 w-5 h-5 flex items-center justify-center transition-transform group-hover:scale-110 ${isActive ? "text-primary" : "opacity-40"}`}>
+                    <item.icon className={`w-4 h-4 ${isActive ? "stroke-[2.5]" : "stroke-[2]"}`} />
                   </div>
                   <AnimatePresence mode="wait">
                     {!collapsed && (
@@ -124,7 +124,7 @@ export function ModernSidebar({ onClose }: ModernSidebarProps) {
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: -10 }}
                         transition={{ duration: 0.2 }}
-                        className="text-[13px] font-medium tracking-tight relative z-10"
+                        className={`text-[13px] font-bold tracking-tight relative z-10 ${isActive ? "" : ""}`}
                       >
                         {item.label}
                       </motion.span>
@@ -134,7 +134,8 @@ export function ModernSidebar({ onClose }: ModernSidebarProps) {
                   {isActive && (
                     <motion.div
                       layoutId="sidebar-active-indicator"
-                      className="absolute left-0 w-0.5 h-4 bg-primary rounded-full shadow-[0_0_10px_rgba(94,106,210,1)]"
+                      className="absolute left-0 w-1 h-5 bg-primary rounded-full shadow-[0_0_15px_rgba(94,106,210,0.8)]"
+                      transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                     />
                   )}
                 </Link>
