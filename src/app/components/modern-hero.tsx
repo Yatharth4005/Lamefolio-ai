@@ -75,6 +75,7 @@ export function ModernHero() {
           <motion.button
             whileHover={{ y: -2, backgroundColor: "rgba(0,0,0,0.05)" }}
             whileTap={{ scale: 0.98 }}
+            onClick={() => window.open("https://www.youtube.com/watch?v=JdBnPsTmZpY", "_blank")}
             className="px-8 py-4 bg-black/[0.02] dark:bg-white/[0.02] border border-black/[0.08] dark:border-white/[0.08] text-foreground/80 rounded-xl font-bold flex items-center gap-3 transition-all shadow-sm"
           >
             <Play className="w-4 h-4" />

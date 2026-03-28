@@ -1,10 +1,10 @@
 import { ModernHero } from "../components/modern-hero";
 import { TemplateGallery } from "../components/template-gallery";
 import { PortfolioList } from "../components/portfolio-list";
-import { Sparkles, Layout, Globe, Play, MonitorPlay, MousePointer2, Loader2 } from "lucide-react";
+import { Sparkles, Layout, Globe, Play, MonitorPlay, MousePointer2 } from "lucide-react";
 import { useNavigate } from "react-router";
-import { motion, useScroll, useTransform, AnimatePresence } from "motion/react";
-import { useRef, useEffect, useState } from "react";
+import { motion, useScroll, useTransform } from "motion/react";
+import { useRef, useState } from "react";
 
 export function DashboardPage() {
   const navigate = useNavigate();
@@ -19,66 +19,8 @@ export function DashboardPage() {
   const opacity = useTransform(scrollYProgress, [0, 0.1, 0.4], [0, 1, 1]);
   const y = useTransform(scrollYProgress, [0, 0.4], [50, 0]);
 
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const [videoReady, setVideoReady] = useState(false);
-  const [loadProgress, setLoadProgress] = useState(0);
-  const [blobUrl, setBlobUrl] = useState<string | null>(null);
-
-  // Fetch entire video as blob so it plays from memory without stalling
-  useEffect(() => {
-    let cancelled = false;
-
-    const fetchVideo = async () => {
-      try {
-        const response = await fetch("/Lamefolio-demo.mp4");
-        const reader = response.body?.getReader();
-        const contentLength = +(response.headers.get("Content-Length") || 0);
-
-        if (!reader) return;
-
-        const chunks: Uint8Array[] = [];
-        let received = 0;
-
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done || cancelled) break;
-          chunks.push(value);
-          received += value.length;
-          if (contentLength > 0) {
-            setLoadProgress(Math.round((received / contentLength) * 100));
-          }
-        }
-
-        if (cancelled) return;
-
-        const blob = new Blob(chunks as any[], { type: "video/mp4" });
-        const url = URL.createObjectURL(blob);
-        setBlobUrl(url);
-      } catch (err) {
-        console.error("Video preload failed:", err);
-        // Fallback: use direct URL
-        setBlobUrl("/Lamefolio-demo.mp4");
-      }
-    };
-
-    fetchVideo();
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  // Once blob URL is set and video element mounts, play it
-  useEffect(() => {
-    if (blobUrl && videoRef.current) {
-      videoRef.current.load();
-    }
-  }, [blobUrl]);
-
-  const handleCanPlayThrough = () => {
-    setVideoReady(true);
-    videoRef.current?.play().catch(() => {});
-  };
+  const [isPlaying, setIsPlaying] = useState(false);
+  const youtubeId = "JdBnPsTmZpY";
 
   return (
     <div className="max-w-7xl mx-auto px-6 md:px-12 py-8" ref={containerRef}>
@@ -97,83 +39,70 @@ export function DashboardPage() {
           {/* Browser-like Toolbar */}
           <div className="h-10 border-b border-white/[0.05] flex items-center px-6 justify-between bg-white/[0.02]">
             <div className="flex gap-2">
-              <div className="w-2.5 h-2.5 rounded-full bg-red-400/20" />
-              <div className="w-2.5 h-2.5 rounded-full bg-amber-400/20" />
-              <div className="w-2.5 h-2.5 rounded-full bg-emerald-400/20" />
+              <div className="w-2.5 h-2.5 rounded-full bg-red-400/60" />
+              <div className="w-2.5 h-2.5 rounded-full bg-amber-400/60" />
+              <div className="w-2.5 h-2.5 rounded-full bg-emerald-400/60" />
             </div>
-            <div className="flex items-center gap-2">
-              <div className="h-1.5 w-16 bg-white/[0.05] rounded-full" />
-              <div className="h-1.5 w-24 bg-white/[0.03] rounded-full" />
+            <div className="flex items-center gap-2 px-4 py-1 bg-white/[0.03] rounded-lg border border-white/[0.05]">
+              <div className="w-3 h-3 rounded-full bg-emerald-500/30 flex items-center justify-center">
+                <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+              </div>
+              <span className="text-[10px] font-medium text-white/30 tracking-wide">lamefolio.ai/demo</span>
             </div>
             <div className="w-10" />
           </div>
 
+          {/* YouTube Video Area */}
           <div className="aspect-video w-full relative">
-            {/* Loading Skeleton — shown while video is buffering */}
-            <AnimatePresence>
-              {!videoReady && (
-                <motion.div
-                  key="skeleton"
-                  initial={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.6 }}
-                  className="absolute inset-0 z-20 bg-[#0A0A0B] flex flex-col items-center justify-center gap-6"
-                >
-                  {/* Shimmer effect */}
-                  <div className="absolute inset-0 overflow-hidden">
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.02] to-transparent animate-shimmer" />
-                  </div>
+            {!isPlaying ? (
+              /* Thumbnail with Play Button overlay */
+              <div
+                className="absolute inset-0 cursor-pointer group/play"
+                onClick={() => setIsPlaying(true)}
+              >
+                {/* YouTube thumbnail */}
+                <img
+                  src={`https://img.youtube.com/vi/${youtubeId}/maxresdefault.jpg`}
+                  alt="Lamefolio AI Demo"
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.02]"
+                />
 
-                  <div className="relative flex flex-col items-center gap-4">
-                    <div className="w-16 h-16 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center">
-                      <Loader2 className="w-7 h-7 text-primary animate-spin" />
-                    </div>
-                    <div className="text-center">
-                      <p className="text-[11px] font-black uppercase tracking-[0.2em] text-foreground/40 mb-2">
-                        Loading Demo
-                      </p>
-                      {/* Progress bar */}
-                      <div className="w-48 h-1 bg-white/[0.05] rounded-full overflow-hidden">
-                        <motion.div
-                          className="h-full bg-gradient-to-r from-primary to-purple-500 rounded-full"
-                          initial={{ width: "0%" }}
-                          animate={{ width: `${loadProgress}%` }}
-                          transition={{ duration: 0.3 }}
-                        />
-                      </div>
-                      <p className="text-[9px] font-bold text-foreground/20 mt-2 uppercase tracking-widest">
-                        {loadProgress}% buffered
-                      </p>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+                {/* Dark gradient overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-black/30" />
 
-            {/* The actual video — plays from memory blob */}
-            {blobUrl && (
-              <video
-                ref={videoRef}
-                autoPlay={true}
-                loop={true}
-                muted={true}
-                playsInline={true}
-                preload="auto"
-                onCanPlayThrough={handleCanPlayThrough}
-                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.01]"
-                src={blobUrl}
+                {/* Centered Play Button */}
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <motion.button
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="w-20 h-20 bg-primary/90 backdrop-blur-xl rounded-full flex items-center justify-center shadow-[0_0_60px_rgba(94,106,210,0.4)] border border-white/10 transition-all group-hover/play:shadow-[0_0_80px_rgba(94,106,210,0.6)]"
+                  >
+                    <Play className="w-8 h-8 text-white fill-white ml-1" />
+                  </motion.button>
+                </div>
+
+                {/* Bottom info bar */}
+                <div className="absolute bottom-0 left-0 right-0 p-6 flex items-end justify-between">
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40 mb-1">Product Demo</p>
+                    <h3 className="text-lg font-bold text-white tracking-tight">See Lamefolio AI in Action</h3>
+                  </div>
+                  <div className="flex items-center gap-2 px-3 py-1.5 bg-white/10 backdrop-blur-xl rounded-lg border border-white/10">
+                    <div className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse" />
+                    <span className="text-[9px] font-bold text-white/70 uppercase tracking-widest">Watch Demo</span>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              /* Actual YouTube Embed */
+              <iframe
+                src={`https://www.youtube.com/embed/${youtubeId}?autoplay=1&rel=0&modestbranding=1&showinfo=0&controls=0&iv_load_policy=3&loop=1&playlist=${youtubeId}`}
+                title="Lamefolio AI Demo"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+                className="absolute inset-0 w-full h-full border-0"
               />
             )}
-
-            {/* Interactive Overlays */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-8 z-10">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-white/10 backdrop-blur-xl border border-white/10 rounded-full flex items-center justify-center animate-pulse">
-                  <Play className="w-4 h-4 text-white fill-white" />
-                </div>
-                <span className="text-[10px] font-black uppercase tracking-widest text-white/60">Live Demonstration — Portfolio Synthesis Engine</span>
-              </div>
-            </div>
           </div>
         </div>
 
