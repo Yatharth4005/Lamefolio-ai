@@ -165,6 +165,26 @@
     background-color: var(--app-background);
   }
 
+  /* Global pointer cursor for all interactive elements */
+  button,
+  a,
+  [role="button"],
+  [role="link"],
+  [role="menuitem"],
+  [role="tab"],
+  select,
+  summary,
+  label[for],
+  input[type="checkbox"],
+  input[type="radio"],
+  input[type="submit"],
+  input[type="button"],
+  input[type="reset"],
+  [onclick],
+  [tabindex]:not([tabindex="-1"]) {
+    cursor: pointer;
+  }
+
   /**
   * Default typography styles for HTML elements (h1-h4, p, label, button, input).
   * These are in @layer base, so Tailwind utility classes (like text-sm, text-lg) automatically override them.
