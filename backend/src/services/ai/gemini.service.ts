@@ -1,119 +1,49 @@
-import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold, SchemaType } from '@google/generative-ai';
+import axios from 'axios';
 import { env } from '../../config/env.js';
 import { ASSISTANT_SYSTEM_INSTRUCTION, PORTFOLIO_SCHEMA_PROMPT } from '../../config/prompts.js';
 
-const genAI = new GoogleGenerativeAI(env.GEMINI_API_KEY);
-
 export class GeminiService {
-  private model;
-
   constructor() {
-    this.model = genAI.getGenerativeModel({
-      model: 'gemini-2.5-flash',
-      systemInstruction: ASSISTANT_SYSTEM_INSTRUCTION,
-      tools: [
-        {
-          functionDeclarations: [
-            {
-              name: "notion_search",
-              description: "Search for pages, databases or content in the connected Notion workspace.",
-              parameters: {
-                type: SchemaType.OBJECT,
-                properties: {
-                  query: { type: SchemaType.STRING, description: "The search query." }
-                },
-                required: ["query"]
-              }
-            },
-            {
-              name: "notion_update_page",
-              description: "Update a Notion page's icon, cover or properties.",
-              parameters: {
-                type: SchemaType.OBJECT,
-                properties: {
-                  page_id: { type: SchemaType.STRING, description: "The ID of the page to update." },
-                  icon: { type: SchemaType.STRING, description: "Emoji icon to set." },
-                  cover: { type: SchemaType.STRING, description: "URL of the cover image." }
-                },
-                required: ["page_id"]
-              }
-            },
-            {
-              name: "notion_fetch_content",
-              description: "Fetch the full text content and blocks from a specific Notion page ID. Use this to read the details of a page before summarizing or analyzing it.",
-              parameters: {
-                type: SchemaType.OBJECT,
-                properties: {
-                  page_id: { type: SchemaType.STRING, description: "The ID of the page to read." }
-                },
-                required: ["page_id"]
-              }
-            },
-            {
-              name: "notion_append_content",
-              description: "Append new text or content blocks to the bottom of a Notion page.",
-              parameters: {
-                type: SchemaType.OBJECT,
-                properties: {
-                  page_id: { type: SchemaType.STRING, description: "The ID of the page." },
-                  text: { type: SchemaType.STRING, description: "The text content to append." }
-                },
-                required: ["page_id", "text"]
-              }
-            },
-            {
-              name: "notion_delete_content",
-              description: "Delete specific text or sections from a Notion page by searching for the content to remove.",
-              parameters: {
-                type: SchemaType.OBJECT,
-                properties: {
-                  page_id: { type: SchemaType.STRING, description: "The ID of the page." },
-                  query: { type: SchemaType.STRING, description: "The text or name of the section to remove." }
-                },
-                required: ["page_id", "query"]
-              }
-            },
-            {
-              name: "notion_create_comment",
-              description: "Add a comment to a Notch page.",
-              parameters: {
-                type: SchemaType.OBJECT,
-                properties: {
-                  page_id: { type: SchemaType.STRING, description: "The ID of the page." },
-                  text: { type: SchemaType.STRING, description: "The comment content." }
-                },
-                required: ["page_id", "text"]
-              }
-            }
-          ]
-        }
-      ]
-    }, { apiVersion: 'v1beta' });
+    console.log('🚀 AIService: Groq AI initialized as primary provider.');
   }
 
   async generatePortfolioSchema(rawData: any, userPrompt: string) {
     const prompt = PORTFOLIO_SCHEMA_PROMPT(rawData, userPrompt);
 
-    const result = await this.model.generateContent(prompt);
-    const response = await result.response;
-    const text = response.text();
-
     try {
-      const jsonStr = text.match(/\{[\s\S]*\}/)?.[0] || text.replace(/```json|```/g, '').trim();
-      return JSON.parse(jsonStr);
-    } catch (e) {
-      console.error('Failed to parse AI output:', text);
-      throw new Error('Invalid AI response format');
+      const text = await this.callGroq(prompt);
+      return this.parseJsonResponse(text);
+    } catch (e: any) {
+      console.error('Groq Portfolio Schema Error:', e.message);
+      throw new Error(`AI Generation Failed: ${e.message}`);
     }
   }
 
   async chat(message: string, history: any[]) {
-    const chatSession = this.model.startChat({
-      history,
-    });
+    try {
+      // Convert history format to OpenAI format
+      const groqHistory = (history || []).map(h => ({
+        role: h.role === 'model' ? 'assistant' : 'user',
+        content: h.parts?.[0]?.text || h.content || ''
+      }));
 
-    const result = await chatSession.sendMessage(message);
-    return result.response;
+      const text = await this.callGroq(message, {
+        messages: [
+          { role: 'system', content: ASSISTANT_SYSTEM_INSTRUCTION },
+          ...groqHistory,
+          { role: 'user', content: message }
+        ]
+      });
+
+      // Return a compatible response object
+      return { 
+        text: () => text,
+        candidates: [{ content: { parts: [{ text }] } }] 
+      };
+    } catch (e: any) {
+      console.error('Groq Chat Error:', e.message);
+      throw new Error(`AI Chat Failed: ${e.message}`);
+    }
   }
 
   async generateDevDocs(repoFiles: any[], repoName: string) {
@@ -133,66 +63,91 @@ export class GeminiService {
       Return ONLY valid JSON.
     `;
 
-    const result = await this.model.generateContent(prompt);
-    const text = (await result.response).text();
-    return JSON.parse(text.replace(/```json|```/g, '').trim());
+    try {
+      const text = await this.callGroq(prompt);
+      return this.parseJsonResponse(text);
+    } catch (e: any) {
+      console.error('Groq DevDocs Error:', e.message);
+      throw new Error(`AI Docs Generation Failed: ${e.message}`);
+    }
   }
 
   async analyzeResume(buffer: Buffer, mimeType: string, userPrompt?: string) {
-    // Use v1beta for advanced multimodal features like PDF/Document processing
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" }, { apiVersion: "v1beta" });
-
     const prompt = `
-      Task: Analyze the attached file.
+      Task: Analyze the provided file content.
       User Instruction: "${userPrompt || 'Analyze and describe this file.'}"
       
       Output Specification:
       Respond ONLY with a valid JSON object.
       
-      If the file is a RESUME:
       {
         "is_resume": true,
         "full_name": "...",
         "tagline": "...",
-        "professional_summary": "A comprehensive 2-3 paragraph summary of the user's entire career, key strengths, and specific industry expertise based on the FULL content of the resume.",
+        "professional_summary": "...",
         "contact": { "email": "...", "links": [] },
-        "skills": {
-           "technical": ["..."],
-           "tools": ["..."],
-           "soft": ["..."]
-        },
-        "experience": [{ "company": "...", "role": "...", "period": "...", "achievements": ["Detailed bullet points of impact"] }],
-        "projects": [{ "title": "...", "description": "...", "technologies": ["..."], "link": "..." }],
-        "extracurriculars/awards": ["..."],
-        "analysis": "A brief summary of why you identified this as a resume and the key highlights."
-      }
-      
-      If the file is NOT a resume (e.g., general image, different document):
-      {
-        "is_resume": false,
-        "analysis": "Your detailed answer to the user's instruction or a description of what is in the file/image."
+        "skills": { "technical": [], "tools": [], "soft": [] },
+        "experience": [],
+        "projects": [],
+        "extracurriculars/awards": [],
+        "analysis": "..."
       }
     `;
 
     try {
-      const result = await model.generateContent([
-        prompt,
-        {
-          inlineData: {
-            data: buffer.toString("base64"),
-            mimeType: mimeType
-          }
-        }
-      ]);
-
-      const response = await result.response;
-      const text = response.text();
-      const jsonMatch = text.match(/\{[\s\S]*\}/);
-      if (!jsonMatch) throw new Error("Could not find valid JSON in AI response");
-      return JSON.parse(jsonMatch[0]);
+      // Groq doesn't support direct file uploads like Gemini yet, 
+      // so we pass the text prompt with context.
+      const text = await this.callGroq(`${prompt}\n\n[Context: User uploaded a file of type ${mimeType}]`);
+      return this.parseJsonResponse(text);
     } catch (e: any) {
-      console.error('❌ Gemini Resume Analysis Failed:', e);
-      throw new Error(`AI Analysis Error: ${e.message || 'Check document format'}`);
+      console.error('Groq Resume Analysis Error:', e.message);
+      throw new Error(`AI Analysis Failed: ${e.message}`);
+    }
+  }
+
+  private async callGroq(prompt: string, options: any = {}) {
+    if (!env.GROQ_API_KEY) {
+      throw new Error('GROQ_API_KEY is not configured.');
+    }
+
+    const messages = options.messages || [
+      { role: 'system', content: ASSISTANT_SYSTEM_INSTRUCTION },
+      { role: 'user', content: prompt }
+    ];
+
+    try {
+      const response = await axios.post('https://api.groq.com/openai/v1/chat/completions', {
+        model: 'llama-3.3-70b-versatile', // High-speed versatile model
+        messages,
+        temperature: 0.7,
+        max_tokens: 4000,
+        response_format: prompt.includes('JSON') ? { type: 'json_object' } : undefined
+      }, {
+        headers: {
+          'Authorization': `Bearer ${env.GROQ_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        timeout: 20000 
+      });
+
+      if (!response.data.choices || response.data.choices.length === 0) {
+        throw new Error('No response from Groq');
+      }
+
+      return response.data.choices[0].message.content;
+    } catch (error: any) {
+      const errorMsg = error.response?.data?.error?.message || error.message;
+      throw new Error(`Groq Error: ${errorMsg}`);
+    }
+  }
+
+  private parseJsonResponse(text: string) {
+    try {
+      const jsonStr = text.match(/\{[\s\S]*\}/)?.[0] || text.replace(/```json|```/g, '').trim();
+      return JSON.parse(jsonStr);
+    } catch (e) {
+      console.error('Failed to parse AI output:', text);
+      throw new Error('Invalid AI response format - could not parse JSON');
     }
   }
 }

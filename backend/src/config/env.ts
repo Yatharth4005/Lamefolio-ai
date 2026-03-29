@@ -17,6 +17,8 @@ const envSchema = z.object({
   RAZORPAY_KEY_SECRET: z.string().optional(),
   PORT: z.coerce.number().default(5000),
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
+  OPENROUTER_API_KEY: z.string().optional(),
+  GROQ_API_KEY: z.string().optional(),
 });
 
 const _env = envSchema.safeParse(process.env);
